@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import './screens/maintenance.dart';
 import './screens/home.dart';
 import './screens/stock_check.dart';
 import './screens/production_in.dart';
@@ -21,11 +22,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
-        '/': (ctx) => const  HomeScreen(),
+        '/': (ctx) => const HomeScreen(),
         StockCheckScreen.routeName: (ctx) => const StockCheckScreen(),
         ProductionInScreen.routeName: (ctx) => const ProductionInScreen(),
         PendingListScreen.routeName: (ctx) => const PendingListScreen(),
         StockInScreen.routeName: (ctx) => const StockInScreen(),
+        MaintenanceScreen.routeName: (ctx) => const MaintenanceScreen(),
       },
       onGenerateRoute: (settings) {
         print(settings.arguments);

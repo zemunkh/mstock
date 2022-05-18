@@ -40,7 +40,7 @@ class MainDrawer extends StatelessWidget {
             Container(
               height: 100,
               width: double.infinity,
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(16),
               alignment: Alignment.centerLeft,
               color: style.Colors.mainYellow,
               child: Text(
@@ -74,15 +74,15 @@ class MainDrawer extends StatelessWidget {
             ),  
 
             const Divider(height: 15.0,color: Colors.black87,),
-            
+
             ListTile(
               leading: const Icon(
-                EvaIcons.clockOutline,
+                EvaIcons.checkmarkCircle,
                 size: 26,
                 color: style.Colors.mainGrey,
               ),
               title: const Text(
-                'Pending List',
+                'Stock Check',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -90,10 +90,10 @@ class MainDrawer extends StatelessWidget {
               ),
               onTap: () {
                 WidgetsBinding.instance!.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PendingListScreen()));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => StockCheckScreen()));
                 });
               },
-            ),       
+            ),      
 
             ListTile(
               leading: const Icon(
@@ -117,12 +117,12 @@ class MainDrawer extends StatelessWidget {
 
             ListTile(
               leading: const Icon(
-                EvaIcons.checkmarkCircle,
+                EvaIcons.clockOutline,
                 size: 26,
                 color: style.Colors.mainGrey,
               ),
               title: const Text(
-                'Stock Check',
+                'Pending List',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -130,10 +130,10 @@ class MainDrawer extends StatelessWidget {
               ),
               onTap: () {
                 WidgetsBinding.instance!.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => StockCheckScreen()));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PendingListScreen()));
                 });
               },
-            ),
+            ), 
 
             ListTile(
               leading: const Icon(
@@ -150,7 +150,7 @@ class MainDrawer extends StatelessWidget {
               ),
               onTap: () {
                 WidgetsBinding.instance!.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => StockInScreen()));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockInScreen()));
                 });
               },
             ),

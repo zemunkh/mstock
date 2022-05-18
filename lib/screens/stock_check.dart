@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import '../widgets/stock_check.dart';
 import '../widgets/main_drawer.dart';
 import '../styles/theme.dart' as style;
 
@@ -53,10 +54,10 @@ class _StockCheckScreenState extends State<StockCheckScreen> {
         ),
       ),
       drawer: const MainDrawer(),
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Center(
-          child: Text('Stock checking')
+          child: StockCheck()
         ),
       ),
     );
