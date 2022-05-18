@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import '../widgets/pending_list.dart';
 import '../widgets/main_drawer.dart';
 import '../styles/theme.dart' as style;
 
-
 class PendingListScreen extends StatefulWidget {
   static const routeName = '/pending-list';
-  const PendingListScreen({ Key? key }) : super(key: key);
+  const PendingListScreen({Key? key}) : super(key: key);
 
   @override
   State<PendingListScreen> createState() => _PendingListScreenState();
@@ -46,9 +46,7 @@ class _PendingListScreenState extends State<PendingListScreen> {
                 EvaIcons.infoOutline,
               ),
               color: Colors.white,
-              onPressed: () {
-
-              },
+              onPressed: () {},
             )
           ],
         ),
@@ -56,9 +54,7 @@ class _PendingListScreenState extends State<PendingListScreen> {
       drawer: const MainDrawer(),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
-        child: Center(
-          child: Text('Pending')
-        ),
+        child: PendingList(),
       ),
     );
   }

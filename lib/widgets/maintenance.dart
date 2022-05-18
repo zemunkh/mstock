@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Maintenance extends StatefulWidget {
-  const Maintenance({ Key? key }) : super(key: key);
+  const Maintenance({Key? key}) : super(key: key);
 
   @override
   State<Maintenance> createState() => _MaintenanceState();
@@ -62,7 +62,7 @@ class _MaintenanceState extends State<Maintenance> {
                   print('Tapped');
                   _focusNode(context, _minuteNode);
                 },
-              )
+              ),
             ),
             const Expanded(
               flex: 2,

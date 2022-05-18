@@ -3,25 +3,16 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:intl/intl.dart';
 import '../styles/theme.dart' as style;
 
-class Production extends StatefulWidget {
-  const Production({Key? key}) : super(key: key);
+class StockIn extends StatefulWidget {
+  const StockIn({Key? key}) : super(key: key);
 
   @override
-  State<Production> createState() => _ProductionState();
+  State<StockIn> createState() => _StockInState();
 }
 
-class _ProductionState extends State<Production> {
+class _StockInState extends State<StockIn> {
   final _masterController = TextEditingController();
   final FocusNode _masterNode = FocusNode();
-
-  String lineVal = 'E7';
-  List<String> lines = [
-    'E7',
-    'E8',
-    'K22',
-    'K23',
-    'K44',
-  ];
 
   Future _focusNode(BuildContext context, FocusNode node) async {
     FocusScope.of(context).requestFocus(node);
@@ -48,7 +39,7 @@ class _ProductionState extends State<Production> {
             const Expanded(
               flex: 5,
               child: Text(
-                'Production In: ',
+                'Stock In: ',
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -65,7 +56,6 @@ class _ProductionState extends State<Production> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: const [
                         Text('Date:'),
-                        Text('Shift:'),
                       ],
                     ),
                     Column(
@@ -74,66 +64,10 @@ class _ProductionState extends State<Production> {
                         Text(
                           DateFormat("yyyy/MM/dd HH:mm").format(createdDate),
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: style.Colors.mainDarkGrey,
-                            border: Border.all(
-                              color: Colors.black,
-                              width: 1,
-                            ),
-                          ),
-                          child: Text('Noon'),
-                        ),
                       ],
                     )
                   ],
                 )),
-          ],
-        ),
-      );
-    }
-
-    Widget _machineLine(BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 2, right: 2),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const Expanded(
-              flex: 5,
-              child: Text(
-                'Machine Line: ',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: style.Colors.mainGrey,
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: DropdownButton(
-                // Initial Value
-                value: lineVal,
-
-                // Down Arrow Icon
-                icon: const Icon(Icons.keyboard_arrow_down),
-
-                // Array list of items
-                items: lines.map((String items) {
-                  return DropdownMenuItem(
-                    value: items,
-                    child: Text(items),
-                  );
-                }).toList(),
-                onChanged: (Object? value) {
-                  setState(() {
-                    lineVal = value.toString();
-                  });
-                },
-              ),
-            ),
           ],
         ),
       );
@@ -247,7 +181,6 @@ class _ProductionState extends State<Production> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _header(context),
-          _machineLine(context),
           _scanControl(context),
           _scannerInput('Scan code', _masterController, _masterNode),
         ],

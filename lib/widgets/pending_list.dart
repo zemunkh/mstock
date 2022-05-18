@@ -3,14 +3,14 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:intl/intl.dart';
 import '../styles/theme.dart' as style;
 
-class Production extends StatefulWidget {
-  const Production({Key? key}) : super(key: key);
+class PendingList extends StatefulWidget {
+  const PendingList({Key? key}) : super(key: key);
 
   @override
-  State<Production> createState() => _ProductionState();
+  State<PendingList> createState() => _PendingListState();
 }
 
-class _ProductionState extends State<Production> {
+class _PendingListState extends State<PendingList> {
   final _masterController = TextEditingController();
   final FocusNode _masterNode = FocusNode();
 
@@ -21,6 +21,19 @@ class _ProductionState extends State<Production> {
     'K22',
     'K23',
     'K44',
+  ];
+
+  String shiftVal = 'Noon 12-15';
+
+  List<String> shifts = [
+    'Noon 12-15',
+    'Afternoon 15-18',
+    'Evening 18-21',
+    'Night 21-24',
+    'Midnight 24-03',
+    'Dawn 03-06',
+    'Morning 06-09',
+    'Late Morning 09-12',
   ];
 
   Future _focusNode(BuildContext context, FocusNode node) async {
@@ -44,11 +57,11 @@ class _ProductionState extends State<Production> {
         padding: const EdgeInsets.only(left: 2, right: 2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const Expanded(
+          children: const <Widget>[
+            Expanded(
               flex: 5,
               child: Text(
-                'Production In: ',
+                'Pending list: ',
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -58,129 +71,88 @@ class _ProductionState extends State<Production> {
               ),
             ),
             Expanded(
-                flex: 5,
-                child: Row(
-                  children: <Widget>[
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: const [
-                        Text('Date:'),
-                        Text('Shift:'),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          DateFormat("yyyy/MM/dd HH:mm").format(createdDate),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: style.Colors.mainDarkGrey,
-                            border: Border.all(
-                              color: Colors.black,
-                              width: 1,
-                            ),
-                          ),
-                          child: Text('Noon'),
-                        ),
-                      ],
-                    )
-                  ],
-                )),
-          ],
-        ),
-      );
-    }
-
-    Widget _machineLine(BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 2, right: 2),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const Expanded(
               flex: 5,
-              child: Text(
-                'Machine Line: ',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: style.Colors.mainGrey,
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: DropdownButton(
-                // Initial Value
-                value: lineVal,
-
-                // Down Arrow Icon
-                icon: const Icon(Icons.keyboard_arrow_down),
-
-                // Array list of items
-                items: lines.map((String items) {
-                  return DropdownMenuItem(
-                    value: items,
-                    child: Text(items),
-                  );
-                }).toList(),
-                onChanged: (Object? value) {
-                  setState(() {
-                    lineVal = value.toString();
-                  });
-                },
-              ),
+              child: Text(''),
             ),
           ],
         ),
       );
     }
 
-    Widget _scanControl(BuildContext context) {
+    Widget _filterSelectors(BuildContext context) {
       return Padding(
         padding: const EdgeInsets.only(left: 2, right: 2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            const Expanded(
-              flex: 5,
-              child: Text(
-                'Scan Stock: ',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: style.Colors.mainGrey,
-                ),
-              ),
-            ),
             Expanded(
               flex: 5,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: Text('Add'),
-                    style: ElevatedButton.styleFrom(
-                      primary: style.Colors.button4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                  const Text(
+                    'Machine Line: ',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: style.Colors.mainGrey,
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: Text('Del'),
-                    style: ElevatedButton.styleFrom(
-                      primary: style.Colors.button2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                  DropdownButton(
+                    // Initial Value
+                    value: lineVal,
+
+                    // Down Arrow Icon
+                    icon: const Icon(Icons.keyboard_arrow_down),
+
+                    // Array list of items
+                    items: lines.map((String items) {
+                      return DropdownMenuItem(
+                        value: items,
+                        child: Text(items),
+                      );
+                    }).toList(),
+                    onChanged: (Object? value) {
+                      setState(() {
+                        lineVal = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 5,
+              child: Column(
+                children: [
+                  const Text(
+                    'Shift: ',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: style.Colors.mainGrey,
                     ),
+                  ),
+                  DropdownButton(
+                    // Initial Value
+                    value: shiftVal,
+
+                    // Down Arrow Icon
+                    icon: const Icon(Icons.keyboard_arrow_down),
+
+                    // Array list of items
+                    items: shifts.map((String items) {
+                      return DropdownMenuItem(
+                        value: items,
+                        child: Text(items),
+                      );
+                    }).toList(),
+                    onChanged: (Object? value) {
+                      setState(() {
+                        shiftVal = value.toString();
+                      });
+                    },
                   ),
                 ],
               ),
@@ -247,8 +219,14 @@ class _ProductionState extends State<Production> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _header(context),
-          _machineLine(context),
-          _scanControl(context),
+          const Text(
+            'Filter',
+            style: TextStyle(
+              color: Colors.red,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          _filterSelectors(context),
           _scannerInput('Scan code', _masterController, _masterNode),
         ],
       ),

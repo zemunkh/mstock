@@ -6,7 +6,7 @@ import '../styles/theme.dart' as style;
 
 class ProductionInScreen extends StatefulWidget {
   static const routeName = '/production-in';
-  const ProductionInScreen({ Key? key }) : super(key: key);
+  const ProductionInScreen({Key? key}) : super(key: key);
 
   @override
   State<ProductionInScreen> createState() => _ProductionInScreenState();
@@ -46,9 +46,7 @@ class _ProductionInScreenState extends State<ProductionInScreen> {
                 EvaIcons.infoOutline,
               ),
               color: Colors.white,
-              onPressed: () {
-
-              },
+              onPressed: () {},
             )
           ],
         ),
@@ -56,9 +54,7 @@ class _ProductionInScreenState extends State<ProductionInScreen> {
       drawer: const MainDrawer(),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Center(
-          child: Production(),
-        ),
+        child: Production(),
       ),
     );
   }

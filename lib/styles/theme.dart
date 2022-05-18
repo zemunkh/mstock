@@ -8,6 +8,7 @@ class Colors {
   static const Color mainYellow = Color(0xFFFEF08A);
   static const Color mainBlue = Color(0xFF0EA5E9);
   static const Color mainGrey = Color(0xFF5670A1);
+  static const Color mainDarkGrey = Color(0xff7c94b6);
 
   static const Color button1 = Color(0xFFfcbe2b);
   static const Color button2 = Color(0xFFad3d5b);
