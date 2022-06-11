@@ -42,13 +42,13 @@ class MainDrawer extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               alignment: Alignment.centerLeft,
-              color: style.Colors.mainYellow,
+              color: style.Colors.mainAppBar,
               child: Text(
                 'Menu',
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 30,
-                  color: Colors.grey[700],
+                  color: Colors.grey[200],
                 ),
               ),
             ),
@@ -82,7 +82,7 @@ class MainDrawer extends StatelessWidget {
                 color: style.Colors.mainGrey,
               ),
               title: const Text(
-                'Stock Check',
+                'Check Code',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

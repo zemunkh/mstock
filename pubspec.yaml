@@ -36,4 +36,8 @@ flutter_icons:
 # The following section is specific to Flutter.
 flutter:
   uses-material-design: true
+  
+  assets:
+    - assets/icons/
+    - assets/images/
 

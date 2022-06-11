@@ -10,15 +10,13 @@ import '../styles/theme.dart' as style;
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
-  const HomeScreen({ Key? key }) : super(key: key);
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -46,7 +44,36 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.pop(context, false),
           ),
         ],
-      )
+      ),
+    );
+  }
+
+
+  Widget boxMenuItem(String image, String title) {
+    return Container(
+      width: 120,
+      height: 120,
+      margin: const EdgeInsets.all(16),
+      decoration: style.Colors.menuBoxDecor,
+      child: Stack(
+        children: [
+          Center(
+            child: Image.asset("assets/icons/$image.png", width: 100.0),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 130),
+            alignment: Alignment.center,
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: style.Colors.mainAppBar,
+                fontWeight: FontWeight.bold,
+                fontSize: 22.0,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -59,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
         preferredSize: const Size.fromHeight(50.0),
         child: AppBar(
           elevation: 2.0,
-          backgroundColor: const Color(0xFF0EA5E9),
+          backgroundColor: style.Colors.mainAppBar,
           leading: IconButton(
             icon: const Icon(
               EvaIcons.menu2Outline,
@@ -81,121 +108,54 @@ class _HomeScreenState extends State<HomeScreen> {
                 EvaIcons.infoOutline,
               ),
               color: Colors.white,
-              onPressed: () {
-
-              },
+              onPressed: () {},
             )
           ],
         ),
       ),
       drawer: const MainDrawer(),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 32,),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  WidgetsBinding.instance!.addPostFrameCallback((_) {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => StockCheckScreen()));
-                  });
-                }, 
-                child: const Text(
-                  'Stock Check',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  primary: style.Colors.button1,
-                  fixedSize: const Size(300, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20,),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  WidgetsBinding.instance!.addPostFrameCallback((_) {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ProductionInScreen()));
-                  });
-                }, 
-                child: const Text(
-                  'Production In',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                primary: style.Colors.button2,
-                fixedSize: const Size(300, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20,),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  WidgetsBinding.instance!.addPostFrameCallback((_) {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PendingListScreen()));
-                  });
-                }, 
-                child: const Text(
-                  'Pending List',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                primary: style.Colors.button3,
-                fixedSize: const Size(300, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20,),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  WidgetsBinding.instance!.addPostFrameCallback((_) {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => StockInScreen()));
-                  });
-                }, 
-                child: const Text(
-                  'Stock In',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ), 
-                ),
-                style: ElevatedButton.styleFrom(
-                primary: style.Colors.button4,
-                fixedSize: const Size(300, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            )
-          ],
-        ),
+      body: GridView.count(
+        crossAxisCount: 2,
+        children: [
+          InkWell(
+            child: boxMenuItem('warehouse', 'Production In'),
+            onTap: () {
+              // WidgetsBinding.instance!.addPostFrameCallback((_) {
+              //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
+              // });
+            },
+          ),
+          InkWell(
+            child: boxMenuItem('scale', 'Check code'),
+            onTap: () {
+              // WidgetsBinding.instance!.addPostFrameCallback((_) {
+              //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
+              // });
+            },
+          ),
+          InkWell(
+            child: boxMenuItem('expired', 'Pending'),
+            onTap: () {
+              // WidgetsBinding.instance!.addPostFrameCallback((_) {
+              //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
+              // });
+            },
+          ),
+          InkWell(
+            child: boxMenuItem('box', 'Stock In'),
+            onTap: () {
+              // WidgetsBinding.instance!.addPostFrameCallback((_) {
+              //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
+              // });
+            },
+          ),
+        ],
       ),
-      floatingActionButton:FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           WidgetsBinding.instance!.addPostFrameCallback((_) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MaintenanceScreen()));
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (_) => MaintenanceScreen()));
           });
         },
         icon: Icon(Icons.settings),
