@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import '../screens/settings_screen.dart';
 import '../screens/home.dart';
 import '../screens/pending_list.dart';
 import '../screens/production_in.dart';
@@ -151,6 +152,28 @@ class MainDrawer extends StatelessWidget {
               onTap: () {
                 WidgetsBinding.instance!.addPostFrameCallback((_) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockInScreen()));
+                });
+              },
+            ),
+
+            const Divider(height: 15.0,color: Colors.black87,),
+
+            ListTile(
+              leading: const Icon(
+                EvaIcons.settings2Outline,
+                size: 26,
+                color: style.Colors.mainGrey,
+              ),
+              title: const Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => SettingScreen()));
                 });
               },
             ),

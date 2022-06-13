@@ -5,6 +5,8 @@ import './screens/stock_check.dart';
 import './screens/production_in.dart';
 import './screens/pending_list.dart';
 import './screens/stock_in.dart';
+import './screens/activation_screen.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -22,6 +24,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
+        // '/': (ctx) => ActivationScreen(),
         '/': (ctx) => const HomeScreen(),
         StockCheckScreen.routeName: (ctx) => const StockCheckScreen(),
         ProductionInScreen.routeName: (ctx) => const ProductionInScreen(),

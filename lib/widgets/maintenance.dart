@@ -17,10 +17,11 @@ class _MaintenanceState extends State<Maintenance> {
     FocusScope.of(context).requestFocus(node);
   }
 
+  final _formKey = GlobalKey<FormFieldState>();
+
   @override
   Widget build(BuildContext context) {
     DateTime createdDate = DateTime.now();
-
     Widget _minuteInput(BuildContext context) {
       return Padding(
         padding: const EdgeInsets.only(left: 2, right: 2),
@@ -41,6 +42,7 @@ class _MaintenanceState extends State<Maintenance> {
             Expanded(
               flex: 2,
               child: TextFormField(
+                key: _formKey,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 24,
@@ -50,7 +52,7 @@ class _MaintenanceState extends State<Maintenance> {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding: EdgeInsets.fromLTRB(8, 2, 8, 2),
+                  contentPadding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5.0),
                   ),

@@ -118,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisCount: 2,
         children: [
           InkWell(
+            splashColor: style.Colors.mainBlue,
             child: boxMenuItem('warehouse', 'Production In'),
             onTap: () {
               // WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -126,6 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           InkWell(
+            splashColor: style.Colors.mainBlue,
             child: boxMenuItem('scale', 'Check code'),
             onTap: () {
               // WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -134,6 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           InkWell(
+            splashColor: style.Colors.mainBlue,
             child: boxMenuItem('expired', 'Pending'),
             onTap: () {
               // WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -142,6 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           InkWell(
+            splashColor: style.Colors.mainBlue,
             child: boxMenuItem('box', 'Stock In'),
             onTap: () {
               // WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -158,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (_) => MaintenanceScreen()));
           });
         },
-        icon: Icon(Icons.settings),
+        icon: Icon(Icons.hail_rounded),
         label: Text("Maintenance"),
       ),
     );
