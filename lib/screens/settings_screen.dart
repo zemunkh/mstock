@@ -47,12 +47,12 @@ class SettingScreenState extends State<SettingScreen> {
   }
 
   Future setInitialValue() async {
-    _usernameController.text = await FileManager.readProfile('user_name');
-    _deviceController.text = await FileManager.readProfile('device_name');
-    _ipAddressController.text = await FileManager.readProfile('ip_address');
-    _portNumController.text = await FileManager.readProfile('port_number');
-    _companyController.text = await FileManager.readProfile('company_name');
-    _locationController.text = await FileManager.readProfile('location');
+    _usernameController.text = await FileManager.readString('user_name');
+    _deviceController.text = await FileManager.readString('device_name');
+    _ipAddressController.text = await FileManager.readString('ip_address');
+    _portNumController.text = await FileManager.readString('port_number');
+    _companyController.text = await FileManager.readString('company_name');
+    _locationController.text = await FileManager.readString('location');
     List<String> parsed = [];
     // Initializing 8 types of description input models
   }
@@ -175,12 +175,12 @@ class SettingScreenState extends State<SettingScreen> {
             String company = _companyController.text;
             String location = _locationController.text;
             if(dname != '' && uname != '') {
-              FileManager.saveProfile('device_name', dname).then((_){
-                FileManager.saveProfile('user_name',uname);
-                FileManager.saveProfile('ip_address', ip);
-                FileManager.saveProfile('port_number', port);
-                FileManager.saveProfile('company_name', company);
-                FileManager.saveProfile('location', location);
+              FileManager.saveString('device_name', dname).then((_){
+                FileManager.saveString('user_name',uname);
+                FileManager.saveString('ip_address', ip);
+                FileManager.saveString('port_number', port);
+                FileManager.saveString('company_name', company);
+                FileManager.saveString('location', location);
               });
               print('Saving now!');
             }

@@ -14,7 +14,6 @@ class Colors {
   static const Color mainAppBar = Color(0xFF164CA2);
   static const Color mainAccent = Color(0xFF272727);
 
-
   static const Color button1 = Color(0xFFfcbe2b);
   static const Color button2 = Color(0xFFad3d5b);
   static const Color button3 = Color(0xFF4487FC);
