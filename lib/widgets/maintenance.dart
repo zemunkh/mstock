@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:time_picker_sheet/widget/sheet.dart';
 import 'package:time_picker_sheet/widget/time_picker.dart';
+import '../helper/utils.dart';
 import '../helper/file_manager.dart';
 import '../styles/theme.dart' as style;
 
@@ -36,17 +37,18 @@ class _MaintenanceState extends State<Maintenance> {
   final _machineFormKey = GlobalKey<FormFieldState>();
   final _shiftFormKey = GlobalKey<FormFieldState>();
 
-  DateTime startTimeSelected = DateTime.now();
-  DateTime endTimeSelected = DateTime.now();
+  DateTime startTimeSelected = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, 0);
+  DateTime endTimeSelected =   DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour + 4, 0);
   DateFormat timeFormat = DateFormat("yyyy-MM-dd HH:mm");
 
   String statusText = 'Completed!';
   String lastUpdateTime = '16/06/2022 06:04 PM';
 
-  void _openTimePickerSheet(BuildContext context, bool isStartTime) async {
+  void _openTimePickerSheet(BuildContext context, bool isStartTime, DateTime date) async {
     final result = await TimePicker.show<DateTime?>(
       context: context,
       sheet: TimePickerSheet(
+        initialDateTime: date,
         sheetTitle: 'Select time',
         minuteTitle: 'Minute',
         hourTitle: 'Hour',
@@ -77,7 +79,7 @@ class _MaintenanceState extends State<Maintenance> {
   }
 
 
-  Future _openErrorPanel(BuildContext context, String img, String title, String msg, String btnText) {
+  Future _openDialogPanel(BuildContext context, String img, String title, String msg, String btnText) {
     return showDialog(
       context: context,
       builder: (_) {
@@ -117,6 +119,8 @@ class _MaintenanceState extends State<Maintenance> {
     _passwordController.text = await FileManager.readString('supervisor_password');
     _machineList = await FileManager.readStringList('machine_line');
     _shiftList = await FileManager.readStringList('shift_list');
+    print('Shift: $_shiftList');
+    setState(() {});
   }
 
   @override
@@ -200,11 +204,11 @@ class _MaintenanceState extends State<Maintenance> {
                         setState(() {
                           _delayController.text = '15';
                         });
-                        _openErrorPanel(context, 'close', 'Oops!', 'Value is not in range', 'Try again');
+                        _openDialogPanel(context, 'close', 'Oops!', 'Value is not in range', 'Try again');
                       } else {
                         // Save it to the scan_delay on shared_preference
                         FileManager.saveString('scan_delay', _delayController.text.trim());
-                        _openErrorPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
+                        _openDialogPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
                       }
                     },
                     child: const Icon(
@@ -270,11 +274,13 @@ class _MaintenanceState extends State<Maintenance> {
                   focusNode: _passwordNode,
                   onEditingComplete: () {
                      print('Done: ${_passwordController.text}');
-                     if(_passwordController.text.length > 6) {
+                     if(_passwordController.text.length > 5) {
                       print('Okay cool');
                      } else {
+                      _openDialogPanel(context, 'close', 'Oops!', 'Password must be more than 6 characters', 'Try again');
                       print('Must be more than 6 characters');
                      }
+                     _passwordNode.unfocus();
                   }
                 ),
               ),
@@ -286,7 +292,7 @@ class _MaintenanceState extends State<Maintenance> {
                     onPressed: () {
                       // Save it to the supervisor_password on shared_preference
                       FileManager.saveString('supervisor_password', _passwordController.text.trim());
-                      _openErrorPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
+                      _openDialogPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
                       _passwordNode.unfocus();
                     },
                     child: const Icon(
@@ -459,8 +465,9 @@ class _MaintenanceState extends State<Maintenance> {
                             setState(() {
                               _machineList.insert(0, _machineController.text.trim());
                             });
+                            FileManager.saveList('machine_line', _machineList);
                           } else {
-                            _openErrorPanel(context, 'close', 'Oops!', 'Value is already in there', 'Try again');
+                            _openDialogPanel(context, 'close', 'Oops!', 'Value is already in there', 'Try again');
                           }
                         }
                         _machineNode.unfocus();
@@ -522,7 +529,7 @@ class _MaintenanceState extends State<Maintenance> {
             Expanded(
               flex: 4,
               child: ElevatedButton(
-                onPressed: () => _openTimePickerSheet(context, true),
+                onPressed: () => _openTimePickerSheet(context, true, startTimeSelected),
                 child: Text(
                   DateFormat.Hm().format(startTimeSelected),
                   style: const TextStyle(
@@ -553,7 +560,7 @@ class _MaintenanceState extends State<Maintenance> {
             Expanded(
               flex: 3,
               child: ElevatedButton(
-                onPressed: () => _openTimePickerSheet(context, false),
+                onPressed: () => _openTimePickerSheet(context, false, endTimeSelected),
                 child: Text(
                 DateFormat.Hm().format(endTimeSelected),
                   style: const TextStyle(
@@ -628,12 +635,72 @@ class _MaintenanceState extends State<Maintenance> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
+                        bool isOverlapped = false;
+                        var selectedStartMin = (startTimeSelected.hour * 60) + startTimeSelected.minute;
+                        var selectedEndMin = (endTimeSelected.hour * 60) + endTimeSelected.minute;
+                        if((selectedEndMin - selectedStartMin).abs() < 60) {
+                          _openDialogPanel(context, 'close', 'Oops!', 'Interval time must be more than 1 hour.', 'Try again');
+                          return;
+                        }
+
                         if(_shiftController.text.isNotEmpty) {
                           if(!_shiftList.contains(_shiftController.text.trim())) {
-                            setState(() {
-                              _shiftList.insert(0, '${_shiftController.text.trim()}, ${DateFormat.Hm().format(startTimeSelected)}, ${DateFormat.Hm().format(endTimeSelected)}');
-                            });
-                          }
+                            // ======== Check Time Range Overlaps for previously saved values =====
+                            // Extract Shift Name and check its repetition
+                            for (var shift in _shiftList) {
+                              var dayName = shift.split(',')[0];
+                              var startTime = shift.split(',')[1];
+                              var endTime = shift.split(',')[2];
+                              var startMin = int.parse(startTime.split(':')[0])*60 + int.parse(startTime.split(':')[1]);
+                              var endMin = int.parse(endTime.split(':')[0])*60 + int.parse(endTime.split(':')[1]);
+
+                              if(startMin == selectedStartMin || endMin == selectedEndMin) {
+                                _openDialogPanel(context, 'close', 'Oops!', 'Shift start or ending time is already in there', 'Try again');
+                                return;
+                              }
+
+                              if(dayName.contains(_shiftController.text.trim())) {
+                                _openDialogPanel(context, 'close', 'Oops!', 'Shift name is already in there', 'Try again');
+                                return;
+                              }
+
+                              print('Start min: $startMin, End min: $endMin');
+
+                              if(startMin > endMin) {
+                                // Elapsed preset intervals
+                                print('Elapsed interval');
+                                if(selectedStartMin > selectedEndMin) {
+                                  // It is obvious that two intervals both elapses the day.
+                                  isOverlapped = isOverlapped || true;
+                                  print('Overlap is sure!');
+                                } else {
+                                  isOverlapped = isOverlapped || Utils.isOverlapped(startMin, 1440, selectedStartMin, selectedEndMin);
+                                  isOverlapped = isOverlapped || Utils.isOverlapped(0, endMin, selectedStartMin, selectedEndMin);
+                                  print('Overlap #1: $isOverlapped');
+                                }
+                              } else {
+                                if(selectedStartMin > selectedEndMin) {
+                                  isOverlapped = isOverlapped || Utils.isOverlapped(startMin, endMin, selectedStartMin, 1440);
+                                  isOverlapped = isOverlapped || Utils.isOverlapped(startMin, endMin, 0, selectedEndMin);
+                                  print('Overlap #2: $isOverlapped');
+                                } else {
+                                  isOverlapped = isOverlapped || Utils.isOverlapped(startMin, endMin, selectedStartMin, selectedEndMin);
+                                  print('Overlap #3: $isOverlapped');
+                                }
+                              }
+                            }
+
+                            // If there is no overlap, save it on memory
+                            if(!isOverlapped) {
+                              setState(() {
+                                _shiftList.insert(0, '${_shiftController.text.trim()}, ${DateFormat.Hm().format(startTimeSelected)}, ${DateFormat.Hm().format(endTimeSelected)}');
+                              });
+                            } else {
+                              _openDialogPanel(context, 'close', 'Oops!', 'Shift interval is overlapped', 'Try again');
+                              return;
+                            }
+                            FileManager.saveList('shift_list', _shiftList);
+                          } 
                         }
                       },
                       child: const Text('Add'),
@@ -678,8 +745,8 @@ class _MaintenanceState extends State<Maintenance> {
             color: Colors.white,
             border: Border.all(color: Colors.grey),
             borderRadius: BorderRadius.circular(12)),
-        margin: EdgeInsets.all(5),
-        padding: EdgeInsets.all(5),
+        margin: const EdgeInsets.all(5),
+        padding: const EdgeInsets.all(5),
         height: 120,
         width: 400,
         child: child,
@@ -729,6 +796,7 @@ class _MaintenanceState extends State<Maintenance> {
                               setState(() {
                                 _machineList.removeAt(index);
                               });
+                              FileManager.saveList('machine_line', _machineList);
                             },
                             child: const Icon(
                               EvaIcons.trash,
@@ -761,7 +829,7 @@ class _MaintenanceState extends State<Maintenance> {
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: _shiftList.length,
-                separatorBuilder: (BuildContext context, _) => Divider( color: Colors.black87,),
+                separatorBuilder: (BuildContext context, _) => const Divider( color: Colors.black87,),
                 itemBuilder: (BuildContext context, int index) {
                   return Container(
                     height: 32,
@@ -770,7 +838,7 @@ class _MaintenanceState extends State<Maintenance> {
                       children: <Widget>[
                         Expanded(
                           flex: 8,
-                          child: Text('${_shiftList[index].split(',')[0]}      ${_shiftList[index].split(',')[1]} - ${_shiftList[index].split(',')[2]}',
+                          child: Text('${_shiftList[index].split(',')[0]}    ${_shiftList[index].split(',')[1]} -${_shiftList[index].split(',')[2]}',
                             textAlign: TextAlign.start,
                             style: const TextStyle(
                               color: Colors.purple,

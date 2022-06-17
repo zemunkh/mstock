@@ -1,5 +1,19 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+// ========== Main parameters to save permanently =========
+//        [NAME]          -->          [Unique ID]
+// --------------------------------------------------------
+// [Scanning delay]       -->          scan_delay
+// [Supervisor Password]  -->          supervisor_password
+// [Machine Line List]    -->          machine_line
+// [Shift List]           -->          shift_list
+// [Last Update]          -->          last_update
+// [IP Address]           -->          ip_address
+// [Port Number]          -->          port_number
+// [Company Name]         -->          company_name
+// [Location]             -->          location
+
+
 class FileManager {
   static get context => null;
   // =============== Maintenance Settings ==================

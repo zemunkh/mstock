@@ -15,15 +15,11 @@ class SettingScreen extends StatefulWidget {
 class SettingScreenState extends State<SettingScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final _deviceController =  TextEditingController();
-  final _usernameController =  TextEditingController();
   final _ipAddressController =  TextEditingController();
   final _portNumController =  TextEditingController();
   final _companyController =  TextEditingController();
   final _locationController =  TextEditingController();
 
-  final FocusNode _deviceNode =  FocusNode();
-  final FocusNode _usernameNode =  FocusNode();
   final FocusNode _ipNode =  FocusNode();
   final FocusNode _portNode =  FocusNode();
   final FocusNode _compNode =  FocusNode();
@@ -47,8 +43,6 @@ class SettingScreenState extends State<SettingScreen> {
   }
 
   Future setInitialValue() async {
-    _usernameController.text = await FileManager.readString('user_name');
-    _deviceController.text = await FileManager.readString('device_name');
     _ipAddressController.text = await FileManager.readString('ip_address');
     _portNumController.text = await FileManager.readString('port_number');
     _companyController.text = await FileManager.readString('company_name');
@@ -60,8 +54,6 @@ class SettingScreenState extends State<SettingScreen> {
   @override
   void dispose() {
     super.dispose();
-    _deviceController.dispose();
-    _usernameController.dispose();
   }
 
   @override
@@ -168,16 +160,12 @@ class SettingScreenState extends State<SettingScreen> {
           onPressed: () {
             print('You pressed Save!');
             List<String> _descripts = [];
-            String dname = _deviceController.text;
-            String uname = _usernameController.text;
-            String ip = _ipAddressController.text;
-            String port = _portNumController.text;
-            String company = _companyController.text;
-            String location = _locationController.text;
-            if(dname != '' && uname != '') {
-              FileManager.saveString('device_name', dname).then((_){
-                FileManager.saveString('user_name',uname);
-                FileManager.saveString('ip_address', ip);
+            String ip = _ipAddressController.text.trim();
+            String port = _portNumController.text.trim();
+            String company = _companyController.text.trim();
+            String location = _locationController.text.trim();
+            if(ip != '' && port != '') {
+              FileManager.saveString('ip_address', ip).then((_){
                 FileManager.saveString('port_number', port);
                 FileManager.saveString('company_name', company);
                 FileManager.saveString('location', location);
@@ -216,7 +204,7 @@ class SettingScreenState extends State<SettingScreen> {
     Widget _descriptionInput(BuildContext context, TextEditingController _controller, FocusNode __focusNode, index) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
-        child: Container(
+        child: SizedBox(
           height: 25,
           child: TextFormField(
             style: TextStyle(
@@ -267,8 +255,6 @@ class SettingScreenState extends State<SettingScreen> {
     final transaction = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _mainInput('Device Name',_deviceController, _deviceNode),
-        _mainInput('Username',_usernameController, _usernameNode),
         _mainInput('IP address',_ipAddressController, _ipNode),
         _mainInput('Port Num', _portNumController, _portNode),
         _mainInput('Company', _companyController, _compNode),
