@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // [Port Number]          -->          port_number
 // [Company Name]         -->          company_name
 // [Location]             -->          location
+// [Activation Status]    -->          my_activation_status
 
 
 class FileManager {

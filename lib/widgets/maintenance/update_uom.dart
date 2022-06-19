@@ -46,7 +46,9 @@ class _UpdateUOMState extends State<UpdateUOM> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-
+                          // 1. Open Dialog to show the progress indicator of downloading
+                          // 2. 
+                          Utils.openDialogPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
                         },
                         child: const Text('Update'),
                         style: ElevatedButton.styleFrom(

@@ -29,23 +29,24 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future _backButtonPressed() {
-    return showDialog(
+  Future<bool> _backButtonPressed() async {
+    final showPop = await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Exit the Stock App?"),
+      builder: (_) => AlertDialog(
+        title: Text("Exit the Stock App?"),
         actions: <Widget>[
           ElevatedButton(
-            child: const Text('Yes'),
+            child: Text('Yes'),
             onPressed: () => Navigator.pop(context, true),
           ),
           ElevatedButton(
-            child: const Text('No'),
-            onPressed: () => Navigator.pop(context, false),
+            child: Text('No'),
+            onPressed: () =>  Navigator.pop(context, false),
           ),
         ],
-      ),
+      )
     );
+    return showPop ?? false;
   }
 
 

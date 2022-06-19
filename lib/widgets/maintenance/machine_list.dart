@@ -13,11 +13,9 @@ class MachineList extends StatefulWidget {
 
 class _MachineListState extends State<MachineList> {
   final _machineController = TextEditingController(text: 'A1');
-
   List<String> _machineList = [];
   final FocusNode _machineNode = FocusNode();
-
-  final _machineFormKey = GlobalKey<FormFieldState>();
+  static final _machineFormKey = GlobalKey<FormFieldState>();
 
   Future initSettings() async {
     _machineList = await FileManager.readStringList('machine_line');
@@ -26,8 +24,13 @@ class _MachineListState extends State<MachineList> {
 
   @override
   void initState() {
-    super.initState();
     initSettings();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -77,8 +80,8 @@ class _MachineListState extends State<MachineList> {
                     controller: _machineController,
                     focusNode: _machineNode,
                     onEditingComplete: () {
-                       print('Done: ${_machineController.text}');
-                       _machineNode.unfocus();
+                      print('Done: ${_machineController.text}');
+                      FocusScope.of(context).unfocus();
                     }
                   ),
                 ),

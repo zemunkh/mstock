@@ -13,6 +13,7 @@ class Maintenance extends StatefulWidget {
 }
 
 class _MaintenanceState extends State<Maintenance> {
+
   @override
   Widget build(BuildContext context) {
     final transaction = Padding(
@@ -45,21 +46,24 @@ class _MaintenanceState extends State<Maintenance> {
       onTap: () {
         FocusScope.of(context).requestFocus(FocusNode());
       },
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          if (constraints.maxHeight > constraints.maxWidth) {
-            return SingleChildScrollView(
-              child: transaction,
-            );
-          } else {
-            return Center(
-              child: SingleChildScrollView(
-                child: transaction,
-              ),
-            );
-          }
-        },
+      child: SingleChildScrollView(
+        child: transaction,
       ),
+      // child: LayoutBuilder(
+      //   builder: (BuildContext context, BoxConstraints constraints) {
+      //     if (constraints.maxHeight > constraints.maxWidth) {
+      //       return SingleChildScrollView(
+      //         child: transaction,
+      //       );
+      //     } else {
+      //       return Center(
+      //         child: SingleChildScrollView(
+      //           child: transaction,
+      //         ),
+      //       );
+      //     }
+      //   },
+      // ),
     );
   }
 }

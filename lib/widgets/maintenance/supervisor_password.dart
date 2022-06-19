@@ -14,7 +14,7 @@ class SupervisorPassword extends StatefulWidget {
 class _SupervisorPasswordState extends State<SupervisorPassword> {
   final _passwordController = TextEditingController(text: '1234');
   final FocusNode _passwordNode = FocusNode();
-  final _passwordFormKey = GlobalKey<FormFieldState>();
+  static final _passwordFormKey = GlobalKey<FormFieldState>();
 
   Future initSettings() async {
     _passwordController.text = await FileManager.readString('supervisor_password');
@@ -42,7 +42,7 @@ class _SupervisorPasswordState extends State<SupervisorPassword> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: Colors.black,
+                  color: style.Colors.mainGrey,
                 ),
               ),
             ),
@@ -69,14 +69,8 @@ class _SupervisorPasswordState extends State<SupervisorPassword> {
                 controller: _passwordController,
                 focusNode: _passwordNode,
                 onEditingComplete: () {
-                    print('Done: ${_passwordController.text}');
-                    if(_passwordController.text.length > 5) {
-                    print('Okay cool');
-                    } else {
-                    Utils.openDialogPanel(context, 'close', 'Oops!', 'Password must be more than 6 characters', 'Try again');
-                    print('Must be more than 6 characters');
-                    }
-                    _passwordNode.unfocus();
+                  print('Done: ${_passwordController.text}');
+                  FocusScope.of(context).unfocus();
                 }
               ),
             ),
@@ -87,8 +81,13 @@ class _SupervisorPasswordState extends State<SupervisorPassword> {
                 child: ElevatedButton(
                   onPressed: () {
                     // Save it to the supervisor_password on shared_preference
-                    FileManager.saveString('supervisor_password', _passwordController.text.trim());
-                    Utils.openDialogPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
+                    if(_passwordController.text.length > 5) {
+                      FileManager.saveString('supervisor_password', _passwordController.text.trim());
+                      Utils.openDialogPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
+                    } else {
+                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Password must be more than 6 characters', 'Try again');
+                      print('Must be more than 6 characters');
+                    }
                     _passwordNode.unfocus();
                   },
                   child: const Icon(

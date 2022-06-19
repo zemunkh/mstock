@@ -17,9 +17,8 @@ class ShiftForm extends StatefulWidget {
 
 class _ShiftFormState extends State<ShiftForm> {
   List<String> _shiftList = [];
-  final _shiftFormKey = GlobalKey<FormFieldState>();
+  static final _shiftFormKey = GlobalKey<FormFieldState>();
   final _shiftController = TextEditingController(text: 'Night');
-
   final FocusNode _shiftNode = FocusNode();
 
   DateTime startTimeSelected = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, 0);
@@ -206,8 +205,8 @@ class _ShiftFormState extends State<ShiftForm> {
                   controller: _shiftController,
                   focusNode: _shiftNode,
                   onEditingComplete: () {
-                     print('Done: ${_shiftController.text}');
-                     _shiftNode.unfocus();
+                    print('Done: ${_shiftController.text}');
+                    FocusScope.of(context).unfocus();
                   }
                 ),
               ),
@@ -366,7 +365,7 @@ class _ShiftFormState extends State<ShiftForm> {
                             },
                             child: const Icon(
                               EvaIcons.trash,
-                              size: 16,
+                              size: 20,
                               color: style.Colors.button2,
                             ),
                             style: ElevatedButton.styleFrom(

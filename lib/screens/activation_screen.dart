@@ -15,14 +15,10 @@ class ActivationScreen extends StatelessWidget {
   var onTapRecognizer;
   // StreamController<ErrorAnimationType> _errorController ;
 
-  Future<Null> _focusNode(BuildContext context, FocusNode node) async {
-    FocusScope.of(context).requestFocus(node);
-  }
-
   Future<void> _activationHandler(BuildContext context, TextEditingController _controller) async {
     String inputText = _controller.text;
     const int adder = 53127429; // has to change
-    String currentDate = '${DateFormat("ddMMyyyy").format(DateTime.now())}';
+    String currentDate = DateFormat("yyyyMMdd").format(DateTime.now());
     print('Date: $currentDate');
     int activationCode = adder + int.parse(currentDate);
     print('Code: ${activationCode.toString()}');
@@ -39,15 +35,15 @@ class ActivationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
-    Widget _activationInput(String labeltext, TextEditingController _controller, FocusNode currentNode) {
+    Widget _activationInput(String labelText, TextEditingController _controller, FocusNode currentNode) {
       return GestureDetector(
         onTap: () {
-          FocusScope.of(context).requestFocus(new FocusNode());
+          FocusScope.of(context).requestFocus(FocusNode());
         },
         child: Stack(
           alignment: const Alignment(1.0, 1.0),
           children: <Widget>[
-            Container(
+            SizedBox(
               width: double.infinity,
               child: PinCodeTextField(
                 appContext: context,
@@ -114,7 +110,7 @@ class ActivationScreen extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(15.0))
           ),
           child: const Center(
-            child: Text('Activate', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15.0)),
+            child: Text('Activate', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 24.0)),
           )
       ),
     );
@@ -139,7 +135,7 @@ class ActivationScreen extends StatelessWidget {
       body: Center(
         child: GestureDetector(
           onTap: () {
-            FocusScope.of(context).requestFocus(new FocusNode());
+            FocusScope.of(context).requestFocus(FocusNode());
           },
           child: mainView,
         ),
@@ -149,9 +145,8 @@ class ActivationScreen extends StatelessWidget {
 
   _activate() async {
     final prefs = await SharedPreferences.getInstance();
-    final key = 'my_activation_status';
-    final status = true;
-    prefs.setBool(key, status);
-    print('Activation Status: $status');
+    const key = 'my_activation_status';
+    prefs.setBool(key, true);
+    print('Activated successfully!');
   }
 }

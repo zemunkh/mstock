@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import './screens/maintenance.dart';
 import './screens/home.dart';
 import './screens/stock_check.dart';
@@ -8,13 +9,20 @@ import './screens/stock_in.dart';
 import './screens/activation_screen.dart';
 
 
-void main() {
-  runApp(const MyApp());
+bool activated = false;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    activated = await _read();
+    runApp(const MyApp());
+  } catch(error) {
+    print('Activation Status error: $error');
+  }
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -24,8 +32,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
-        // '/': (ctx) => ActivationScreen(),
-        '/': (ctx) => const HomeScreen(),
+        '/': (ctx) => activated ? const HomeScreen() : ActivationScreen(),
         StockCheckScreen.routeName: (ctx) => const StockCheckScreen(),
         ProductionInScreen.routeName: (ctx) => const ProductionInScreen(),
         PendingListScreen.routeName: (ctx) => const PendingListScreen(),
@@ -42,4 +49,13 @@ class MyApp extends StatelessWidget {
       },
     );
   }
+}
+
+_read() async {
+  final prefs = await SharedPreferences.getInstance();
+  final key = 'my_activation_status';
+  final status = prefs.getBool(key) ?? false;
+  print('Activation Status: $status');
+  // activated = status;
+  return status;
 }
