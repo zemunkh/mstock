@@ -94,7 +94,7 @@ class SettingScreenState extends State<SettingScreen> {
             child: Text(
               '$header:',
               textAlign: TextAlign.left,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 color: Color(0xFF004B83),
                 fontWeight: FontWeight.bold,
@@ -105,10 +105,10 @@ class SettingScreenState extends State<SettingScreen> {
             flex: 6,
             child: Padding(
               padding: const EdgeInsets.all(2.0),
-              child: Container(
+              child: SizedBox(
                 height: 40,
                 child: TextFormField(
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     color: Color(0xFF004B83),
                     fontWeight: FontWeight.bold,
@@ -117,18 +117,18 @@ class SettingScreenState extends State<SettingScreen> {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: header,
-                    hintStyle: TextStyle(
+                    hintStyle: const TextStyle(
                       color: Color(0xFF004B83),
                       fontWeight: FontWeight.w200,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5.0),
                     ),
-                    errorStyle: TextStyle(
+                    errorStyle: const TextStyle(
                       color: Colors.yellowAccent,
                     ),
                     suffixIcon: IconButton(
-                      icon: Icon(EvaIcons.close,
+                      icon: const Icon(EvaIcons.close,
                         color: Colors.blueAccent,
                         size: 24,
                       ),

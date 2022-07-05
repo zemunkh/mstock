@@ -13,6 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 // [Company Name]         -->          company_name
 // [Location]             -->          location
 // [Activation Status]    -->          my_activation_status
+// [Stock Length]         -->          stock_length
+
 
 
 class FileManager {

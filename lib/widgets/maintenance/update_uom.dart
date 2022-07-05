@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import '../../model/stock.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
 import '../../styles/theme.dart' as style;
@@ -15,6 +17,43 @@ class _UpdateUOMState extends State<UpdateUOM> {
   String statusText = 'Completed!';
   String lastUpdateTime = '16/06/2022 06:04 PM';
 
+  List<Stock> stockList =[];
+  String counter = '0';
+
+  bool _isButtonClicked = false;
+  String ip = '', port = '', dbCode = '';
+  String urlStatus = 'not found';
+  String url = '';
+
+
+  Future<Null> initProfileData() async {
+    ip =  await FileManager.readString('ip_address');
+    port =  await FileManager.readString('port_number');
+    dbCode =  await FileManager.readString('company_name');
+    if(ip != '' && port != '' && dbCode != '') {
+      url = 'http://$ip:$port/api/Stocks';
+    } else {
+      url = 'https://dev-api.qne.cloud/api/Stocks';
+      dbCode = 'OUCOP7';
+    }
+    setState((){
+      urlStatus = url;
+    });
+  }
+
+  Future initSettings() async {
+    await FileManager.readString('last_update').then((value) => {
+      lastUpdateTime = value != '' ? value : lastUpdateTime
+    });
+    print('Last update is fetched');
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    initSettings();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

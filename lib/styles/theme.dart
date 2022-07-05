@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 class Colors {
   const Colors();
 
-  static const Color mainColor = Color(0xFFFF2D55);
   static const Color background = Color(0xFFEEF4F6);
   static const Color mainYellow = Color(0xFFFEF08A);
   static const Color mainBlue = Color(0xFF0EA5E9);
@@ -13,6 +12,7 @@ class Colors {
   static const Color mainDarkGrey = Color(0xff7c94b6);
   static const Color mainAppBar = Color(0xFF164CA2);
   static const Color mainAccent = Color(0xFF272727);
+  static const Color mainRed = Color(0xFFad3d5b);
 
   static const Color button1 = Color(0xFFfcbe2b);
   static const Color button2 = Color(0xFFad3d5b);

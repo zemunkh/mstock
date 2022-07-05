@@ -1,9 +1,65 @@
 import 'dart:async';
-
+import 'dart:convert';
+import '../../helper/api.dart';
+import '../../helper/database_helper.dart';
+import '../../helper/file_manager.dart';
+import '../../model/stock.dart';
 import 'package:flutter/material.dart';
 import '../styles/theme.dart' as style;
 
 class Utils {
+  final dbHelper = DatabaseHelper.instance;
+  final api = Api();
+
+  void _insert(String stockId, String stockCode, String stockName, String baseUOM) async {
+    // row to insert
+    Map<String, dynamic> row = {
+      DatabaseHelper.columnStockId : stockId,
+      DatabaseHelper.columnStockCode  : stockCode,
+      DatabaseHelper.columnStockName  : stockName,
+      DatabaseHelper.columnBaseUOM  : baseUOM
+    };
+    final id = await dbHelper.insert(row);
+    print('inserted row id: $id');
+  }
+
+  void _update(String stockId, String stockCode, String stockName, String baseUOM) async {
+    // row to update
+    Map<String, dynamic> row = {
+      DatabaseHelper.columnStockId : stockId,
+      DatabaseHelper.columnStockCode  : stockCode,
+      DatabaseHelper.columnStockName  : stockName,
+      DatabaseHelper.columnBaseUOM  : baseUOM
+    };
+    final rowsAffected = await dbHelper.update(row);
+    print('updated $rowsAffected row(s)');
+  }
+
+  Future<List> fetchAndSaveStockData(String _dbCode, String _url) async {
+    var data = await api.getStocks(_dbCode, _url);
+    
+    List<Stock> stockList =[];
+
+    var receivedData = json.decode(data);
+    stockList = receivedData.map<Stock>((json) => Stock.fromJson(json)).toList(); 
+
+    int len = await FileManager.readString('stock_length');
+    if(len == 0) {
+      for(int i = 0; i < stockList.length; i++) {
+        print('Saving Stock name: ${stockList[i].stockName}');
+        _insert(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM);
+      }
+      FileManager.saveString('stock_length', stockList.length.toString());
+    } else {
+      // update the db by response.body
+      for(int i = 0; i < stockList.length; i++) {
+        print('Updating Stocks: ${stockList[i].stockName}');
+        _update(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM);
+      }
+    }
+    
+    return stockList;
+  }
 
   static bool isOverlapped(int s1, int e1, int s2, int e2) {
     if((s2 > s1 && s2 < e1) || (e2 > s1 && e2 < e1)) {
