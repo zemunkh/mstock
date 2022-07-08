@@ -68,7 +68,7 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
                 });
               },
@@ -90,7 +90,7 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => StockCheckScreen()));
                 });
               },
@@ -110,7 +110,7 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ProductionInScreen()));
                 });
               },
@@ -130,7 +130,7 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PendingListScreen()));
                 });
               },
@@ -150,7 +150,7 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockInScreen()));
                 });
               },
@@ -172,7 +172,7 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => SettingScreen()));
                 });
               },

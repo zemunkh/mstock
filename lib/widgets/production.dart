@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:data_table_2/data_table_2.dart';
+import '../../helper/utils.dart';
+import '../../helper/file_manager.dart';
 import '../styles/theme.dart' as style;
 
 class Production extends StatefulWidget {
@@ -15,21 +15,33 @@ class _ProductionState extends State<Production> {
   final _machineLineController = TextEditingController();
   final _masterController = TextEditingController();
   final _stickerController = TextEditingController();
+  final _stickerDeleteController = TextEditingController();
 
   final FocusNode _masterNode = FocusNode();
   final FocusNode _machineLineNode = FocusNode();
   final FocusNode _stickerNode = FocusNode();
+  final FocusNode _stickerDeleteNode = FocusNode();
+
+  static final _machineLineFormKey = GlobalKey<FormFieldState>();
+  static final _masterFormKey = GlobalKey<FormFieldState>();
+  static final _stickerFormKey = GlobalKey<FormFieldState>();
+  static final _stickerDeleteFormKey = GlobalKey<FormFieldState>();
+
+
+  bool isSaveDisabled = false;
 
   List<bool> activeList = [
-    true,
-    true,
-    true,
+    false,
+    false,
+    false,
     false,
   ];
-
   var level = 0;
   // activeList = level.toRadixString(2);
   // activeList[0]
+
+  bool isAddView = true;
+  List<String> _machineList = [];
 
   String lineVal = 'E7';
   List<String> lines = [
@@ -40,10 +52,6 @@ class _ProductionState extends State<Production> {
     'K44',
   ];
 
-  Future _focusNode(BuildContext context, FocusNode node) async {
-    FocusScope.of(context).requestFocus(node);
-  }
-
   Future _clearTextController(BuildContext context,
       TextEditingController _controller, FocusNode node) async {
     setState(() {
@@ -52,17 +60,147 @@ class _ProductionState extends State<Production> {
     FocusScope.of(context).requestFocus(node);
   }
 
+  String buffer = '';
+  String trueVal = '';
+  String prevVal = '';
+
+  Future masterListener() async {
+    print('Current text: ${_masterController.text}');
+    buffer = _masterController.text;
+    if (buffer.endsWith(r'$')) {
+      buffer = buffer.substring(0, buffer.length - 1);
+      trueVal = buffer;
+      _masterNode.unfocus();
+      await Future.delayed(const Duration(milliseconds: 200), () {
+        setState(() {
+          _masterController.text = trueVal;
+        });
+        FocusScope.of(context).requestFocus(_stickerNode);
+      });
+    }
+  }
+
+  Future stickerListener() async {
+    buffer = _stickerController.text;
+    if (buffer.endsWith(r'$')) {
+      buffer = buffer.substring(0, buffer.length - 1);
+      trueVal = buffer;
+      // Check the status of __isAddView__
+      
+      if(trueVal == _masterController.text) {
+        level++;
+        print('Adding...');
+      }
+
+      prevVal = trueVal;
+
+      switch (level) {
+        case 0:
+          activeList = [false, false, false, false];
+          break;
+        case 1:
+          activeList = [true, false, false, false];
+          break;
+        case 2:
+          activeList = [true, true, false, false];
+          break;
+        case 3:
+          activeList = [true, true, true, false];
+          break;
+        case 4:
+          activeList = [true, true, true, true];
+          break;
+        default:
+          activeList = [false, false, false, false];
+      }
+      setState(() {});
+      // if True, add stock item to the list
+
+      // else, remove stock item/decrease by the count 
+
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        _stickerController.text = trueVal;
+      }).then((value) {
+        _stickerNode.unfocus();
+        FocusScope.of(context).requestFocus(FocusNode());
+      });
+    }
+  }
+
+  Future deleteListener() async {
+    buffer = _stickerDeleteController.text;
+    if (buffer.endsWith(r'$')) {
+      buffer = buffer.substring(0, buffer.length - 1);
+      trueVal = buffer;
+
+
+      await Future.delayed(const Duration(milliseconds: 1000), () {
+        _stickerDeleteController.text = trueVal;
+      }).then((value) {
+        _stickerDeleteNode.unfocus();
+        FocusScope.of(context).requestFocus(FocusNode());
+      });
+    }
+  }
+
+  Future machineLineListener() async {
+    bool isFound = false;
+    buffer = _machineLineController.text;
+    print('Machine text: ${_machineLineController.text}');
+    if (buffer.endsWith(r'$')) {
+      buffer = buffer.substring(0, buffer.length - 1);
+      trueVal = buffer;
+      // Load list of Machine Lines from Maintenance
+      for (var el in _machineList) {
+        if(trueVal == el) {
+          isFound = true;
+        }
+      }
+
+      if (isFound) {
+        Utils.openDialogPanel(context, 'accept', 'Done!', 'Matched machine line.', 'Okay');
+      } else {
+        Utils.openDialogPanel(context, 'close', 'Oops!', 'No found!', 'Try again');
+      }
+      
+      // Search and compare the result
+      // If found, go to the next section
+      // If not, alert to user.
+      await Future.delayed(const Duration(milliseconds: 1000), () {
+        _machineLineController.text = trueVal;
+      }).then((value) {
+        _machineLineNode.unfocus();
+        FocusScope.of(context).requestFocus(FocusNode());
+      });
+    }
+  }
+
+  Future initSettings() async {
+    _machineList = await FileManager.readStringList('machine_line');
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initSettings();
+    _masterController.addListener(masterListener);
+    _stickerController.addListener(stickerListener);
+    _stickerDeleteController.addListener(deleteListener);
+    _machineLineController.addListener(machineLineListener);
+  }
+
   @override
   void dispose() {
-    super.dispose();
     _masterController.dispose();
-    _machineLineController.dispose();
     _stickerController.dispose();
+    _stickerDeleteController.dispose();
+    _machineLineController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
     Widget _scanControl(BuildContext context) {
       return Padding(
         padding: const EdgeInsets.only(left: 2, right: 2),
@@ -73,20 +211,44 @@ class _ProductionState extends State<Production> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () {},
-                  child: Text('Add'),
+                  onPressed: () {
+                    if(!isAddView) {
+                      _stickerController.text = '';
+                    }
+                    setState(() {
+                      isAddView = true;
+                      level = 0;
+                      activeList = [false, false,  false, false];
+                    });
+                  },
+                  child: const Text('Add'),
                   style: ElevatedButton.styleFrom(
-                    primary: style.Colors.button4,
+                    primary: isAddView
+                        ? style.Colors.button4
+                        : style.Colors.mainDarkGrey,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
+                const SizedBox(
+                  width: 12,
+                ),
                 ElevatedButton(
-                  onPressed: () {},
-                  child: Text('Del'),
+                  onPressed: () {
+                    if(isAddView) {
+                      _stickerController.text = '';
+                      _masterController.text = '';
+                    }
+                    setState(() {
+                      isAddView = false;
+                    });
+                  },
+                  child: const Text('Del.'),
                   style: ElevatedButton.styleFrom(
-                    primary: style.Colors.button2,
+                    primary: isAddView
+                        ? style.Colors.mainDarkGrey
+                        : style.Colors.button2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -100,13 +262,14 @@ class _ProductionState extends State<Production> {
     }
 
     Widget _scannerInput(String hintext, TextEditingController _controller,
-        FocusNode currentNode, double currentWidth) {
+        FocusNode currentNode, double currentWidth, GlobalKey _formKey) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: SizedBox(
           height: 40,
           width: currentWidth,
           child: TextFormField(
+            key: _formKey,
             style: const TextStyle(
               fontSize: 16,
               color: Color(0xFF004B83),
@@ -127,7 +290,8 @@ class _ProductionState extends State<Production> {
                 color: Colors.yellowAccent,
               ),
               suffixIcon: IconButton(
-                icon: const Icon(Icons.qr_code,
+                icon: const Icon(
+                  Icons.qr_code,
                   color: Colors.blueAccent,
                   size: 24,
                 ),
@@ -136,6 +300,9 @@ class _ProductionState extends State<Production> {
                 },
               ),
             ),
+            onChanged: (val) {
+
+            },
             autofocus: false,
             autocorrect: false,
             controller: _controller,
@@ -151,38 +318,58 @@ class _ProductionState extends State<Production> {
     Widget _productionTable(BuildContext context) {
       return Padding(
         padding: const EdgeInsets.all(4),
-        child: DataTable2(
-          columnSpacing: 6,
-          horizontalMargin: 6,
-          minWidth: 340,
-          columns: const [
-            DataColumn2(
-              label: Text('Stocks'),
-              size: ColumnSize.L,
+        child: DataTable(
+          columnSpacing: 20,
+          showCheckboxColumn: false,
+          columns: const <DataColumn>[
+            DataColumn(
+              label: Text(
+                'Stocks:',
+              ),
             ),
             DataColumn(
-              label: Text('Qty'),
+              label: Text(
+                'Qty:',
+              ),
             ),
             DataColumn(
-              label: Text('UOMs'),
+              label: Text(
+                'UOMs:',
+              ),
             ),
           ],
-          rows: List<DataRow>.generate(
-              5,
-              (index) => DataRow(cells: [
-                    DataCell(Text('A' * (10 - index % 10))),
-                    DataCell(Text('B' * (10 - (index + 5) % 10))),
-                    DataCell(Text('C' * (15 - (index + 5) % 10))),
-                  ]))),
+          rows: <DataRow>[
+            DataRow(
+              cells: const <DataCell>[
+                DataCell(Text('F-CB-RYT0250X160-WT', style: TextStyle(fontSize: 14),)),
+                DataCell(Text('23', style: TextStyle(fontSize: 14),)),
+                DataCell(Text('PALLET', style: TextStyle(fontSize: 14),)),
+              ],
+              onSelectChanged: (newValue) {
+                print('row 1 pressed');
+              },
+            ),
+            DataRow(
+              cells: const <DataCell>[
+                DataCell(Text('HS-8.P12.5-032-100-BK', style: TextStyle(fontSize: 14),)),
+                DataCell(Text('4', style: TextStyle(fontSize: 14),)),
+                DataCell(Text('BOX', style: TextStyle(fontSize: 14),)),
+              ],
+              onSelectChanged: (newValue) {
+                print('row 2 pressed');
+              },
+            ),
+          ],
+        ),
       );
     }
 
     Widget _machineLine(BuildContext context) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget> [
+        children: <Widget>[
           const Text(
-            'Machine Line: ',
+            '⚙️ Machine Line: ',
             textAlign: TextAlign.left,
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -195,10 +382,11 @@ class _ProductionState extends State<Production> {
               Expanded(
                 flex: 4,
                 child: _scannerInput(
-                  'A1',
+                  'A1...',
                   _machineLineController,
                   _machineLineNode,
                   120,
+                  _machineLineFormKey
                 ),
               ),
               Expanded(
@@ -211,25 +399,23 @@ class _ProductionState extends State<Production> {
       );
     }
 
-  Widget levelBar(Color mainColor) {
-    return Container(
-      width: 24,
-      height: 36,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(2),
-        color: mainColor,
-      ),
-    );
-  }
+    Widget levelBar(Color mainColor) {
+      return Container(
+        width: 24,
+        height: 36,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(2),
+          color: mainColor,
+        ),
+      );
+    }
 
-
-
-    Widget _mainScanners(BuildContext context) {
+    Widget _addView(BuildContext context) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget> [
+        children: <Widget>[
           const Text(
-            'Master: ',
+            '⚙️ Master: ',
             textAlign: TextAlign.left,
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -246,12 +432,13 @@ class _ProductionState extends State<Production> {
                   _masterController,
                   _masterNode,
                   double.infinity,
+                  _masterFormKey,
                 ),
               ),
             ],
           ),
           const Text(
-            'Sticker: ',
+            '🏷 Sticker: ',
             textAlign: TextAlign.left,
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -268,50 +455,143 @@ class _ProductionState extends State<Production> {
                   _stickerController,
                   _stickerNode,
                   double.infinity,
+                  _stickerFormKey,
                 ),
               ),
             ],
           ),
-
-          SizedBox(
-            height: 40,
-            width: 180,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(2),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    levelBar(activeList[0] ? Colors.green : Colors.grey),
-                    levelBar(activeList[1] ? Colors.green : Colors.grey),
-                    levelBar(activeList[2] ? Colors.green : Colors.grey),
-                    levelBar(activeList[3] ? Colors.green : Colors.grey),
-                  ],
+          Row(
+            children: [
+              Expanded(
+                flex: 4,
+                child: SizedBox(
+                  height: 40,
+                  width: 180,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          levelBar(activeList[0] ? Colors.green : Colors.grey),
+                          levelBar(activeList[1] ? Colors.green : Colors.grey),
+                          levelBar(activeList[2] ? Colors.green : Colors.grey),
+                          levelBar(activeList[3] ? Colors.green : Colors.grey),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          )
+              const Expanded(flex: 3, child: Text('')),
+              Expanded(
+                flex: 3,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (isSaveDisabled == true) { return; }
+                    
+                    setState(() {
+                      isAddView = true;
+                    });
+                  },
+                  child: const Text(
+                    'Add',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    primary: style.Colors.button4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
 
+    Widget _deleteView(BuildContext context) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const SizedBox(
+            height: 32,
+          ),
+          const Text(
+            '🏷 Sticker: ',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: style.Colors.mainGrey,
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                flex: 4,
+                child: _scannerInput(
+                  'Sticker key',
+                  _stickerDeleteController,
+                  _stickerDeleteNode,
+                  double.infinity,
+                  _stickerDeleteFormKey,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Expanded(
+                flex: 4,
+                child: Text(''),
+              ),
+              const Expanded(
+                flex: 3,
+                child: Text(''),
+              ),
+              Expanded(
+                flex: 3,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      isAddView = true;
+                    });
+                  },
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    primary: style.Colors.button2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       );
     }
 
     final transaction = Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16),
+      padding: const EdgeInsets.only(left: 12, right: 12),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _machineLine(context),
-          SizedBox(height: 32,),
-          _mainScanners(context),
-
+          isAddView ? _addView(context) : _deleteView(context),
           _productionTable(context),
-          // _scannerInput('Scan code', _masterController, _masterNode),
+
         ],
       ),
     );
@@ -323,19 +603,6 @@ class _ProductionState extends State<Production> {
       child: SingleChildScrollView(
         child: transaction,
       ),
-      // LayoutBuilder(
-      //   builder: (BuildContext context, BoxConstraints constraints) {
-      //     if (constraints.maxHeight > constraints.maxWidth) {
-      //       return SingleChildScrollView(
-      //         child: transaction,
-      //       );
-      //     } else {
-      //       return SingleChildScrollView(
-      //         child: transaction,
-      //       );
-      //     }
-      //   },
-      // ),
     );
   }
 }

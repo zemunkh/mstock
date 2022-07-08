@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:mstock/screens/maintenance.dart';
+import '../screens/maintenance.dart';
 import '../screens/pending_list.dart';
 import '../screens/production_in.dart';
 import '../screens/stock_check.dart';
@@ -122,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
             splashColor: style.Colors.mainBlue,
             child: boxMenuItem('warehouse', 'Production In'),
             onTap: () {
-              // WidgetsBinding.instance!.addPostFrameCallback((_) {
+              // WidgetsBinding.instance.addPostFrameCallback((_) {
               //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
               // });
             },
@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
             splashColor: style.Colors.mainBlue,
             child: boxMenuItem('scale', 'Check code'),
             onTap: () {
-              // WidgetsBinding.instance!.addPostFrameCallback((_) {
+              // WidgetsBinding.instance.addPostFrameCallback((_) {
               //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
               // });
             },
@@ -140,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
             splashColor: style.Colors.mainBlue,
             child: boxMenuItem('expired', 'Pending'),
             onTap: () {
-              // WidgetsBinding.instance!.addPostFrameCallback((_) {
+              // WidgetsBinding.instance.addPostFrameCallback((_) {
               //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
               // });
             },
@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
             splashColor: style.Colors.mainBlue,
             child: boxMenuItem('box', 'Stock In'),
             onTap: () {
-              // WidgetsBinding.instance!.addPostFrameCallback((_) {
+              // WidgetsBinding.instance.addPostFrameCallback((_) {
               //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
               // });
             },
@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          WidgetsBinding.instance!.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (_) => MaintenanceScreen()));
           });

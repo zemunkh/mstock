@@ -5,7 +5,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.16.2 <3.0.0"
+  sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -19,11 +19,10 @@ dependencies:
   path_provider: ^2.0.10
   sqflite: ^2.0.0+3
   # share_extend: ^1.1.0
-  rflutter_alert: ^2.0.4
   cupertino_icons: ^1.0.2
   pin_code_fields: ^7.4.0
   time_picker_sheet: ^0.0.2+1
-  data_table_2: ^2.2.1
+  data_table_2: ^2.3.5
   
 dev_dependencies:
   flutter_test:

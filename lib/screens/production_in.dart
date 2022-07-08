@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:intl/intl.dart';
+import '../../helper/utils.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/production.dart';
 import '../styles/theme.dart' as style;
@@ -15,6 +16,8 @@ class ProductionInScreen extends StatefulWidget {
 
 class _ProductionInScreenState extends State<ProductionInScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  List<String> _shiftList = [];
+  String shiftValue = '';
 
   Future<bool> _backButtonPressed() async {
     final showPop = await showDialog(
@@ -34,6 +37,17 @@ class _ProductionInScreenState extends State<ProductionInScreen> {
       )
     );
     return showPop ?? false;
+  }
+
+  Future initSettings() async {
+    shiftValue = await Utils.getShiftName();
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initSettings();
   }
 
   @override
@@ -87,7 +101,7 @@ class _ProductionInScreenState extends State<ProductionInScreen> {
                             width: 1,
                           ),
                         ),
-                        child: Text('Noon'),
+                        child: Text(shiftValue),
                       ),
                     ],
                   )
@@ -97,7 +111,7 @@ class _ProductionInScreenState extends State<ProductionInScreen> {
           ),
         ),
         drawer: const MainDrawer(),
-        body: Padding(
+        body: const Padding(
           padding: EdgeInsets.all(16.0),
           child: Production(),
         ),

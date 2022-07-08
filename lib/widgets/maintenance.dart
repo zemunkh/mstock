@@ -49,21 +49,6 @@ class _MaintenanceState extends State<Maintenance> {
       child: SingleChildScrollView(
         child: transaction,
       ),
-      // child: LayoutBuilder(
-      //   builder: (BuildContext context, BoxConstraints constraints) {
-      //     if (constraints.maxHeight > constraints.maxWidth) {
-      //       return SingleChildScrollView(
-      //         child: transaction,
-      //       );
-      //     } else {
-      //       return Center(
-      //         child: SingleChildScrollView(
-      //           child: transaction,
-      //         ),
-      //       );
-      //     }
-      //   },
-      // ),
     );
   }
 }

@@ -57,7 +57,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
               ),
               color: Colors.white,
               onPressed: () {
-                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
                 });
               },

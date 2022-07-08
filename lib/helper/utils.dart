@@ -69,6 +69,47 @@ class Utils {
     }
   }
 
+  static bool isInRange(int start, int end, int currentTime) {
+    if(currentTime > start && currentTime < end) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static Future<String> getShiftName() async {
+    var _shiftList = await FileManager.readStringList('shift_list');
+
+    DateTime currentTime = DateTime.now();
+    var currentHHmm = (currentTime.hour * 60) + currentTime.minute;
+
+    for (var shift in _shiftList) {
+      var dayName = shift.split(',')[0];
+      var startTime = shift.split(',')[1];
+      var endTime = shift.split(',')[2];
+      var startMin = int.parse(startTime.split(':')[0])*60 + int.parse(startTime.split(':')[1]);
+      var endMin = int.parse(endTime.split(':')[0])*60 + int.parse(endTime.split(':')[1]);
+
+
+      print('Start min: $startMin, End min: $endMin');
+
+      if(startMin > endMin) {
+        // Elapsed preset intervals
+        print('Elapsed interval');
+
+        if(Utils.isInRange(startMin, 1440, currentHHmm) || Utils.isInRange(0, endMin, currentHHmm)) {
+          return dayName;
+        }
+
+      } else {
+        if(Utils.isInRange(startMin, endMin, currentHHmm)) {
+          return dayName;
+        }
+      }
+    }
+    return 'Not found';
+  }
+
   static Future openDialogPanel(BuildContext context, String img, String title, String msg, String btnText) {
     return showDialog(
       context: context,

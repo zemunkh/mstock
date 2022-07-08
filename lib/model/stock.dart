@@ -19,7 +19,7 @@ class Stock {
   // final String purchaseDiscount;
   // final String barCode;
   // final double weight;
-  // final double volumn;
+  // final double volume;
   // final double currentBalance;
   // final DateTime lastSellingDate;
   // final DateTime lastPurchaseDate;
@@ -30,7 +30,7 @@ class Stock {
   // final bool useSerialNo;
   // final String serialNoPrefix;
   // final String serialNoSuffix;
-  // final String remark1;
+  final String remark1;
   // final String remark2;
   // final String remark3;
   // final String remark4;
@@ -39,7 +39,7 @@ class Stock {
   // final String itemTypeCode;
   // final String category;
   // final String group;
-  // final String clas;
+  // final String class;
   // final String defaultInputTaxCode;
   // final String defaultOutputTaxCode;
 
@@ -62,7 +62,7 @@ class Stock {
     // @required this.purchaseDiscount,
     // @required this.barCode,
     // @required this.weight,
-    // @required this.volumn,
+    // @required this.volume,
     // @required this.currentBalance,
     // @required this.lastSellingDate,
     // @required this.lastPurchaseDate,
@@ -73,7 +73,7 @@ class Stock {
     // @required this.useSerialNo,
     // @required this.serialNoPrefix,
     // @required this.serialNoSuffix,
-    // @required this.remark1,
+    required this.remark1,
     // @required this.remark2,
     // @required this.remark3,
     // @required this.remark4,
@@ -82,7 +82,7 @@ class Stock {
     // @required this.itemTypeCode,
     // @required this.category,
     // @required this.group,
-    // @required this.clas,
+    // @required this.class,
     // @required this.defaultInputTaxCode,
     // @required this.defaultOutputTaxCode, 
   });
@@ -107,7 +107,7 @@ class Stock {
       // purchaseDiscount: json['purchaseDiscount'] as String,
       // barCode: json['barCode'] as String,
       // weight: json['weight'] as double,
-      // volumn: json['volumn'] as double,
+      // volume: json['volume'] as double,
       // currentBalance: json['currentBalance'] as double,
       // lastSellingDate: json['lastSellingDate'] as DateTime,
       // lastPurchaseDate: json['lastPurchaseDate'] as DateTime,
@@ -118,7 +118,7 @@ class Stock {
       // useSerialNo: json['useSerialNo'] as bool,
       // serialNoPrefix: json['serialNoPrefix'] as String,
       // serialNoSuffix: json['serialNoSuffix'] as String,
-      // remark1: json['remark1'] as String,
+      remark1: json['remark1'] as String,
       // remark2: json['remark2'] as String,
       // remark3: json['remark3'] as String,
       // remark4: json['remark4'] as String,
@@ -127,7 +127,7 @@ class Stock {
       // itemTypeCode: json['itemTypeCode'] as String,
       // category: json['category'] as String,
       // group: json['group'] as String,
-      // clas: json['class'] as String,
+      // class: json['class'] as String,
       // defaultInputTaxCode: json['defaultInputTaxCode'] as String,
       // defaultOutputTaxCode: json['defaultOutputTaxCode'] as String,
     );

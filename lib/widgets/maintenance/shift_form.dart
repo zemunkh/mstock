@@ -162,7 +162,6 @@ class _ShiftFormState extends State<ShiftForm> {
       );
     }
 
-
     Widget buildShiftForm(BuildContext context) {
       return Padding(
         padding: const EdgeInsets.only(left: 2, right: 2),
