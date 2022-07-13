@@ -6,15 +6,15 @@ import '../widgets/main_drawer.dart';
 import '../widgets/production.dart';
 import '../styles/theme.dart' as style;
 
-class ProductionInScreen extends StatefulWidget {
+class ProductionScreen extends StatefulWidget {
   static const routeName = '/production-in';
-  const ProductionInScreen({Key? key}) : super(key: key);
+  const ProductionScreen({Key? key}) : super(key: key);
 
   @override
-  State<ProductionInScreen> createState() => _ProductionInScreenState();
+  State<ProductionScreen> createState() => _ProductionScreenState();
 }
 
-class _ProductionInScreenState extends State<ProductionInScreen> {
+class _ProductionScreenState extends State<ProductionScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<String> _shiftList = [];
   String shiftValue = '';
@@ -74,7 +74,7 @@ class _ProductionInScreenState extends State<ProductionInScreen> {
               },
             ),
             title: const Text(
-              'Production in',
+              'Production',
               style: TextStyle(
                 fontSize: 16,
               ),

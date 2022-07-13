@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import './screens/maintenance.dart';
 import './screens/home.dart';
 import './screens/stock_check.dart';
-import './screens/production_in.dart';
+import 'screens/production.dart';
 import './screens/pending_list.dart';
 import './screens/stock_in.dart';
 import './screens/activation_screen.dart';
@@ -33,9 +33,9 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         // '/': (ctx) => activated ? const HomeScreen() : ActivationScreen(),
-        '/': (ctx) => const ProductionInScreen(),
+        '/': (ctx) => const MaintenanceScreen(),
         StockCheckScreen.routeName: (ctx) => const StockCheckScreen(),
-        ProductionInScreen.routeName: (ctx) => const ProductionInScreen(),
+        ProductionScreen.routeName: (ctx) => const ProductionScreen(),
         PendingListScreen.routeName: (ctx) => const PendingListScreen(),
         StockInScreen.routeName: (ctx) => const StockInScreen(),
         MaintenanceScreen.routeName: (ctx) => const MaintenanceScreen(),

@@ -1,5 +1,6 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:regexed_validator/regexed_validator.dart';
 import '../widgets/main_drawer.dart';
 import '../helper/file_manager.dart';
 import '../styles/theme.dart' as Style;
@@ -164,20 +165,23 @@ class SettingScreenState extends State<SettingScreen> {
             String port = _portNumController.text.trim();
             String company = _companyController.text.trim();
             String location = _locationController.text.trim();
-            if(ip != '' && port != '') {
+            if(ip != '' && port != '' && validator.ip(ip)) {
               FileManager.saveString('ip_address', ip).then((_){
                 FileManager.saveString('port_number', port);
                 FileManager.saveString('company_name', company);
                 FileManager.saveString('location', location);
               });
               print('Saving now!');
-            }
-            else {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content:  Text("✅ Saved successfully!", textAlign: TextAlign.center,),
+                duration: Duration(milliseconds: 2000)
+              ));
+            } else {
               print('Dismissing it now!');
               // Input values are empty
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content:  Text("Can't be saved!", textAlign: TextAlign.center,),
-                duration: Duration(milliseconds: 2000)
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content:  Text(validator.ip(ip) ? "IP address is not okay!" : "Can't be saved!", textAlign: TextAlign.center,),
+                duration: const Duration(milliseconds: 3000)
               ));
             }
             // save operation by shared preference
@@ -286,22 +290,26 @@ class SettingScreenState extends State<SettingScreen> {
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                if(constraints.maxHeight > constraints.maxWidth) {
-                  return SingleChildScrollView(
-                    child: transaction,
-                  );
-                } else {
-                  return Center(
-                    child: Container(
-                      width: 450,
-                      child: transaction,
-                    ),
-                  );
-                }
-              },
+            child: SizedBox(
+              width: 450,
+              child: transaction,
             ),
+            // child: LayoutBuilder(
+            //   builder: (BuildContext context, BoxConstraints constraints) {
+            //     if(constraints.maxHeight > constraints.maxWidth) {
+            //       return SingleChildScrollView(
+            //         child: transaction,
+            //       );
+            //     } else {
+            //       return Center(
+            //         child: SizedBox(
+            //           width: 450,
+            //           child: transaction,
+            //         ),
+            //       );
+            //     }
+            //   },
+            // ),
           ),
         ),
       ),

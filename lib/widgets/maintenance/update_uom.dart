@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:intl/intl.dart';
+import '../../helper/database_helper.dart';
+import '../../helper/api.dart';
 import '../../model/stock.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
@@ -15,16 +17,80 @@ class UpdateUOM extends StatefulWidget {
 
 class _UpdateUOMState extends State<UpdateUOM> {
   String statusText = 'Completed!';
-  String lastUpdateTime = '16/06/2022 06:04 PM';
+  String lastUpdateTime = '';
+  DateFormat lastUpdateFormat = DateFormat.yMd().add_jm();
 
   List<Stock> stockList =[];
   String counter = '0';
+  final dbHelper = DatabaseHelper.instance;
+  final api = Api();
 
   bool _isButtonClicked = false;
   String ip = '', port = '', dbCode = '';
   String urlStatus = 'not found';
   String url = '';
 
+  void _insert(String stockId, String stockCode, String stockName, String baseUOM) async {
+    // row to insert
+    Map<String, dynamic> row = {
+      DatabaseHelper.columnStockId : stockId,
+      DatabaseHelper.columnStockCode  : stockCode,
+      DatabaseHelper.columnStockName  : stockName,
+      DatabaseHelper.columnBaseUOM  : baseUOM
+    };
+    final id = await dbHelper.insert(row);
+    print('inserted row id: $id');
+  }
+
+  void _update(String stockId, String stockCode, String stockName, String baseUOM) async {
+    // row to update
+    Map<String, dynamic> row = {
+      DatabaseHelper.columnStockId : stockId,
+      DatabaseHelper.columnStockCode  : stockCode,
+      DatabaseHelper.columnStockName  : stockName,
+      DatabaseHelper.columnBaseUOM  : baseUOM
+    };
+    final rowsAffected = await dbHelper.update(row);
+    print('updated $rowsAffected row(s)');
+  }
+
+
+  Future<List> _fetchAndSaveStockData() async {
+    final now = DateTime.now();
+    var data = await api.getStocks(dbCode, url);
+
+    var receivedData = json.decode(data);
+    stockList = receivedData.map<Stock>((json) => Stock.fromJson(json)).toList(); 
+
+    int len = await FileManager.readInteger('stock_length');
+    if(len == 0) {
+      for(int i = 0; i < stockList.length; i++) {
+        print('Saving Stock name: ${stockList[i].stockName}');
+        _insert(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM);
+      }
+      FileManager.saveInteger('stock_length', stockList.length);
+    } else {
+      // update the db by response.body
+      for(int i = 0; i < stockList.length; i++) {
+        print('Updating Stocks: ${stockList[i].stockName}');
+        _update(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM);
+      }
+    }
+    var last =  DateFormat.yMd(now).add_jm();
+    FileManager.saveString('last_update', last.toString());
+    setState(() {
+      lastUpdateTime = last.toString(); 
+    });
+    print('Last update: ${DateFormat.yMd(now).add_jm().toString()}');
+    return stockList;
+  }
+
+  Future<List> _fetchExistingStock() async {
+    List<Map> stockData = await dbHelper.queryAllRows();
+    print('query all rows: ${stockData.length}');
+    FileManager.saveInteger('stock_length', stockData.length);
+    return stockData;
+  }
 
   Future<Null> initProfileData() async {
     ip =  await FileManager.readString('ip_address');
@@ -52,6 +118,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
   @override
   void initState() {
     initSettings();
+    initProfileData();
     super.initState();
   }
 
@@ -70,7 +137,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
                   flex: 5,
                   child: Text(
                     'Import StockCode & UOM:',
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -79,15 +146,16 @@ class _UpdateUOMState extends State<UpdateUOM> {
                   ),
                 ),
                 Expanded(
-                  flex: 3,
+                  flex: 5,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          // 1. Open Dialog to show the progress indicator of downloading
-                          // 2. 
-                          Utils.openDialogPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
+                          setState(() {
+                            _isButtonClicked == false ? _isButtonClicked = true : _isButtonClicked = false;
+                          });
+                          // Utils.openDialogPanel(context, 'accept', 'Done!', 'Value is successfully saved!', 'Okay');
                         },
                         child: const Text('Update'),
                         style: ElevatedButton.styleFrom(
@@ -100,32 +168,59 @@ class _UpdateUOMState extends State<UpdateUOM> {
                     ],
                   ),
                 ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    statusText,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12,
-                      color: style.Colors.button4,
-                    ),
-                  ),
-                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FutureBuilder<List>(
+                  future: _isButtonClicked ? _fetchAndSaveStockData() : _fetchExistingStock(),
+                  builder: (context, snapshot) {
+                    switch(snapshot.connectionState) {
+                      case ConnectionState.none:
+                        return Text(
+                          statusText,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontStyle: FontStyle.italic,
+                            fontSize: 12,
+                            color: style.Colors.button4,
+                          ),
+                        );
+                      case ConnectionState.active:
+                      case ConnectionState.waiting:
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.done:
+                        if(snapshot.hasError) {
+                          return const Text('Error during fetching data!');
+                        }
+                        return Text(
+                          '${snapshot.data!.length}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 32,
+                            color: style.Colors.button2,
+                          ),
+                        );
+                    }
+                  }
+                )
               ],
             ),
             Row(
               children: [
                 const Expanded(
-                  flex: 5,
+                  flex: 4,
                   child: Text(''),
                 ),
                 const Expanded(
-                  flex: 2,
-                  child: Text('Last Update: '),
+                  flex: 3,
+                  child: Text('Last Update: ', textAlign: TextAlign.center,),
                 ),
                 Expanded(
-                  flex: 5,
+                  flex: 3,
                   child: Text(lastUpdateTime,
                     style: const TextStyle(
                       fontStyle: FontStyle.italic,

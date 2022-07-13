@@ -28,7 +28,8 @@ class _ProductionState extends State<Production> {
   static final _stickerDeleteFormKey = GlobalKey<FormFieldState>();
 
 
-  bool isSaveDisabled = false;
+  bool isSaveDisabled = true;
+  bool _isMatched = false;
 
   List<bool> activeList = [
     false,
@@ -62,7 +63,6 @@ class _ProductionState extends State<Production> {
 
   String buffer = '';
   String trueVal = '';
-  String prevVal = '';
 
   Future masterListener() async {
     print('Current text: ${_masterController.text}');
@@ -90,30 +90,35 @@ class _ProductionState extends State<Production> {
       if(trueVal == _masterController.text) {
         level++;
         print('Adding...');
+        if (level <= 4) {
+          switch (level) {
+            case 0:
+              activeList = [false, false, false, false];
+              break;
+            case 1:
+              activeList = [true, false, false, false];
+              break;
+            case 2:
+              activeList = [true, true, false, false];
+              break;
+            case 3:
+              activeList = [true, true, true, false];
+              break;
+            case 4:
+              isSaveDisabled = false;
+              activeList = [true, true, true, true];
+              break;
+            default:
+              activeList = [false, false, false, false];
+          }
+        } else {
+          isSaveDisabled = true;
+          // Utils.openDialogPanel(context, 'close', 'Oops!', 'Already filled!', 'Try again');
+        }
       }
 
-      prevVal = trueVal;
-
-      switch (level) {
-        case 0:
-          activeList = [false, false, false, false];
-          break;
-        case 1:
-          activeList = [true, false, false, false];
-          break;
-        case 2:
-          activeList = [true, true, false, false];
-          break;
-        case 3:
-          activeList = [true, true, true, false];
-          break;
-        case 4:
-          activeList = [true, true, true, true];
-          break;
-        default:
-          activeList = [false, false, false, false];
-      }
       setState(() {});
+
       // if True, add stock item to the list
 
       // else, remove stock item/decrease by the count 
@@ -143,8 +148,9 @@ class _ProductionState extends State<Production> {
     }
   }
 
+  bool isFound = false;
+
   Future machineLineListener() async {
-    bool isFound = false;
     buffer = _machineLineController.text;
     print('Machine text: ${_machineLineController.text}');
     if (buffer.endsWith(r'$')) {
@@ -159,8 +165,14 @@ class _ProductionState extends State<Production> {
 
       if (isFound) {
         Utils.openDialogPanel(context, 'accept', 'Done!', 'Matched machine line.', 'Okay');
+        setState(() {
+          _isMatched = true;
+        });
       } else {
         Utils.openDialogPanel(context, 'close', 'Oops!', 'No found!', 'Try again');
+        setState(() {
+          _isMatched = false;
+        });
       }
       
       // Search and compare the result
@@ -270,6 +282,7 @@ class _ProductionState extends State<Production> {
           width: currentWidth,
           child: TextFormField(
             key: _formKey,
+            enabled: hintext.contains('Master') ? _isMatched : hintext.contains('Sticker') ? _isMatched : true,
             style: const TextStyle(
               fontSize: 16,
               color: Color(0xFF004B83),
@@ -297,12 +310,14 @@ class _ProductionState extends State<Production> {
                 ),
                 onPressed: () {
                   _clearTextController(context, _controller, currentNode);
+                  if(!(hintext.contains('Master') || hintext.contains('Sticker'))) {
+                    setState(() {
+                      _isMatched = false;
+                    });
+                  }
                 },
               ),
             ),
-            onChanged: (val) {
-
-            },
             autofocus: false,
             autocorrect: false,
             controller: _controller,
@@ -493,17 +508,14 @@ class _ProductionState extends State<Production> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (isSaveDisabled == true) { return; }
-                    
-                    setState(() {
-                      isAddView = true;
-                    });
+                    print('Clicked the Save');
                   },
                   child: const Text(
                     'Add',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    primary: style.Colors.button4,
+                    primary: isSaveDisabled ? style.Colors.mainDarkGrey : style.Colors.button4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

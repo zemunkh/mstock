@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import '../screens/maintenance.dart';
 import '../screens/pending_list.dart';
-import '../screens/production_in.dart';
+import 'production.dart';
 import '../screens/stock_check.dart';
 import '../screens/stock_in.dart';
 import '../widgets/main_drawer.dart';
@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           InkWell(
             splashColor: style.Colors.mainBlue,
-            child: boxMenuItem('warehouse', 'Production In'),
+            child: boxMenuItem('warehouse', 'Production'),
             onTap: () {
               // WidgetsBinding.instance.addPostFrameCallback((_) {
               //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));

@@ -3,7 +3,7 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import '../screens/settings_screen.dart';
 import '../screens/home.dart';
 import '../screens/pending_list.dart';
-import '../screens/production_in.dart';
+import '../screens/production.dart';
 import '../screens/stock_check.dart';
 import '../screens/stock_in.dart';
 import '../styles/theme.dart' as style;
@@ -103,7 +103,7 @@ class MainDrawer extends StatelessWidget {
                 color: style.Colors.mainGrey,
               ),
               title: const Text(
-                'Production In',
+                'Production',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -111,7 +111,7 @@ class MainDrawer extends StatelessWidget {
               ),
               onTap: () {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ProductionInScreen()));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ProductionScreen()));
                 });
               },
             ),
