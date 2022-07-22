@@ -122,36 +122,36 @@ class _HomeScreenState extends State<HomeScreen> {
             splashColor: style.Colors.mainBlue,
             child: boxMenuItem('warehouse', 'Production'),
             onTap: () {
-              // WidgetsBinding.instance.addPostFrameCallback((_) {
-              //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
-              // });
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionScreen()));
+              });
             },
           ),
           InkWell(
             splashColor: style.Colors.mainBlue,
             child: boxMenuItem('scale', 'Check code'),
             onTap: () {
-              // WidgetsBinding.instance.addPostFrameCallback((_) {
-              //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
-              // });
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockCheckScreen()));
+              });
             },
           ),
           InkWell(
             splashColor: style.Colors.mainBlue,
             child: boxMenuItem('expired', 'Pending'),
             onTap: () {
-              // WidgetsBinding.instance.addPostFrameCallback((_) {
-              //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
-              // });
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PendingListScreen()));
+              });
             },
           ),
           InkWell(
             splashColor: style.Colors.mainBlue,
             child: boxMenuItem('box', 'Stock In'),
             onTap: () {
-              // WidgetsBinding.instance.addPostFrameCallback((_) {
-              //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionInScreen()));
-              // });
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockInScreen()));
+              });
             },
           ),
         ],

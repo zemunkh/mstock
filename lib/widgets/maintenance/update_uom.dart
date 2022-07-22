@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../helper/database_helper.dart';
+import '../../helper/utils.dart';
+import '../../helper/stock_database_helper.dart';
 import '../../helper/api.dart';
 import '../../model/stock.dart';
-import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
 import '../../styles/theme.dart' as style;
 
@@ -21,8 +21,8 @@ class _UpdateUOMState extends State<UpdateUOM> {
   DateFormat lastUpdateFormat = DateFormat.yMd().add_jm();
 
   List<Stock> stockList =[];
-  String counter = '0';
-  final dbHelper = DatabaseHelper.instance;
+  int stockCounter = 0;
+  final stockDbHelper = StockDatabaseHelper.instance;
   final api = Api();
 
   bool _isButtonClicked = false;
@@ -30,77 +30,70 @@ class _UpdateUOMState extends State<UpdateUOM> {
   String urlStatus = 'not found';
   String url = '';
 
-  void _insert(String stockId, String stockCode, String stockName, String baseUOM) async {
-    // row to insert
-    Map<String, dynamic> row = {
-      DatabaseHelper.columnStockId : stockId,
-      DatabaseHelper.columnStockCode  : stockCode,
-      DatabaseHelper.columnStockName  : stockName,
-      DatabaseHelper.columnBaseUOM  : baseUOM
-    };
-    final id = await dbHelper.insert(row);
-    print('inserted row id: $id');
-  }
-
-  void _update(String stockId, String stockCode, String stockName, String baseUOM) async {
-    // row to update
-    Map<String, dynamic> row = {
-      DatabaseHelper.columnStockId : stockId,
-      DatabaseHelper.columnStockCode  : stockCode,
-      DatabaseHelper.columnStockName  : stockName,
-      DatabaseHelper.columnBaseUOM  : baseUOM
-    };
-    final rowsAffected = await dbHelper.update(row);
-    print('updated $rowsAffected row(s)');
-  }
-
-
   Future<List> _fetchAndSaveStockData() async {
     final now = DateTime.now();
     var data = await api.getStocks(dbCode, url);
 
     var receivedData = json.decode(data);
-    stockList = receivedData.map<Stock>((json) => Stock.fromJson(json)).toList(); 
+    print('\n\n Len: ${receivedData.length} \n\n');
 
-    int len = await FileManager.readInteger('stock_length');
-    if(len == 0) {
-      for(int i = 0; i < stockList.length; i++) {
-        print('Saving Stock name: ${stockList[i].stockName}');
-        _insert(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM);
+    for (int i = 0; i < receivedData.length; i++) {
+      print('Item id #${i + 1}: ${receivedData[i]['baseUOM']}');
+      if(receivedData[i]['baseUOM'] == null) {
+        receivedData[i]['baseUOM'] = 'UNIT';
       }
-      FileManager.saveInteger('stock_length', stockList.length);
-    } else {
-      // update the db by response.body
-      for(int i = 0; i < stockList.length; i++) {
-        print('Updating Stocks: ${stockList[i].stockName}');
-        _update(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM);
+      if(receivedData[i]['description'] == null) {
+        receivedData[i]['description'] = 'Empty';
       }
     }
+
+    stockList = receivedData.map<Stock>((json) => Stock.fromJson(json)).toList(); 
+
+    print('Parsed!');
+
+
+    int len = await FileManager.readInteger('stock_length');
+    // if(len == 0) {
+      for(int i = 0; i < stockList.length; i++) {
+        print('Saving Stock name: ${stockList[i].stockName}');
+        await Utils.insertStock(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM, 'Ok');
+      }
+      FileManager.saveInteger('stock_length', stockList.length);
+    // } else {
+    //   // update the db by response.body
+    //   for(int i = 0; i < stockList.length; i++) {
+    //     print('Updating Stocks: ${stockList[i].stockName}');
+    //     await Utils.updateStock(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM, 'Ok');
+    //   }
+    // }
     var last =  DateFormat.yMd(now).add_jm();
     FileManager.saveString('last_update', last.toString());
     setState(() {
       lastUpdateTime = last.toString(); 
     });
-    print('Last update: ${DateFormat.yMd(now).add_jm().toString()}');
+    print('Last update: $last');
     return stockList;
   }
 
   Future<List> _fetchExistingStock() async {
-    List<Map> stockData = await dbHelper.queryAllRows();
+    print('Trying to fetch db');
+    List<Map> stockData = await stockDbHelper.queryAllRows();
     print('query all rows: ${stockData.length}');
     FileManager.saveInteger('stock_length', stockData.length);
     return stockData;
   }
 
-  Future<Null> initProfileData() async {
+  Future initProfileData() async {
     ip =  await FileManager.readString('ip_address');
     port =  await FileManager.readString('port_number');
     dbCode =  await FileManager.readString('company_name');
     if(ip != '' && port != '' && dbCode != '') {
-      url = 'http://$ip:$port/api/Stocks';
+      // url = 'http://$ip:$port/api/Stocks';
+      url = 'https://dev-api.qne.cloud/api/Stocks?%24skip=0&%24top=10';
+      dbCode = 'fazsample';
     } else {
       url = 'https://dev-api.qne.cloud/api/Stocks';
-      dbCode = 'OUCOP7';
+      dbCode = 'fazsample';
     }
     setState((){
       urlStatus = url;
@@ -108,10 +101,9 @@ class _UpdateUOMState extends State<UpdateUOM> {
   }
 
   Future initSettings() async {
-    await FileManager.readString('last_update').then((value) => {
-      lastUpdateTime = value != '' ? value : lastUpdateTime
-    });
-    print('Last update is fetched');
+    await stockDbHelper.database;
+    lastUpdateTime = await FileManager.readString('last_update');
+    stockCounter = await FileManager.readInteger('stock_length');
     setState(() {});
   }
 
@@ -194,6 +186,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
                         );
                       case ConnectionState.done:
                         if(snapshot.hasError) {
+                          print('Error: ${snapshot.error}');
                           return const Text('Error during fetching data!');
                         }
                         return Text(
@@ -212,16 +205,20 @@ class _UpdateUOMState extends State<UpdateUOM> {
             Row(
               children: [
                 const Expanded(
-                  flex: 4,
-                  child: Text(''),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Text('Last Update: ', textAlign: TextAlign.center,),
+                  flex: 5,
+                  child: Text(
+                    'Last Update:',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: style.Colors.mainGrey,
+                    ),
+                  ),
                 ),
                 Expanded(
-                  flex: 3,
-                  child: Text(lastUpdateTime,
+                  flex: 5,
+                  child: Text(lastUpdateTime == '' ? 'Not yet updated!' : lastUpdateTime,
                     style: const TextStyle(
                       fontStyle: FontStyle.italic,
                       fontSize: 14,

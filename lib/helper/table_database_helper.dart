@@ -4,22 +4,29 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 
 
-class DatabaseHelper {
+class TableDatabaseHelper {
 
-  static const _databaseName = "StockDatabase.db";
+  static const _databaseName = "TableDatabase.db";
   static const _databaseVersion = 1;
 
-  static const table = 'stock_table';
+  static const table = 'table_stocks';
 
   static const columnId = 'id';
   static const columnStockId = 'stockId'; // to fetch UOMs data
+  static const columnMachine = 'machine';
+  static const columnShift = 'shift';
+  static const columnDateTime = 'dateTime';
   static const columnStockCode = 'stockCode';
-  static const columnStockName = 'stockName';
+  static const columnStockCategory = 'stockCategory';
+  static const columnGroup = 'group';
+  static const columnStockClass = 'stockClass';
+  static const columnWeight = 'weight';
+  static const columnQty = 'qty ';
   static const columnBaseUOM = 'baseUOM';
 
   // make singleton class
-  DatabaseHelper._privateConstructor();
-  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
+  TableDatabaseHelper._privateConstructor();
+  static final TableDatabaseHelper instance = TableDatabaseHelper._privateConstructor();
 
   static Database? _database;
   Future<Database?> get database async {
@@ -47,8 +54,15 @@ class DatabaseHelper {
           create table $table (
             $columnId INTEGER PRIMARY KEY,
             $columnStockId TEXT NOT NULL,
+            $columnMachine TEXT NOT NULL,
+            $columnShift TEXT NOT NULL,
+            $columnDateTime TEXT NOT NULL,
             $columnStockCode TEXT NOT NULL,
-            $columnStockName TEXT NOT NULL,
+            $columnStockCategory TEXT NOT NULL,
+            $columnGroup TEXT NOT NULL,
+            $columnStockClass TEXT NOT NULL,
+            $columnWeight INTEGER NOT NULL,
+            $columnQty INTEGER NOT NULL,
             $columnBaseUOM TEXT NOT NULL)
           ''');
   }

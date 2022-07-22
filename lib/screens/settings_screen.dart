@@ -156,11 +156,9 @@ class SettingScreenState extends State<SettingScreen> {
 
     Widget _saveButton(BuildContext context) {
       return Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(6),
         child: MaterialButton(
           onPressed: () {
-            print('You pressed Save!');
-            List<String> _descripts = [];
             String ip = _ipAddressController.text.trim();
             String port = _portNumController.text.trim();
             String company = _companyController.text.trim();
@@ -192,7 +190,7 @@ class SettingScreenState extends State<SettingScreen> {
               color: Colors.white,
               fontFamily: 'QuickSand',
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 24,
             ),
           ),
           shape: StadiumBorder(),
@@ -211,7 +209,7 @@ class SettingScreenState extends State<SettingScreen> {
         child: SizedBox(
           height: 25,
           child: TextFormField(
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: Color(0xFF004B83),
               fontWeight: FontWeight.bold,
@@ -220,7 +218,7 @@ class SettingScreenState extends State<SettingScreen> {
               filled: true,
               fillColor: Colors.white,
               hintText: 'Description',
-              hintStyle: TextStyle(
+              hintStyle: const TextStyle(
                 color: Color(0xFF004B83),
                 fontSize: 14,
                 fontWeight: FontWeight.w300,
@@ -289,7 +287,7 @@ class SettingScreenState extends State<SettingScreen> {
             FocusScope.of(context).requestFocus( FocusNode());
           },
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.only(left: 16, right: 16),
             child: SizedBox(
               width: 450,
               child: transaction,

@@ -1,38 +1,116 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'table_database_helper.dart';
+import 'stock_database_helper.dart';
 import '../../helper/api.dart';
-import '../../helper/database_helper.dart';
 import '../../helper/file_manager.dart';
 import '../../model/stock.dart';
-import 'package:flutter/material.dart';
 import '../styles/theme.dart' as style;
 
 class Utils {
-  final dbHelper = DatabaseHelper.instance;
+  final stockDbHelper = StockDatabaseHelper.instance;
+
   final api = Api();
 
-  void _insert(String stockId, String stockCode, String stockName, String baseUOM) async {
+  static Future<int> insertTableRow(
+      String stockId,
+      String machine,
+      String shift,
+      String dateTime,
+      String stockCode,
+      String stockCategory,
+      String group,
+      String stockClass,
+      int weight,
+      int qty,
+      String baseUOM,
+    ) async {
+    final tableDbHelper = TableDatabaseHelper.instance;
     // row to insert
     Map<String, dynamic> row = {
-      DatabaseHelper.columnStockId : stockId,
-      DatabaseHelper.columnStockCode  : stockCode,
-      DatabaseHelper.columnStockName  : stockName,
-      DatabaseHelper.columnBaseUOM  : baseUOM
+      TableDatabaseHelper.columnStockId : stockId,
+      TableDatabaseHelper.columnMachine : machine,
+      TableDatabaseHelper.columnShift : shift,
+      TableDatabaseHelper.columnDateTime : dateTime,
+      TableDatabaseHelper.columnStockCode : stockCode,
+      TableDatabaseHelper.columnStockCategory : stockCategory,
+      TableDatabaseHelper.columnGroup : group,
+      TableDatabaseHelper.columnStockClass : stockClass,
+      TableDatabaseHelper.columnWeight : weight,
+      TableDatabaseHelper.columnQty : qty,
+      TableDatabaseHelper.columnBaseUOM : baseUOM
     };
-    final id = await dbHelper.insert(row);
+    
+    final id = await tableDbHelper.insert(row);
     print('inserted row id: $id');
+    return id;
   }
 
-  void _update(String stockId, String stockCode, String stockName, String baseUOM) async {
+  static Future<int> updateTableRow(
+      String stockId,
+      String machine,
+      String shift,
+      String dateTime,
+      String stockCode,
+      String stockCategory,
+      String group,
+      String stockClass,
+      int weight,
+      int qty,
+      String baseUOM,
+  ) async {
+    final tableDbHelper = TableDatabaseHelper.instance;
     // row to update
     Map<String, dynamic> row = {
-      DatabaseHelper.columnStockId : stockId,
-      DatabaseHelper.columnStockCode  : stockCode,
-      DatabaseHelper.columnStockName  : stockName,
-      DatabaseHelper.columnBaseUOM  : baseUOM
+      TableDatabaseHelper.columnStockId : stockId,
+      TableDatabaseHelper.columnMachine : machine,
+      TableDatabaseHelper.columnShift : shift,
+      TableDatabaseHelper.columnDateTime : dateTime,
+      TableDatabaseHelper.columnStockCode : stockCode,
+      TableDatabaseHelper.columnStockCategory : stockCategory,
+      TableDatabaseHelper.columnGroup : group,
+      TableDatabaseHelper.columnStockClass : stockClass,
+      TableDatabaseHelper.columnWeight : weight,
+      TableDatabaseHelper.columnQty : qty,
+      TableDatabaseHelper.columnBaseUOM : baseUOM
     };
-    final rowsAffected = await dbHelper.update(row);
+    final rowsAffected = await tableDbHelper.update(row);
     print('updated $rowsAffected row(s)');
+    return rowsAffected;
+  }
+
+
+
+  static Future<int> insertStock(String stockId, String stockCode, String stockName, String baseUOM, String remark1) async {
+    final stockDbHelper = StockDatabaseHelper.instance;
+    // row to insert
+    Map<String, dynamic> row = {
+      StockDatabaseHelper.columnStockId : stockId,
+      StockDatabaseHelper.columnStockCode : stockCode,
+      StockDatabaseHelper.columnStockName : stockName,
+      StockDatabaseHelper.columnBaseUOM : baseUOM,
+      StockDatabaseHelper.columnRemark1 : remark1
+    };
+
+    final id = await stockDbHelper.insert(row);
+    print('inserted row id: $id');
+    return id;
+  }
+
+  static Future<int> updateStock(String stockId, String stockCode, String stockName, String baseUOM, String remark1) async {
+    final stockDbHelper = StockDatabaseHelper.instance;
+    // row to update
+    Map<String, dynamic> row = {
+      StockDatabaseHelper.columnStockId : stockId,
+      StockDatabaseHelper.columnStockCode  : stockCode,
+      StockDatabaseHelper.columnStockName  : stockName,
+      StockDatabaseHelper.columnBaseUOM  : baseUOM,
+      StockDatabaseHelper.columnRemark1 : remark1
+    };
+    final rowsAffected = await stockDbHelper.update(row);
+    print('updated $rowsAffected row(s)');
+    return rowsAffected;
   }
 
   Future<List> fetchAndSaveStockData(String _dbCode, String _url) async {
@@ -47,14 +125,14 @@ class Utils {
     if(len == 0) {
       for(int i = 0; i < stockList.length; i++) {
         print('Saving Stock name: ${stockList[i].stockName}');
-        _insert(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM);
+        insertStock(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM, 'Ok');
       }
       FileManager.saveString('stock_length', stockList.length.toString());
     } else {
       // update the db by response.body
       for(int i = 0; i < stockList.length; i++) {
         print('Updating Stocks: ${stockList[i].stockName}');
-        _update(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM);
+        updateStock(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM, 'Ok');
       }
     }
     
