@@ -1,10 +1,27 @@
-import 'package:flutter/foundation.dart';
+const String tableStocks = 'stocks';
+
+class StockFields {
+  static final List<String> values = [
+    /// Add all fields
+    id, stockId, stockCode, stockName, baseUOM, remark1, isActive
+  ];
+
+  static const String id = '_id';
+  static const String stockId = 'id';
+  static const String stockCode = 'stockCode';
+  static const String stockName = 'stockName';
+  static const String baseUOM = 'baseUOM';
+  static const String remark1 = 'remark1';
+  static const String isActive = 'isActive';
+}
+
 
 class Stock {
-  final String id;
+  final int? id;
+  final String stockId;
   final String stockCode;
   final String stockName;
-  final String description;
+  // final String description;
   // final String furtherDescription;
   final String baseUOM;
   // final double minQty;
@@ -22,14 +39,14 @@ class Stock {
   // final double currentBalance;
   // final DateTime lastSellingDate;
   // final DateTime lastPurchaseDate;
-  // final bool isActive;
+  final bool isActive;
   // final bool isBundled;
   // final String createDate;
   // final bool stockControl;
   // final bool useSerialNo;
   // final String serialNoPrefix;
   // final String serialNoSuffix;
-  // final String remark1;
+  final int remark1;
   // final String remark2;
   // final String remark3;
   // final String remark4;
@@ -44,9 +61,10 @@ class Stock {
 
   Stock({
     required this.id,
+    required this.stockId,
     required this.stockCode,
     required this.stockName,
-    required this.description,
+    // required this.description,
     // required this.furtherDescription,
     required this.baseUOM,
     // @required this.minQty,
@@ -64,14 +82,14 @@ class Stock {
     // @required this.currentBalance,
     // @required this.lastSellingDate,
     // @required this.lastPurchaseDate,
-    // @required this.isActive,
+    required this.isActive,
     // @required this.isBundled,
     // @required this.createDate,
     // @required this.stockControl,
     // @required this.useSerialNo,
     // @required this.serialNoPrefix,
     // @required this.serialNoSuffix,
-    // required this.remark1,
+    required this.remark1,
     // @required this.remark2,
     // @required this.remark3,
     // @required this.remark4,
@@ -85,13 +103,33 @@ class Stock {
     // @required this.defaultOutputTaxCode, 
   });
 
+  Stock copy({
+    int? id,
+    String? stockId,
+    String? stockCode,
+    String? stockName,
+    int? remark1,
+    bool? isActive,
+    String? baseUOM
+  }) =>
+      Stock(
+        id: id ?? this.id,
+        stockId: stockId ?? this.stockId,
+        stockCode: stockCode ?? this.stockCode,
+        stockName: stockName ?? this.stockName,
+        remark1: remark1 ?? this.remark1,
+        isActive: isActive ?? this.isActive,
+        baseUOM: baseUOM ?? this.baseUOM
+      );
+
   factory Stock.fromJson(Map<String, dynamic> json) {
     return Stock(
-      id: json['id'] as String,
-      stockCode: json['stockCode'] ?? json['stockCode'],
-      stockName: json['stockName'] ?? json['stockName'],
-      description: json['description'] ?? json['description'],
-      baseUOM: json['baseUOM'] ?? json['baseUOM'],
+      id: json[StockFields.id] as int?,
+      stockId: json[StockFields.stockId] as String,
+      stockCode: json[StockFields.stockCode] as String,
+      stockName: json[StockFields.stockName] as String,
+      // description: json['description'] ?? json['description'],
+      baseUOM: json[StockFields.baseUOM] as String,
       // minQty: json['minQty'] as double,
       // maxQty: json['maxQty'] as double,
       // reorderLevel: json['reorderLevel'] as double,
@@ -107,14 +145,14 @@ class Stock {
       // currentBalance: json['currentBalance'] as double,
       // lastSellingDate: json['lastSellingDate'] as DateTime,
       // lastPurchaseDate: json['lastPurchaseDate'] as DateTime,
-      // isActive: json['isActive'] as bool,
+      isActive: json[StockFields.isActive] == 1,
       // isBundled: json['isBundled'] as bool,
       // createDate: json['createDate'] as String,
       // stockControl: json['stockControl'] as bool,
       // useSerialNo: json['useSerialNo'] as bool,
       // serialNoPrefix: json['serialNoPrefix'] as String,
       // serialNoSuffix: json['serialNoSuffix'] as String,
-      // remark1: json['remark1'] as String,
+      remark1: json[StockFields.remark1] as int,
       // remark2: json['remark2'] as String,
       // remark3: json['remark3'] as String,
       // remark4: json['remark4'] as String,
@@ -128,4 +166,14 @@ class Stock {
       // defaultOutputTaxCode: json['defaultOutputTaxCode'] as String,
     );
   }
+
+  Map<String, Object?> toJson() => {
+    StockFields.id: id,
+    StockFields.stockId: stockId,
+    StockFields.stockCode: stockCode,
+    StockFields.stockName: stockName,
+    StockFields.remark1: remark1,
+    StockFields.isActive: isActive ? 1 : 0,
+    StockFields.baseUOM: baseUOM,
+  };
 }

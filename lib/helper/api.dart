@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert' show json, utf8;
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:dio/dio.dart';
 
 import '../model/stockIn.dart';
 
@@ -22,20 +21,6 @@ class Api {
     );
     return response.body;
   }
-
-  // Future<String> getStocksDio(String dbCode, String _url) async {
-  //   print("Accessing URL: $_url");
-  //   Response response = await Dio().get(_url, 
-  //       options: Options(
-  //       headers: {
-  //         "DbCode": dbCode,
-  //         "Content-Type": "application/json"
-  //       },
-  //     )
-  //   );
-  //   print('Response: ${response.data}');
-  //   return response.data.toString();
-  // }
 
   Future postStockIns(String dbCode, String body, String _url) async {
     // Prepare for the Post request (http)

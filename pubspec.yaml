@@ -13,7 +13,6 @@ dependencies:
   intl: ^0.17.0
   csv: ^5.0.1
   shared_preferences: ^2.0.15
-  dio: ^4.0.6
   http: ^0.13.4
   eva_icons_flutter: ^3.1.0
   font_awesome_flutter: ^10.1.0
@@ -23,7 +22,6 @@ dependencies:
   cupertino_icons: ^1.0.2
   pin_code_fields: ^7.4.0
   time_picker_sheet: ^0.0.2+1
-  data_table_2: ^2.3.5
   regexed_validator: ^2.0.0+1
   
 dev_dependencies:

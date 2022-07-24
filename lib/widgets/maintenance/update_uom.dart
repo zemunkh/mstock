@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../database/stock_db.dart';
 import '../../helper/utils.dart';
-import '../../helper/stock_database_helper.dart';
 import '../../helper/api.dart';
 import '../../model/stock.dart';
 import '../../helper/file_manager.dart';
@@ -22,7 +22,6 @@ class _UpdateUOMState extends State<UpdateUOM> {
 
   List<Stock> stockList =[];
   int stockCounter = 0;
-  final stockDbHelper = StockDatabaseHelper.instance;
   final api = Api();
 
   bool _isButtonClicked = false;
@@ -38,12 +37,19 @@ class _UpdateUOMState extends State<UpdateUOM> {
     print('\n\n Len: ${receivedData.length} \n\n');
 
     for (int i = 0; i < receivedData.length; i++) {
-      print('Item id #${i + 1}: ${receivedData[i]['baseUOM']}');
+      print('Item remark1 #${i + 1}: ${receivedData[i]['remark1']}');
+      // receivedData[i]['_id'] = i;
       if(receivedData[i]['baseUOM'] == null) {
         receivedData[i]['baseUOM'] = 'UNIT';
       }
       if(receivedData[i]['description'] == null) {
         receivedData[i]['description'] = 'Empty';
+      }
+      if(receivedData[i]['isActive'] == null) {
+        receivedData[i]['isActive'] = true;
+      }
+      if(receivedData[i]['remark1'] == null) {
+        receivedData[i]['remark1'] = 4;
       }
     }
 
@@ -53,20 +59,23 @@ class _UpdateUOMState extends State<UpdateUOM> {
 
 
     int len = await FileManager.readInteger('stock_length');
-    // if(len == 0) {
+    if(len == 0) {
       for(int i = 0; i < stockList.length; i++) {
         print('Saving Stock name: ${stockList[i].stockName}');
-        await Utils.insertStock(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM, 'Ok');
+        // await Utils.insertStock(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM, 'Ok');
+        await StockDatabase.instance.create(stockList[i]);
       }
       FileManager.saveInteger('stock_length', stockList.length);
-    // } else {
-    //   // update the db by response.body
-    //   for(int i = 0; i < stockList.length; i++) {
-    //     print('Updating Stocks: ${stockList[i].stockName}');
-    //     await Utils.updateStock(stockList[i].id, stockList[i].stockCode, stockList[i].stockName, stockList[i].baseUOM, 'Ok');
-    //   }
-    // }
-    var last =  DateFormat.yMd(now).add_jm();
+    } else {
+      // update the db by response.body
+      for(int i = 0; i < stockList.length; i++) {
+        print('Updating Stocks: ${stockList[i].stockName}');
+        await StockDatabase.instance.update(stockList[i]);
+
+      }
+    }
+    var last =  DateFormat.yMd().add_jm().format(now);
+    // print('Last: $last');
     FileManager.saveString('last_update', last.toString());
     setState(() {
       lastUpdateTime = last.toString(); 
@@ -76,8 +85,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
   }
 
   Future<List> _fetchExistingStock() async {
-    print('Trying to fetch db');
-    List<Map> stockData = await stockDbHelper.queryAllRows();
+    List<Stock> stockData = await StockDatabase.instance.readAllStocks();
     print('query all rows: ${stockData.length}');
     FileManager.saveInteger('stock_length', stockData.length);
     return stockData;
@@ -92,7 +100,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
       url = 'https://dev-api.qne.cloud/api/Stocks?%24skip=0&%24top=10';
       dbCode = 'fazsample';
     } else {
-      url = 'https://dev-api.qne.cloud/api/Stocks';
+      url = 'https://dev-api.qne.cloud/api/Stocks?%24skip=0&%24top=10';
       dbCode = 'fazsample';
     }
     setState((){
@@ -101,7 +109,6 @@ class _UpdateUOMState extends State<UpdateUOM> {
   }
 
   Future initSettings() async {
-    await stockDbHelper.database;
     lastUpdateTime = await FileManager.readString('last_update');
     stockCounter = await FileManager.readInteger('stock_length');
     setState(() {});
@@ -112,6 +119,13 @@ class _UpdateUOMState extends State<UpdateUOM> {
     initSettings();
     initProfileData();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    StockDatabase.instance.close();
+
+    super.dispose();
   }
 
   @override
