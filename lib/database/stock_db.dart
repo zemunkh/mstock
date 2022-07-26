@@ -24,7 +24,7 @@ class StockDatabase {
   }
 
   Future _createDB(Database db, int version) async {
-    const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    const idType = 'INTEGER PRIMARY KEY';
     const textType = 'TEXT NOT NULL';
     const boolType = 'BOOLEAN NOT NULL';
     const integerType = 'INTEGER NOT NULL';
@@ -108,6 +108,15 @@ class StockDatabase {
       whereArgs: [id],
     );
   }
+
+  Future<int> deleteAll() async {
+    final db = await instance.database;
+
+    return await db.delete(
+      tableStocks
+    );
+  }
+
 
   Future close() async {
     final db = await instance.database;
