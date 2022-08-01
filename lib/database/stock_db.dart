@@ -34,13 +34,13 @@ class StockDatabase {
       CREATE TABLE $tableStocks ( 
         ${StockFields.id} $idType,
         ${StockFields.stockId} $textType,
-        ${StockFields.stockGroup} $textType,
         ${StockFields.stockCode} $textType,
         ${StockFields.stockName} $textType,
         ${StockFields.remark1} $textType,
         ${StockFields.isActive} $boolType,
-        ${StockFields.baseUOM} $textType,
         ${StockFields.weight} $realType,
+        ${StockFields.stockGroup} $textType,
+        ${StockFields.baseUOM} $textType,
         ${StockFields.category} $textType,
         ${StockFields.stockClass} $textType
         )
@@ -60,34 +60,6 @@ class StockDatabase {
     //     '${json[NoteFields.title]}, ${json[NoteFields.description]}, ${json[NoteFields.time]}';
     // final id = await db
     //     .rawInsert('INSERT INTO table_name ($columns) VALUES ($values)');
-
-    // const columns =
-    //     '''
-    //     ${StockFields.stockId}, 
-    //     ${StockFields.stockCode},
-    //     ${StockFields.stockName},
-    //     ${StockFields.remark1},
-    //     ${StockFields.isActive},
-    //     ${StockFields.baseUOM},
-    //     ${StockFields.weight},
-    //     ${StockFields.category},
-    //     ${StockFields.stockGroup},
-    //     ${StockFields.stockClass}
-    //   ''';
-    // final values = '''
-    //   ${json[StockFields.stockId]}, 
-    //   ${json[StockFields.stockCode]}, 
-    //   ${json[StockFields.stockName]}, 
-    //   ${json[StockFields.remark1]}, 
-    //   ${json[StockFields.isActive]}, 
-    //   ${json[StockFields.baseUOM]}, 
-    //   ${json[StockFields.weight]}, 
-    //   ${json[StockFields.category]}, 
-    //   ${json[StockFields.stockGroup]}, 
-    //   ${json[StockFields.stockClass]}
-    // ''';
-    // final id = await db
-    //     .rawInsert("INSERT INTO $tableStocks ($columns) VALUES ($values)");
 
     final id = await db.insert(tableStocks, json);
     print('ID: $id');
@@ -122,8 +94,7 @@ class StockDatabase {
     );
 
     if (maps.isNotEmpty) {
-      print('Weight: ${maps.first['category']}');
-      print('DATA: ${maps.first.toString()}');
+      print('Row: ${maps.first}');
       return Stock.fromJsonSQL(maps.first);
     } else {
       throw Exception('Code $stockCode not found');

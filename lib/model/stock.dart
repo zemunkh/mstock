@@ -3,7 +3,7 @@ const String tableStocks = 'stocks';
 class StockFields {
   static final List<String> values = [
     /// Add all fields
-    id, stockId, stockCode, stockName, baseUOM, remark1, isActive
+    id, stockId, stockCode, stockName, baseUOM, remark1, isActive, weight, category, stockGroup, stockClass
   ];
 
   static const String id = '_id';
@@ -197,7 +197,7 @@ class Stock {
       // purchasePrice: json['purchasePrice'] as double,
       // purchaseDiscount: json['purchaseDiscount'] as String,
       // barCode: json['barCode'] as String,
-      weight: json[StockFields.weight],
+      weight: json[StockFields.weight] as double,
       // volume: json['volume'] as double,
       // currentBalance: json['currentBalance'] as double,
       // lastSellingDate: json['lastSellingDate'] as DateTime,

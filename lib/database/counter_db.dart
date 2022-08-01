@@ -42,6 +42,7 @@ class CounterDatabase {
         ${CounterFields.stockClass} $textType,
         ${CounterFields.weight} $realType,
         ${CounterFields.qty} $integerType,
+        ${CounterFields.stockCategory} $textType,
         ${CounterFields.baseUOM} $textType
         )
       ''');
@@ -116,6 +117,17 @@ class CounterDatabase {
       counter.toJson(),
       where: '${CounterFields.id} = ?',
       whereArgs: [counter.id],
+    );
+  }
+
+
+  Future<int> deleteByStockCode(String stockCode) async {
+    final db = await instance.database;
+
+    return await db.delete(
+      tableCounter,
+      where: '${CounterFields.stockCode} = ?',
+      whereArgs: [stockCode],
     );
   }
 

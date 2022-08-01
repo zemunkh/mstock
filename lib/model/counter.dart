@@ -3,7 +3,7 @@ const String tableCounter = 'counter';
 class CounterFields {
   static final List<String> values = [
     /// Add all fields
-    id, stockId, machine, shift, createdTime, stockCategory, stockGroup, stockClass, weight, qty, baseUOM
+    id, stockId, stockCode, machine, shift, createdTime, stockCategory, stockGroup, stockClass, weight, qty, baseUOM
   ];
 
   static const String id = '_id';
@@ -17,12 +17,12 @@ class CounterFields {
   static const String stockClass = 'class';
   static const String weight = 'weight';
   static const String qty = 'qty';
-  static const String baseUOM = 'description';
+  static const String baseUOM = 'baseUOM';
 }
 
 
 class Counter {
-  final int id;
+  int? id;
   final String stockId;
   final String stockCode;
   final String machine;
@@ -36,7 +36,7 @@ class Counter {
   final String baseUOM;
 
   Counter({
-    required this.id,
+    this.id,
     required this.stockId,
     required this.stockCode,
     required this.machine,

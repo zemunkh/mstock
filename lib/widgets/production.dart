@@ -20,21 +20,27 @@ class _ProductionState extends State<Production> {
   final _masterController = TextEditingController();
   final _stickerController = TextEditingController();
   final _stickerDeleteController = TextEditingController();
+  final _passwordController = TextEditingController();
+
 
   final FocusNode _masterNode = FocusNode();
   final FocusNode _machineLineNode = FocusNode();
   final FocusNode _stickerNode = FocusNode();
   final FocusNode _stickerDeleteNode = FocusNode();
+  final FocusNode _passwordNode = FocusNode();
 
   static final _machineLineFormKey = GlobalKey<FormFieldState>();
   static final _masterFormKey = GlobalKey<FormFieldState>();
   static final _stickerFormKey = GlobalKey<FormFieldState>();
   static final _stickerDeleteFormKey = GlobalKey<FormFieldState>();
+  static final _passwordFormKey = GlobalKey<FormFieldState>();
+
 
   List<Counter> counterList = [];
   bool isSaveDisabled = true;
   bool _isMatched = false;
   String _shiftValue = '';
+  String _supervisorPassword = '';
   List<bool> activeList = [
     false,
     false,
@@ -88,6 +94,9 @@ class _ProductionState extends State<Production> {
           setState(() {
             _masterStock = val;
             _masterController.text = trueVal;
+            _stickerController.text = '';
+            level = 0;
+            activeList = [false, false,  false, false];
           });
           FocusScope.of(context).requestFocus(_stickerNode);
         });
@@ -114,7 +123,6 @@ class _ProductionState extends State<Production> {
       // Check the status of __isAddView__
       
       if(trueVal == _masterController.text) {
-        // print('Adding...');
         if(_masterStock.remark1 != '4') {
           level = 4;
         } else {
@@ -220,6 +228,7 @@ class _ProductionState extends State<Production> {
 
   Future initSettings() async {
     _machineList = await FileManager.readStringList('machine_line');
+    _supervisorPassword = await FileManager.readString('supervisor_password');
     _shiftValue = await Utils.getShiftName();
     counterList = await CounterDatabase.instance.readAllCounters();
     setState(() {});
@@ -363,26 +372,55 @@ class _ProductionState extends State<Production> {
       );
     }
 
+    Widget buildContainer(Widget child) {
+      return Container(
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(5),
+        padding: const EdgeInsets.all(5),
+        height: 320,
+        width: 400,
+        child: child,
+      );
+    }
+
     Widget _productionTable(BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.all(4),
-        child: DataTable(
-          columnSpacing: 20,
+      return buildContainer(
+        SingleChildScrollView(
+          child: DataTable(
+          columnSpacing: 60,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
               label: Text(
                 'Stocks:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: style.Colors.mainGrey,
+                ),
               ),
             ),
             DataColumn(
               label: Text(
                 'Qty:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: style.Colors.mainGrey,
+                ),
               ),
             ),
             DataColumn(
               label: Text(
                 'UOMs:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: style.Colors.mainGrey,
+                ),
               ),
             ),
           ],
@@ -395,30 +433,7 @@ class _ProductionState extends State<Production> {
           )).toList(),
           
           ),
-
-          // rows: <DataRow>[
-          //   DataRow(
-          //     cells: const <DataCell>[
-          //       DataCell(Text('F-CB-RYT0250X160-WT', style: TextStyle(fontSize: 14),)),
-          //       DataCell(Text('23', style: TextStyle(fontSize: 14),)),
-          //       DataCell(Text('PALLET', style: TextStyle(fontSize: 14),)),
-          //     ],
-          //     onSelectChanged: (newValue) {
-          //       print('row 1 pressed');
-          //     },
-          //   ),
-          //   DataRow(
-          //     cells: const <DataCell>[
-          //       DataCell(Text('HS-8.P12.5-032-100-BK', style: TextStyle(fontSize: 14),)),
-          //       DataCell(Text('4', style: TextStyle(fontSize: 14),)),
-          //       DataCell(Text('BOX', style: TextStyle(fontSize: 14),)),
-          //     ],
-          //     onSelectChanged: (newValue) {
-          //       print('row 2 pressed');
-          //     },
-          //   ),
-          // ],
-        // ),
+        )
       );
     }
 
@@ -549,66 +564,73 @@ class _ProductionState extends State<Production> {
               Expanded(
                 flex: 3,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (isSaveDisabled == true) { return; }
                     print('Clicked the Save');
-                    CounterDatabase.instance.readCounterByCode(_masterStock.stockCode).then((c) {
-                        print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
-                      // 2. if available, add quantity by 1 and save it to db
-                        
-                        Counter updatedCounter = Counter(
-                          id: c.id,
-                          stockId: c.stockId,
-                          stockCode: c.stockCode,
-                          machine: _machineLineController.text.trim(),
-                          shift: _shiftValue,
-                          createdTime: DateTime.now(),
-                          qty: c.qty + 1,
-                          baseUOM: c.baseUOM,
-                          stockCategory: c.stockCategory,
-                          group: c.group,
-                          stockClass: c.stockClass,
-                          weight: c.weight
-                        );
+                    await CounterDatabase.instance.readCounterByCode(_masterStock.stockCode).then((c) async {
+                      print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                    // 2. if available, add quantity by 1 and save it to db
+                      
+                      Counter updatedCounter = Counter(
+                        id: c.id,
+                        stockId: c.stockId,
+                        stockCode: c.stockCode,
+                        machine: _machineLineController.text.trim(),
+                        shift: _shiftValue,
+                        createdTime: DateTime.now(),
+                        qty: c.qty + 1,
+                        baseUOM: c.baseUOM,
+                        stockCategory: c.stockCategory,
+                        group: c.group,
+                        stockClass: c.stockClass,
+                        weight: c.weight
+                      );
 
-                        CounterDatabase.instance.update(updatedCounter).then((res) {
-                          print('Updated ID: $res');
+                      CounterDatabase.instance.update(updatedCounter).then((res) {
+                        print('Updated ID: $res');
 
-                          setState(() {
-                            counterList[counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
-                          });
-
-                        }).catchError((err) {
-                          print('Error: $err');
+                        setState(() {
+                          counterList[counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                          level = 0;
+                          activeList = [false, false,  false, false];
+                          isSaveDisabled = true;
+                          _stickerController.text = '';
                         });
 
                       }).catchError((err) {
                         print('Error: $err');
-                      // 3. if not, create new Counter object
-                        Counter newCounter = Counter(
-                          id: 0,
-                          stockId: _masterStock.stockId,
-                          stockCode: _masterStock.stockCode,
-                          machine: _machineLineController.text.trim(),
-                          shift: _shiftValue,
-                          createdTime: DateTime.now(),
-                          qty: 1,
-                          baseUOM: _masterStock.baseUOM,
-                          stockCategory: _masterStock.category,
-                          group: _masterStock.group,
-                          stockClass: _masterStock.stockClass,
-                          weight: _masterStock.weight
-                        );
-                      // 4. save it to the db.
-                        CounterDatabase.instance.create(newCounter).then((res) {
-                          print('Newly added ID: $res');
-                          setState(() {
-                            counterList.add(newCounter);
-                          });
-                        }).catchError((err) {
-                          print('Error: $err');
-                        });
                       });
+
+                    }).catchError((err) async {
+                      print('Error: $err');
+                    // 3. if not, create new Counter object
+                      final newCounter =  Counter(
+                        stockId: _masterStock.stockId,
+                        stockCode: _masterStock.stockCode,
+                        machine: _machineLineController.text.trim(),
+                        shift: _shiftValue,
+                        createdTime: DateTime.now(),
+                        qty: 1,
+                        baseUOM: _masterStock.baseUOM,
+                        stockCategory: _masterStock.category,
+                        group: _masterStock.group,
+                        stockClass: _masterStock.stockClass,
+                        weight: _masterStock.weight
+                      );
+                    // 4. save it to the db.
+                      await CounterDatabase.instance.create(newCounter).then((res) async {
+                        print('Newly added ID: $res');
+                        setState(() {
+                          counterList.add(newCounter);
+                          level = 0;
+                          activeList = [false, false,  false, false];
+                          isSaveDisabled = true;
+                          _stickerController.text = '';
+                        });
+                      }).catchError((err) {
+                        print('Error: $err');
+                      });
+                    });
                   },
                   child: const Text(
                     'Add',
@@ -671,10 +693,68 @@ class _ProductionState extends State<Production> {
               Expanded(
                 flex: 3,
                 child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isAddView = true;
-                    });
+                  onPressed: () async {
+
+                    Utils.openPasswordPanel(
+                      context,
+                      _supervisorPassword,
+                      _passwordController,
+                      _passwordNode,
+                      _passwordFormKey,
+                      'padlock',
+                      'Do you want to delete the counter?',
+                      'Confirm',
+                      () async {
+                        print('You called!');
+                        await CounterDatabase.instance.readCounterByCode(_stickerDeleteController.text.trim()).then((c) async {
+                          print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                        // 2. if available, subtract quantity by 1 and save it to db
+                          if(c.qty == 1) {
+                            await CounterDatabase.instance.deleteByStockCode(c.stockCode).then((res) {
+                              setState(() {
+                                counterList.removeWhere((item) => item.stockId == c.stockId);
+                              });
+                            });
+                          } else {
+                            Counter updatedCounter = Counter(
+                              id: c.id,
+                              stockId: c.stockId,
+                              stockCode: c.stockCode,
+                              machine: _machineLineController.text.trim(),
+                              shift: _shiftValue,
+                              createdTime: DateTime.now(),
+                              qty: c.qty - 1,
+                              baseUOM: c.baseUOM,
+                              stockCategory: c.stockCategory,
+                              group: c.group,
+                              stockClass: c.stockClass,
+                              weight: c.weight
+                            );
+
+                            CounterDatabase.instance.update(updatedCounter).then((res) {
+                              print('Updated ID: $res');
+
+                              setState(() {
+                                counterList[counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                              });
+
+                            }).catchError((err) {
+                              print('Error: $err');
+                            });
+                          }
+                        }).catchError((err) async {
+                          print('Error: $err');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
+                        });
+                      },
+                      () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:  Text("❌ Wrong password!", textAlign: TextAlign.center,),
+                          duration: Duration(milliseconds: 3000)
+                        ));
+                      }
+                    );
+    
                   },
                   child: const Text(
                     'Delete',
@@ -698,7 +778,7 @@ class _ProductionState extends State<Production> {
       padding: const EdgeInsets.only(left: 12, right: 12),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           _machineLine(context),
           isAddView ? _addView(context) : _deleteView(context),

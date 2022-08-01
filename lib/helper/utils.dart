@@ -86,6 +86,130 @@ class Utils {
     return 'Not found';
   }
 
+  static Widget _scannerInput(BuildContext context, String hintext, TextEditingController _controller,
+      FocusNode currentNode, double currentWidth, GlobalKey _formKey) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: SizedBox(
+        height: 40,
+        width: currentWidth,
+        child: TextFormField(
+          key: _formKey,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Color(0xFF004B83),
+            fontWeight: FontWeight.bold,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            hintText: hintext,
+            hintStyle: const TextStyle(
+              color: Color(0xFF004B83),
+              fontWeight: FontWeight.w200,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(5.0),
+            ),
+            errorStyle: const TextStyle(
+              color: Colors.yellowAccent,
+            ),
+            suffixIcon: IconButton(
+              icon: const Icon(
+                Icons.qr_code,
+                color: Colors.blueAccent,
+                size: 24,
+              ),
+              onPressed: () {
+                _controller.clear();
+                FocusScope.of(context).requestFocus(currentNode);
+              },
+            ),
+          ),
+          autofocus: false,
+          autocorrect: false,
+          controller: _controller,
+          focusNode: currentNode,
+          onTap: () {
+            // _clearTextController(context, _mainController, _mainNode);
+          },
+        ),
+      ),
+    );
+  }
+
+  static Future openPasswordPanel(BuildContext context, String password, TextEditingController passwordController, FocusNode _node, GlobalKey _formKey, String img, String title, String btnText, Function matchedCallback, Function unMatchedCallback) {
+    return showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 10.0),
+              Image.asset("assets/icons/$img.png", width: 45.0),
+              const SizedBox(height: 20.0),
+              _scannerInput(
+                context,
+                'Admin Password',
+                passwordController,
+                _node,
+                double.infinity,
+                _formKey,
+              ),
+              const SizedBox(height: 20.0),
+              Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15.0, fontWeight: FontWeight.w400, color: style.Colors.mainAccent,)),
+              const SizedBox(height: 20.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                      padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.symmetric(horizontal: 30.0, vertical: 15.0)),
+                      shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                      ))
+                    ),
+                    child: const Text('Cancel', style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w800, color: style.Colors.mainAccent)),
+                    onPressed: (){
+                      passwordController.text = '';
+                      Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
+                    },
+                  ),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(style.Colors.mainRed),
+                      padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.symmetric(horizontal: 30.0, vertical: 15.0)),
+                      shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                      ))
+                    ),
+                    child: Text(btnText, style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w800, color: Colors.white)),
+                    onPressed: (){
+                      // Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
+                      if(password == passwordController.text.trim()) {
+                        print('\n\n Matched!!! \n\n');
+                        matchedCallback();
+                        passwordController.text = '';
+                        Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
+                      } else {
+                        unMatchedCallback();
+                      }
+                    },
+                  )
+                ],
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
   static Future openDialogPanel(BuildContext context, String img, String title, String msg, String btnText) {
     return showDialog(
       context: context,
