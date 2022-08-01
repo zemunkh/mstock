@@ -35,22 +35,34 @@ class _UpdateUOMState extends State<UpdateUOM> {
     print('\n\n Len: ${receivedData.length} \n\n');
     var validList = [];
     for (int i = 0; i < receivedData.length; i++) {
-      print('Item remark1 #${i + 1}: ${receivedData[i]['remark1']}');
+      print('StockCode #${i + 1}: ${receivedData[i]['stockCode']}');
       // receivedData[i]['_id'] = i;
       if(receivedData[i]['baseUOM'] == null) {
         receivedData[i]['baseUOM'] = 'UNIT';
       }
-      if(receivedData[i]['description'] == null) {
-        receivedData[i]['description'] = 'Empty';
-      }
+
       if(receivedData[i]['remark1'] == null) {
-        receivedData[i]['remark1'] = 4;
+        receivedData[i]['remark1'] = '4';
       }
 
-      if(receivedData[i]['isActive'] != null) {
-        if(receivedData[i]['isActive']) {
-          validList.add(receivedData[i]);
-        }
+      if(receivedData[i]['category'] == null) {
+        receivedData[i]['category'] = 'c';
+      }
+
+      if(receivedData[i]['group'] == null) {
+        receivedData[i]['group'] = 'g';
+      }
+
+      if(receivedData[i]['class'] == null) {
+        receivedData[i]['class'] = 'c';
+      }
+
+      if(receivedData[i]['weight'] == null) {
+        receivedData[i]['weight'] = 0.0;
+      }
+
+      if(receivedData[i]['isActive']) {
+        validList.add(receivedData[i]);
       }
     }
 
@@ -59,15 +71,20 @@ class _UpdateUOMState extends State<UpdateUOM> {
     print('Parsed!');
 
     // Clear the existing table to avoid repetition
-
-    await StockDatabase.instance.deleteAll().then((value) async {
-      print('Delete result: $value');
-
-      for(int i = 0; i < stockList.length; i++) {
-        print('Saving Stock name: ${stockList[i].stockName}');
-        await StockDatabase.instance.create(stockList[i]);
+    await StockDatabase.instance.readAllStocks().then((value) async {
+      if(value.isEmpty) {
+        for(int i = 0; i < stockList.length; i++) {
+          await StockDatabase.instance.create(stockList[i]);
+        }
+      } else {
+        await StockDatabase.instance.deleteAll().then((value) async {
+          for(int i = 0; i < stockList.length; i++) {
+            await StockDatabase.instance.create(stockList[i]);
+          }
+        });
       }
     });
+
 
     FileManager.saveInteger('stock_length', stockList.length);
 
@@ -82,16 +99,14 @@ class _UpdateUOMState extends State<UpdateUOM> {
     return stockList;
   }
 
-late final Future? fetching = _fetchAndSaveStockData();
+  late final Future? fetching = _fetchAndSaveStockData();
 
   Future initProfileData() async {
     ip =  await FileManager.readString('ip_address');
     port =  await FileManager.readString('port_number');
     dbCode =  await FileManager.readString('company_name');
     if(ip != '' && port != '' && dbCode != '') {
-      // url = 'http://$ip:$port/api/Stocks';
-      url = 'https://dev-api.qne.cloud/api/Stocks?%24skip=0&%24top=25';
-      dbCode = 'fazsample';
+      url = 'http://$ip:$port/api/Stocks';
     } else {
       url = 'https://dev-api.qne.cloud/api/Stocks?%24skip=0&%24top=25';
       dbCode = 'fazsample';
@@ -116,8 +131,7 @@ late final Future? fetching = _fetchAndSaveStockData();
 
   @override
   void dispose() {
-    StockDatabase.instance.close();
-
+    // StockDatabase.instance.close();
     super.dispose();
   }
 
@@ -177,7 +191,7 @@ late final Future? fetching = _fetchAndSaveStockData();
                     switch(snapshot.connectionState) {
                       case ConnectionState.none:
                         return Text(
-                          '$stockCounter.toString() Stocks',
+                          '${stockCounter.toString()} Stocks',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 32,

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../model/stock.dart';
+import '../model/counter.dart';
+import '../../database/counter_db.dart';
+import '../../database/stock_db.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
 import '../styles/theme.dart' as style;
@@ -27,10 +31,10 @@ class _ProductionState extends State<Production> {
   static final _stickerFormKey = GlobalKey<FormFieldState>();
   static final _stickerDeleteFormKey = GlobalKey<FormFieldState>();
 
-
+  List<Counter> counterList = [];
   bool isSaveDisabled = true;
   bool _isMatched = false;
-
+  String _shiftValue = '';
   List<bool> activeList = [
     false,
     false,
@@ -42,16 +46,20 @@ class _ProductionState extends State<Production> {
   // activeList[0]
 
   bool isAddView = true;
+  Stock _masterStock = Stock(
+    id: 0,
+    stockId: '',
+    stockCode: '',
+    stockName: '',
+    baseUOM: '',
+    weight: 0,
+    isActive: false,
+    remark1: '',
+    category: '',
+    group: '',
+    stockClass: '',
+  );
   List<String> _machineList = [];
-
-  String lineVal = 'E7';
-  List<String> lines = [
-    'E7',
-    'E8',
-    'K22',
-    'K23',
-    'K44',
-  ];
 
   Future _clearTextController(BuildContext context,
       TextEditingController _controller, FocusNode node) async {
@@ -65,17 +73,35 @@ class _ProductionState extends State<Production> {
   String trueVal = '';
 
   Future masterListener() async {
-    print('Current text: ${_masterController.text}');
     buffer = _masterController.text;
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
       _masterNode.unfocus();
-      await Future.delayed(const Duration(milliseconds: 200), () {
-        setState(() {
-          _masterController.text = trueVal;
+
+      await StockDatabase.instance.readStockByCode(trueVal).then((val) async {
+        print('Found stock: ${val.stockName}');
+        // Add stock data to Counter table
+        // 1. Search the stock in the existing table
+
+        await Future.delayed(const Duration(milliseconds: 200), () {
+          setState(() {
+            _masterStock = val;
+            _masterController.text = trueVal;
+          });
+          FocusScope.of(context).requestFocus(_stickerNode);
         });
-        FocusScope.of(context).requestFocus(_stickerNode);
+
+      }).catchError((err) {
+        print('Error: $err');
+
+        Utils.openDialogPanel(context, 'close', 'Oops!', 'No such Stock is available!', 'Try again');
+
+        Future.delayed(const Duration(milliseconds: 200), () {
+          setState(() {
+            _masterController.text = '';
+          });
+        });
       });
     }
   }
@@ -88,8 +114,13 @@ class _ProductionState extends State<Production> {
       // Check the status of __isAddView__
       
       if(trueVal == _masterController.text) {
-        level++;
-        print('Adding...');
+        // print('Adding...');
+        if(_masterStock.remark1 != '4') {
+          level = 4;
+        } else {
+          level++;
+        }
+
         if (level <= 4) {
           switch (level) {
             case 0:
@@ -189,6 +220,8 @@ class _ProductionState extends State<Production> {
 
   Future initSettings() async {
     _machineList = await FileManager.readStringList('machine_line');
+    _shiftValue = await Utils.getShiftName();
+    counterList = await CounterDatabase.instance.readAllCounters();
     setState(() {});
   }
 
@@ -353,29 +386,39 @@ class _ProductionState extends State<Production> {
               ),
             ),
           ],
-          rows: <DataRow>[
-            DataRow(
-              cells: const <DataCell>[
-                DataCell(Text('F-CB-RYT0250X160-WT', style: TextStyle(fontSize: 14),)),
-                DataCell(Text('23', style: TextStyle(fontSize: 14),)),
-                DataCell(Text('PALLET', style: TextStyle(fontSize: 14),)),
-              ],
-              onSelectChanged: (newValue) {
-                print('row 1 pressed');
-              },
-            ),
-            DataRow(
-              cells: const <DataCell>[
-                DataCell(Text('HS-8.P12.5-032-100-BK', style: TextStyle(fontSize: 14),)),
-                DataCell(Text('4', style: TextStyle(fontSize: 14),)),
-                DataCell(Text('BOX', style: TextStyle(fontSize: 14),)),
-              ],
-              onSelectChanged: (newValue) {
-                print('row 2 pressed');
-              },
-            ),
-          ],
-        ),
+          rows: counterList.map((row) => DataRow(
+            cells: [
+              DataCell(Text(row.stockCode)),
+              DataCell(Text(row.qty.toString())),
+              DataCell(Text(row.baseUOM)),
+            ]
+          )).toList(),
+          
+          ),
+
+          // rows: <DataRow>[
+          //   DataRow(
+          //     cells: const <DataCell>[
+          //       DataCell(Text('F-CB-RYT0250X160-WT', style: TextStyle(fontSize: 14),)),
+          //       DataCell(Text('23', style: TextStyle(fontSize: 14),)),
+          //       DataCell(Text('PALLET', style: TextStyle(fontSize: 14),)),
+          //     ],
+          //     onSelectChanged: (newValue) {
+          //       print('row 1 pressed');
+          //     },
+          //   ),
+          //   DataRow(
+          //     cells: const <DataCell>[
+          //       DataCell(Text('HS-8.P12.5-032-100-BK', style: TextStyle(fontSize: 14),)),
+          //       DataCell(Text('4', style: TextStyle(fontSize: 14),)),
+          //       DataCell(Text('BOX', style: TextStyle(fontSize: 14),)),
+          //     ],
+          //     onSelectChanged: (newValue) {
+          //       print('row 2 pressed');
+          //     },
+          //   ),
+          // ],
+        // ),
       );
     }
 
@@ -509,6 +552,63 @@ class _ProductionState extends State<Production> {
                   onPressed: () {
                     if (isSaveDisabled == true) { return; }
                     print('Clicked the Save');
+                    CounterDatabase.instance.readCounterByCode(_masterStock.stockCode).then((c) {
+                        print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                      // 2. if available, add quantity by 1 and save it to db
+                        
+                        Counter updatedCounter = Counter(
+                          id: c.id,
+                          stockId: c.stockId,
+                          stockCode: c.stockCode,
+                          machine: _machineLineController.text.trim(),
+                          shift: _shiftValue,
+                          createdTime: DateTime.now(),
+                          qty: c.qty + 1,
+                          baseUOM: c.baseUOM,
+                          stockCategory: c.stockCategory,
+                          group: c.group,
+                          stockClass: c.stockClass,
+                          weight: c.weight
+                        );
+
+                        CounterDatabase.instance.update(updatedCounter).then((res) {
+                          print('Updated ID: $res');
+
+                          setState(() {
+                            counterList[counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                          });
+
+                        }).catchError((err) {
+                          print('Error: $err');
+                        });
+
+                      }).catchError((err) {
+                        print('Error: $err');
+                      // 3. if not, create new Counter object
+                        Counter newCounter = Counter(
+                          id: 0,
+                          stockId: _masterStock.stockId,
+                          stockCode: _masterStock.stockCode,
+                          machine: _machineLineController.text.trim(),
+                          shift: _shiftValue,
+                          createdTime: DateTime.now(),
+                          qty: 1,
+                          baseUOM: _masterStock.baseUOM,
+                          stockCategory: _masterStock.category,
+                          group: _masterStock.group,
+                          stockClass: _masterStock.stockClass,
+                          weight: _masterStock.weight
+                        );
+                      // 4. save it to the db.
+                        CounterDatabase.instance.create(newCounter).then((res) {
+                          print('Newly added ID: $res');
+                          setState(() {
+                            counterList.add(newCounter);
+                          });
+                        }).catchError((err) {
+                          print('Error: $err');
+                        });
+                      });
                   },
                   child: const Text(
                     'Add',

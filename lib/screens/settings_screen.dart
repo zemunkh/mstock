@@ -20,11 +20,14 @@ class SettingScreenState extends State<SettingScreen> {
   final _portNumController =  TextEditingController();
   final _companyController =  TextEditingController();
   final _locationController =  TextEditingController();
+  final _docPrefixController =  TextEditingController();
+
 
   final FocusNode _ipNode =  FocusNode();
   final FocusNode _portNode =  FocusNode();
   final FocusNode _compNode =  FocusNode();
   final FocusNode _locNode =  FocusNode();
+  final FocusNode _docPrefixNode =  FocusNode();
 
   bool lockEn = true;
 
@@ -48,6 +51,7 @@ class SettingScreenState extends State<SettingScreen> {
     _portNumController.text = await FileManager.readString('port_number');
     _companyController.text = await FileManager.readString('company_name');
     _locationController.text = await FileManager.readString('location');
+    _docPrefixController.text = await FileManager.readString('doc_prefix');
     List<String> parsed = [];
     // Initializing 8 types of description input models
   }
@@ -163,11 +167,13 @@ class SettingScreenState extends State<SettingScreen> {
             String port = _portNumController.text.trim();
             String company = _companyController.text.trim();
             String location = _locationController.text.trim();
+            String docPrefix = _docPrefixController.text.trim();
             if(ip != '' && port != '' && validator.ip(ip)) {
               FileManager.saveString('ip_address', ip).then((_){
                 FileManager.saveString('port_number', port);
                 FileManager.saveString('company_name', company);
                 FileManager.saveString('location', location);
+                FileManager.saveString('doc_prefix', docPrefix);
               });
               print('Saving now!');
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -261,6 +267,7 @@ class SettingScreenState extends State<SettingScreen> {
         _mainInput('Port Num', _portNumController, _portNode),
         _mainInput('Company', _companyController, _compNode),
         _mainInput('Location', _locationController, _locNode),
+        _mainInput('Doc Prefix', _docPrefixController, _docPrefixNode),
         const SizedBox(height: 15,),
 
         Row(

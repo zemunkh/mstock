@@ -24,10 +24,11 @@ class CounterDatabase {
   }
 
   Future _createDB(Database db, int version) async {
-    const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    const idType = 'INTEGER PRIMARY KEY';
     const textType = 'TEXT NOT NULL';
     const boolType = 'BOOLEAN NOT NULL';
     const integerType = 'INTEGER NOT NULL';
+    const realType = 'REAL NOT NULL';
 
     await db.execute('''
       CREATE TABLE $tableCounter ( 
@@ -37,9 +38,9 @@ class CounterDatabase {
         ${CounterFields.machine} $textType,
         ${CounterFields.shift} $textType,
         ${CounterFields.createdTime} $textType,
-        ${CounterFields.group} $textType,
+        ${CounterFields.stockGroup} $textType,
         ${CounterFields.stockClass} $textType,
-        ${CounterFields.weight} $integerType,
+        ${CounterFields.weight} $realType,
         ${CounterFields.qty} $integerType,
         ${CounterFields.baseUOM} $textType
         )
@@ -61,7 +62,7 @@ class CounterDatabase {
     return counter.copy(id: id);
   }
 
-  Future<Counter> readNote(int id) async {
+  Future<Counter> readCounter(int id) async {
     final db = await instance.database;
 
     final maps = await db.query(
@@ -78,7 +79,24 @@ class CounterDatabase {
     }
   }
 
-  Future<List<Counter>> readAllNotes() async {
+  Future<Counter> readCounterByCode(String stockCode) async {
+    final db = await instance.database;
+
+    final maps = await db.query(
+      tableCounter,
+      columns: CounterFields.values,
+      where: '${CounterFields.stockCode} = ?',
+      whereArgs: [stockCode],
+    );
+
+    if (maps.isNotEmpty) {
+      return Counter.fromJson(maps.first);
+    } else {
+      throw Exception('StockCode from Counter $stockCode not found');
+    }
+  }
+
+  Future<List<Counter>> readAllCounters() async {
     final db = await instance.database;
 
     const orderBy = '${CounterFields.stockCode} ASC';

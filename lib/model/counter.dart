@@ -3,7 +3,7 @@ const String tableCounter = 'counter';
 class CounterFields {
   static final List<String> values = [
     /// Add all fields
-    id, stockId, machine, shift, createdTime, stockCategory, group, stockClass, weight, qty, baseUOM
+    id, stockId, machine, shift, createdTime, stockCategory, stockGroup, stockClass, weight, qty, baseUOM
   ];
 
   static const String id = '_id';
@@ -12,9 +12,9 @@ class CounterFields {
   static const String machine = 'machine';
   static const String shift = 'shift';
   static const String createdTime = 'createdTime';
-  static const String stockCategory = 'stockCategory';
-  static const String group = 'group';
-  static const String stockClass = 'stockClass';
+  static const String stockCategory = 'category';
+  static const String stockGroup = 'stockGroup';
+  static const String stockClass = 'class';
   static const String weight = 'weight';
   static const String qty = 'qty';
   static const String baseUOM = 'description';
@@ -31,7 +31,7 @@ class Counter {
   final String stockCategory;
   final String group;
   final String stockClass;
-  final int weight;
+  final double weight;
   final int qty;
   final String baseUOM;
 
@@ -60,7 +60,7 @@ class Counter {
     String? stockCategory,
     String? group,
     String? stockClass,
-    int? weight,
+    double? weight,
     int? qty,
     String? baseUOM
   }) =>
@@ -79,6 +79,23 @@ class Counter {
         baseUOM: baseUOM ?? this.baseUOM
       );
 
+  factory Counter.fromJsonSQL(Map<String, dynamic> json) {
+    return Counter(
+      id: json[CounterFields.id] as int,
+      stockId: json[CounterFields.stockId] as String,
+      stockCode: json[CounterFields.stockCode] as String,
+      machine: json[CounterFields.machine] as String,
+      shift: json[CounterFields.shift] as String,
+      createdTime: DateTime.parse(json[CounterFields.createdTime] as String),
+      stockCategory: json[CounterFields.stockCategory] as String,
+      group: json[CounterFields.stockGroup] as String,
+      stockClass: json[CounterFields.stockClass] as String,
+      weight: json[CounterFields.weight] as double,
+      qty: json[CounterFields.qty] as int,
+      baseUOM: json[CounterFields.baseUOM] as String,
+    );
+  }
+
   factory Counter.fromJson(Map<String, dynamic> json) {
     return Counter(
       id: json[CounterFields.id] as int,
@@ -88,9 +105,9 @@ class Counter {
       shift: json[CounterFields.shift] as String,
       createdTime: DateTime.parse(json[CounterFields.createdTime] as String),
       stockCategory: json[CounterFields.stockCategory] as String,
-      group: json[CounterFields.group] as String,
+      group: json[CounterFields.stockGroup] as String,
       stockClass: json[CounterFields.stockClass] as String,
-      weight: json[CounterFields.weight] as int,
+      weight: json[CounterFields.weight] as double,
       qty: json[CounterFields.qty] as int,
       baseUOM: json[CounterFields.baseUOM] as String,
     );
@@ -104,7 +121,7 @@ class Counter {
     CounterFields.shift: shift,
     CounterFields.createdTime: createdTime.toIso8601String(),
     CounterFields.stockCategory: stockCategory,
-    CounterFields.group: group,
+    CounterFields.stockGroup: group,
     CounterFields.stockClass: stockClass,
     CounterFields.weight: weight,
     CounterFields.qty: qty,

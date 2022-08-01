@@ -20,7 +20,7 @@ class StockDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(path, version: 2, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -28,16 +28,21 @@ class StockDatabase {
     const textType = 'TEXT NOT NULL';
     const boolType = 'BOOLEAN NOT NULL';
     const integerType = 'INTEGER NOT NULL';
+    const realType = 'REAL NOT NULL';
 
     await db.execute('''
       CREATE TABLE $tableStocks ( 
         ${StockFields.id} $idType,
         ${StockFields.stockId} $textType,
-        ${StockFields.isActive} $boolType,
+        ${StockFields.stockGroup} $textType,
         ${StockFields.stockCode} $textType,
         ${StockFields.stockName} $textType,
-        ${StockFields.remark1} $integerType,
-        ${StockFields.baseUOM} $textType
+        ${StockFields.remark1} $textType,
+        ${StockFields.isActive} $boolType,
+        ${StockFields.baseUOM} $textType,
+        ${StockFields.weight} $realType,
+        ${StockFields.category} $textType,
+        ${StockFields.stockClass} $textType
         )
       ''');
   }
@@ -45,6 +50,8 @@ class StockDatabase {
   Future<Stock> create(Stock stock) async {
     final db = await instance.database;
     final json = stock.toJson();
+
+    print('ITEM STOCK: $json');
 
     // final json = note.toJson();
     // final columns =
@@ -54,7 +61,35 @@ class StockDatabase {
     // final id = await db
     //     .rawInsert('INSERT INTO table_name ($columns) VALUES ($values)');
 
-    final id = await db.insert(tableStocks, stock.toJson());
+    // const columns =
+    //     '''
+    //     ${StockFields.stockId}, 
+    //     ${StockFields.stockCode},
+    //     ${StockFields.stockName},
+    //     ${StockFields.remark1},
+    //     ${StockFields.isActive},
+    //     ${StockFields.baseUOM},
+    //     ${StockFields.weight},
+    //     ${StockFields.category},
+    //     ${StockFields.stockGroup},
+    //     ${StockFields.stockClass}
+    //   ''';
+    // final values = '''
+    //   ${json[StockFields.stockId]}, 
+    //   ${json[StockFields.stockCode]}, 
+    //   ${json[StockFields.stockName]}, 
+    //   ${json[StockFields.remark1]}, 
+    //   ${json[StockFields.isActive]}, 
+    //   ${json[StockFields.baseUOM]}, 
+    //   ${json[StockFields.weight]}, 
+    //   ${json[StockFields.category]}, 
+    //   ${json[StockFields.stockGroup]}, 
+    //   ${json[StockFields.stockClass]}
+    // ''';
+    // final id = await db
+    //     .rawInsert("INSERT INTO $tableStocks ($columns) VALUES ($values)");
+
+    final id = await db.insert(tableStocks, json);
     print('ID: $id');
     return stock.copy(id: id);
   }
@@ -76,6 +111,26 @@ class StockDatabase {
     }
   }
 
+  Future<Stock> readStockByCode(String stockCode) async {
+    final db = await instance.database;
+
+    final maps = await db.query(
+      tableStocks,
+      columns: StockFields.values,
+      where: '${StockFields.stockCode} = ?',
+      whereArgs: [stockCode],
+    );
+
+    if (maps.isNotEmpty) {
+      print('Weight: ${maps.first['category']}');
+      print('DATA: ${maps.first.toString()}');
+      return Stock.fromJsonSQL(maps.first);
+    } else {
+      throw Exception('Code $stockCode not found');
+    }
+  }
+
+
   Future<List<Stock>> readAllStocks() async {
     final db = await instance.database;
 
@@ -85,7 +140,7 @@ class StockDatabase {
 
     final result = await db.query(tableStocks, orderBy: orderBy);
 
-    return result.map((json) => Stock.fromJson(json)).toList();
+    return result.map((json) => Stock.fromJsonSQL(json)).toList();
   }
 
   Future<int> update(Stock stock) async {
