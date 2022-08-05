@@ -8,8 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 // [Machine Line List]    -->          machine_line
 // [Shift List]           -->          shift_list
 // [Last Update]          -->          last_update
-// [IP Address]           -->          ip_address
-// [Port Number]          -->          port_number
+// [QNE IP Address]       -->          qne_ip_address
+// [QNE Port Number]      -->          qne_port_number
+// [Counter IP Address]   -->          counter_ip_address
+// [Counter Port Number]  -->          counter_port_number
 // [Company Name]         -->          company_name
 // [Location]             -->          location
 // [Document Prefix]      -->          doc_prefix

@@ -6,12 +6,12 @@ class CounterFields {
     id, stockId, stockCode, machine, shift, createdTime, stockCategory, stockGroup, stockClass, weight, qty, baseUOM
   ];
 
-  static const String id = '_id';
+  static const String id = 'id';
   static const String stockId = 'stockId';
   static const String stockCode = 'stockCode';
   static const String machine = 'machine';
   static const String shift = 'shift';
-  static const String createdTime = 'createdTime';
+  static const String createdTime = 'created_at';
   static const String stockCategory = 'category';
   static const String stockGroup = 'stockGroup';
   static const String stockClass = 'class';

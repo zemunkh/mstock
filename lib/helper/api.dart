@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert' show json, utf8;
 import 'dart:io';
 import 'package:http/http.dart' as http;
-
+import '../model/stock.dart';
 import '../model/stockIn.dart';
 
 
@@ -20,6 +20,20 @@ class Api {
       },
     );
     return response.body;
+  }
+
+  // Get Stock with BaseUOM and its UOM rate
+
+  Future<Stock> getStock(String _id, String _url) async {
+    var response = await http.get(
+      Uri.parse('$_url?id=$_id'),
+    );
+    if (response.statusCode == 200) {
+      var receivedData = json.decode(response.body);
+      return receivedData.map<Stock>((json) => Stock.fromJson(json));
+    } else {
+      throw Exception('Failed to get stock.');
+    }
   }
 
   Future postStockIns(String dbCode, String body, String _url) async {

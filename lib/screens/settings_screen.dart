@@ -16,15 +16,19 @@ class SettingScreen extends StatefulWidget {
 class SettingScreenState extends State<SettingScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final _ipAddressController =  TextEditingController();
-  final _portNumController =  TextEditingController();
+  final _qneIpAddressController =  TextEditingController();
+  final _qnePortNumController =  TextEditingController();
+  final _cipAddressController =  TextEditingController();
+  final _cPortNumController =  TextEditingController();
   final _companyController =  TextEditingController();
   final _locationController =  TextEditingController();
   final _docPrefixController =  TextEditingController();
 
+  final FocusNode _qneIpNode =  FocusNode();
+  final FocusNode _qnePortNode =  FocusNode();
+  final FocusNode _cipNode =  FocusNode();
+  final FocusNode _cPortNode =  FocusNode();
 
-  final FocusNode _ipNode =  FocusNode();
-  final FocusNode _portNode =  FocusNode();
   final FocusNode _compNode =  FocusNode();
   final FocusNode _locNode =  FocusNode();
   final FocusNode _docPrefixNode =  FocusNode();
@@ -47,8 +51,10 @@ class SettingScreenState extends State<SettingScreen> {
   }
 
   Future setInitialValue() async {
-    _ipAddressController.text = await FileManager.readString('ip_address');
-    _portNumController.text = await FileManager.readString('port_number');
+    _qneIpAddressController.text = await FileManager.readString('qne_ip_address');
+    _qnePortNumController.text = await FileManager.readString('qne_port_number');
+    _cipAddressController.text = await FileManager.readString('counter_ip_address');
+    _cPortNumController.text = await FileManager.readString('counter_port_number');
     _companyController.text = await FileManager.readString('company_name');
     _locationController.text = await FileManager.readString('location');
     _docPrefixController.text = await FileManager.readString('doc_prefix');
@@ -163,28 +169,39 @@ class SettingScreenState extends State<SettingScreen> {
         padding: const EdgeInsets.all(6),
         child: MaterialButton(
           onPressed: () {
-            String ip = _ipAddressController.text.trim();
-            String port = _portNumController.text.trim();
+            String qneIp = _qneIpAddressController.text.trim();
+            String qnePort = _qnePortNumController.text.trim();
+            String cip = _cipAddressController.text.trim();
+            String cPort = _cPortNumController.text.trim();
             String company = _companyController.text.trim();
             String location = _locationController.text.trim();
             String docPrefix = _docPrefixController.text.trim();
-            if(ip != '' && port != '' && validator.ip(ip)) {
-              FileManager.saveString('ip_address', ip).then((_){
-                FileManager.saveString('port_number', port);
-                FileManager.saveString('company_name', company);
-                FileManager.saveString('location', location);
-                FileManager.saveString('doc_prefix', docPrefix);
+            if(qneIp != '' && qnePort != '' && validator.ip(qneIp)) {
+              FileManager.saveString('qne_ip_address', qneIp).then((_){
+                FileManager.saveString('qne_port_number', qnePort);
               });
-              print('Saving now!');
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content:  Text("✅ Saved successfully!", textAlign: TextAlign.center,),
-                duration: Duration(milliseconds: 2000)
-              ));
+              if(cip != '' && cPort != '' && validator.ip(cip)) {
+                FileManager.saveString('counter_ip_address', cip).then((_){
+                  FileManager.saveString('counter_port_number', cPort);
+                  FileManager.saveString('company_name', company);
+                  FileManager.saveString('location', location);
+                  FileManager.saveString('doc_prefix', docPrefix);
+                });
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content:  Text("✅ Saved successfully!", textAlign: TextAlign.center,),
+                  duration: Duration(milliseconds: 2000)
+                ));
+              } else {
+                // Input values are empty
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content:  Text(validator.ip(qneIp) ? "Counter IP address is not okay!" : "Can't be saved!", textAlign: TextAlign.center,),
+                  duration: const Duration(milliseconds: 3000)
+                ));
+              }
             } else {
-              print('Dismissing it now!');
               // Input values are empty
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:  Text(validator.ip(ip) ? "IP address is not okay!" : "Can't be saved!", textAlign: TextAlign.center,),
+                content:  Text(validator.ip(qneIp) ? "QNE IP address is not okay!" : "Can't be saved!", textAlign: TextAlign.center,),
                 duration: const Duration(milliseconds: 3000)
               ));
             }
@@ -254,7 +271,7 @@ class SettingScreenState extends State<SettingScreen> {
         ),
         margin: EdgeInsets.all(5),
         padding: EdgeInsets.all(5),
-        height: 450,
+        height: 580,
         width: 400,
         child: child,
       );
@@ -263,8 +280,13 @@ class SettingScreenState extends State<SettingScreen> {
     final transaction = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _mainInput('IP address',_ipAddressController, _ipNode),
-        _mainInput('Port Num', _portNumController, _portNode),
+        const SizedBox(height: 15,),
+        _mainInput('QNE IP',_qneIpAddressController, _qneIpNode),
+        _mainInput('QNE Port', _qnePortNumController, _qnePortNode),
+        const Divider(height: 15.0,color: Colors.black87,),
+        _mainInput('Counter IP',_cipAddressController, _cipNode),
+        _mainInput('Counter Port', _cPortNumController, _cPortNode),
+        const Divider(height: 15.0,color: Colors.black87,),
         _mainInput('Company', _companyController, _compNode),
         _mainInput('Location', _locationController, _locNode),
         _mainInput('Doc Prefix', _docPrefixController, _docPrefixNode),
@@ -273,7 +295,7 @@ class SettingScreenState extends State<SettingScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-             _saveButton(context),
+            _saveButton(context),
           ],
         ),
 
@@ -295,8 +317,7 @@ class SettingScreenState extends State<SettingScreen> {
           },
           child: Padding(
             padding: const EdgeInsets.only(left: 16, right: 16),
-            child: SizedBox(
-              width: 450,
+            child: SingleChildScrollView(
               child: transaction,
             ),
             // child: LayoutBuilder(

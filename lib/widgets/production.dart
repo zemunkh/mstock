@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../model/stock.dart';
@@ -6,6 +8,7 @@ import '../../database/counter_db.dart';
 import '../../database/stock_db.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
+import '../../helper/counter_api.dart';
 import '../styles/theme.dart' as style;
 
 class Production extends StatefulWidget {
@@ -41,6 +44,7 @@ class _ProductionState extends State<Production> {
   bool _isMatched = false;
   String _shiftValue = '';
   String _supervisorPassword = '';
+  String _url = '';
   List<bool> activeList = [
     false,
     false,
@@ -229,8 +233,15 @@ class _ProductionState extends State<Production> {
   Future initSettings() async {
     _machineList = await FileManager.readStringList('machine_line');
     _supervisorPassword = await FileManager.readString('supervisor_password');
+    final ip =  await FileManager.readString('counter_ip_address');
+    final port =  await FileManager.readString('counter_port_number');
+    if(ip != '' && port != '') {
+      _url = 'http://$ip:$port';
+    } else {
+      _url = 'http://localhost:3000';
+    }
     _shiftValue = await Utils.getShiftName();
-    counterList = await CounterDatabase.instance.readAllCounters();
+    counterList = await CounterApi.readAllCounters(_url);
     setState(() {});
   }
 
@@ -566,11 +577,10 @@ class _ProductionState extends State<Production> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (isSaveDisabled == true) { return; }
-                    print('Clicked the Save');
-                    await CounterDatabase.instance.readCounterByCode(_masterStock.stockCode).then((c) async {
+                    print('Clicked the Save: $_url');
+                    await CounterApi.readCounterByCode(_masterController.text.trim(), _url).then((c) async {
                       print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
-                    // 2. if available, add quantity by 1 and save it to db
-                      
+
                       Counter updatedCounter = Counter(
                         id: c.id,
                         stockId: c.stockId,
@@ -586,7 +596,7 @@ class _ProductionState extends State<Production> {
                         weight: c.weight
                       );
 
-                      CounterDatabase.instance.update(updatedCounter).then((res) {
+                      CounterApi.updateCounter(c.id.toString(), (c.qty + 1).toString(), _url).then((res) {
                         print('Updated ID: $res');
 
                         setState(() {
@@ -618,7 +628,7 @@ class _ProductionState extends State<Production> {
                         weight: _masterStock.weight
                       );
                     // 4. save it to the db.
-                      await CounterDatabase.instance.create(newCounter).then((res) async {
+                      await CounterApi.create(jsonEncode(newCounter.toJson()), _url).then((res) async {
                         print('Newly added ID: $res');
                         setState(() {
                           counterList.add(newCounter);
@@ -706,11 +716,11 @@ class _ProductionState extends State<Production> {
                       'Confirm',
                       () async {
                         print('You called!');
-                        await CounterDatabase.instance.readCounterByCode(_stickerDeleteController.text.trim()).then((c) async {
+                        await CounterApi.readCounterByCode(_stickerDeleteController.text.trim(), _url).then((c) async {
                           print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                         // 2. if available, subtract quantity by 1 and save it to db
                           if(c.qty == 1) {
-                            await CounterDatabase.instance.deleteByStockCode(c.stockCode).then((res) {
+                            await CounterApi.delete(c.id.toString(), _url).then((res) {
                               setState(() {
                                 counterList.removeWhere((item) => item.stockId == c.stockId);
                               });
@@ -731,7 +741,7 @@ class _ProductionState extends State<Production> {
                               weight: c.weight
                             );
 
-                            CounterDatabase.instance.update(updatedCounter).then((res) {
+                            CounterApi.updateCounter(c.id.toString(), (c.qty - 1).toString(), _url).then((res) {
                               print('Updated ID: $res');
 
                               setState(() {

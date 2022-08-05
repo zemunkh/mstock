@@ -66,7 +66,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
       }
     }
 
-    stockList = validList.map<Stock>((json) => Stock.fromJson(json)).toList(); 
+    stockList = validList.map<Stock>((json) => Stock.fromJson(json)).toList();
 
     print('Parsed!');
 
@@ -102,8 +102,8 @@ class _UpdateUOMState extends State<UpdateUOM> {
   late final Future? fetching = _fetchAndSaveStockData();
 
   Future initProfileData() async {
-    ip =  await FileManager.readString('ip_address');
-    port =  await FileManager.readString('port_number');
+    ip =  await FileManager.readString('qne_ip_address');
+    port =  await FileManager.readString('qne_port_number');
     dbCode =  await FileManager.readString('company_name');
     if(ip != '' && port != '' && dbCode != '') {
       url = 'http://$ip:$port/api/Stocks';
