@@ -180,12 +180,15 @@ class SettingScreenState extends State<SettingScreen> {
               FileManager.saveString('qne_ip_address', qneIp).then((_){
                 FileManager.saveString('qne_port_number', qnePort);
               });
+            } else {
               if(cip != '' && cPort != '' && validator.ip(cip)) {
                 FileManager.saveString('counter_ip_address', cip).then((_){
                   FileManager.saveString('counter_port_number', cPort);
                   FileManager.saveString('company_name', company);
                   FileManager.saveString('location', location);
                   FileManager.saveString('doc_prefix', docPrefix);
+                  FileManager.saveString('qne_ip_address', qneIp);
+                  FileManager.saveString('qne_port_number', qnePort);
                 });
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                   content:  Text("✅ Saved successfully!", textAlign: TextAlign.center,),
@@ -198,10 +201,9 @@ class SettingScreenState extends State<SettingScreen> {
                   duration: const Duration(milliseconds: 3000)
                 ));
               }
-            } else {
               // Input values are empty
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:  Text(validator.ip(qneIp) ? "QNE IP address is not okay!" : "Can't be saved!", textAlign: TextAlign.center,),
+                content:  Text(!validator.ip(qneIp) ? "QNE IP address is not okay!" : "Can't be saved!", textAlign: TextAlign.center,),
                 duration: const Duration(milliseconds: 3000)
               ));
             }

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert' show json, utf8;
+import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../model/counter.dart';
@@ -9,14 +9,21 @@ class CounterApi {
   final HttpClient _httpClient = HttpClient();
 
 
-  static Future<List<Counter>> create(String body, String _url) async {
+  static Future<Counter> create(Map body, String _url) async {
+    print('Body 👉 : $body');
     var response = await http.post(
       Uri.parse('$_url/counter/create'),
-      body: body);
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body
+    );
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
-      return receivedData.map<Counter>((json) => Counter.fromJson(json)).toList();
+      print('Rec: $receivedData');
+      receivedData['weight'] = receivedData['weight'].toDouble();
+      return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to create counter.');
     }
@@ -29,7 +36,8 @@ class CounterApi {
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
-      return receivedData.map<Counter>((json) => Counter.fromJson(json));
+      receivedData['weight'] = receivedData['weight'].toDouble();
+      return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to read counter.');
     }
@@ -42,8 +50,8 @@ class CounterApi {
     );
 
     if (response.statusCode == 200) {
-      print('RES ✅: ${response.body}');
       var receivedData = json.decode(response.body);
+      receivedData['weight'] = receivedData['weight'].toDouble();
       return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to read counter.');
@@ -56,13 +64,9 @@ class CounterApi {
     );
 
     if (response.statusCode == 200) {
-      var receivedData = json.decode(response.body)['counters'];
-      print('Decoded ✅: $receivedData');
-      // var validList = [];
+      var receivedData = json.decode(response.body);
       for (int i = 0; i < receivedData.length; i++) {
-        // if(receivedData['counters'][i]['weight'].runtimeType == double) {
-          receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
-        // }
+        receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
       }
 
       return receivedData.map<Counter>((json) => Counter.fromJson(json)).toList();
@@ -82,13 +86,14 @@ class CounterApi {
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
-      return receivedData.map<Counter>((json) => Counter.fromJson(json));
+      receivedData['weight'] = receivedData['weight'].toDouble();
+      return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to update counter.');
     }
   }
 
-  static Future<List<Counter>> delete(String _id, String _url) async {
+  static Future<int> delete(String _id, String _url) async {
     var response = await http.delete(
       Uri.parse('$_url/counter/delete'),
       body: {
@@ -98,7 +103,7 @@ class CounterApi {
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
-      return receivedData.map<Counter>((json) => Counter.fromJson(json)).toList();
+      return int.parse(receivedData['id']);
     } else {
       throw Exception('Failed to update counter.');
     }

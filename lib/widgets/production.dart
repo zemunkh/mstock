@@ -39,7 +39,7 @@ class _ProductionState extends State<Production> {
   static final _passwordFormKey = GlobalKey<FormFieldState>();
 
 
-  List<Counter> counterList = [];
+  List<Counter> _counterList = [];
   bool isSaveDisabled = true;
   bool _isMatched = false;
   String _shiftValue = '';
@@ -62,7 +62,7 @@ class _ProductionState extends State<Production> {
     stockCode: '',
     stockName: '',
     baseUOM: '',
-    weight: 0,
+    weight: 0.0,
     isActive: false,
     remark1: '',
     category: '',
@@ -90,7 +90,7 @@ class _ProductionState extends State<Production> {
       _masterNode.unfocus();
 
       await StockDatabase.instance.readStockByCode(trueVal).then((val) async {
-        print('Found stock: ${val.stockName}');
+        print('Found stock w 👉: ${val.weight}');
         // Add stock data to Counter table
         // 1. Search the stock in the existing table
 
@@ -155,7 +155,8 @@ class _ProductionState extends State<Production> {
               activeList = [false, false, false, false];
           }
         } else {
-          isSaveDisabled = true;
+          isSaveDisabled = false;
+          activeList = [true, true, true, true];
           // Utils.openDialogPanel(context, 'close', 'Oops!', 'Already filled!', 'Try again');
         }
       }
@@ -241,7 +242,13 @@ class _ProductionState extends State<Production> {
       _url = 'http://localhost:3000';
     }
     _shiftValue = await Utils.getShiftName();
-    counterList = await CounterApi.readAllCounters(_url);
+    await CounterApi.readAllCounters(_url).then((res) {
+      _counterList = res;
+    }).catchError((err) {
+        print('Err: $err');
+        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+    });
+    _machineLineController.text = 'K9';
     setState(() {});
   }
 
@@ -435,7 +442,7 @@ class _ProductionState extends State<Production> {
               ),
             ),
           ],
-          rows: counterList.map((row) => DataRow(
+          rows: _counterList.map((row) => DataRow(
             cells: [
               DataCell(Text(row.stockCode)),
               DataCell(Text(row.qty.toString())),
@@ -579,7 +586,7 @@ class _ProductionState extends State<Production> {
                     if (isSaveDisabled == true) { return; }
                     print('Clicked the Save: $_url');
                     await CounterApi.readCounterByCode(_masterController.text.trim(), _url).then((c) async {
-                      print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                      // print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
 
                       Counter updatedCounter = Counter(
                         id: c.id,
@@ -596,11 +603,9 @@ class _ProductionState extends State<Production> {
                         weight: c.weight
                       );
 
-                      CounterApi.updateCounter(c.id.toString(), (c.qty + 1).toString(), _url).then((res) {
-                        print('Updated ID: $res');
-
+                      await CounterApi.updateCounter(c.id.toString(), (c.qty + 1).toString(), _url).then((res) {
                         setState(() {
-                          counterList[counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                          _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
                           level = 0;
                           activeList = [false, false,  false, false];
                           isSaveDisabled = true;
@@ -608,13 +613,13 @@ class _ProductionState extends State<Production> {
                         });
 
                       }).catchError((err) {
-                        print('Error: $err');
+                        print('Error -> 1: $err');
                       });
 
                     }).catchError((err) async {
-                      print('Error: $err');
+                      print('Error -> 2: $err');
                     // 3. if not, create new Counter object
-                      final newCounter =  Counter(
+                      Counter newCounter =  Counter(
                         stockId: _masterStock.stockId,
                         stockCode: _masterStock.stockCode,
                         machine: _machineLineController.text.trim(),
@@ -628,17 +633,27 @@ class _ProductionState extends State<Production> {
                         weight: _masterStock.weight
                       );
                     // 4. save it to the db.
-                      await CounterApi.create(jsonEncode(newCounter.toJson()), _url).then((res) async {
+                    print('TO JSON: ${newCounter.toJson()}');
+                      await CounterApi.create(newCounter.toJson(), _url).then((res) async {
                         print('Newly added ID: $res');
-                        setState(() {
-                          counterList.add(newCounter);
-                          level = 0;
-                          activeList = [false, false,  false, false];
-                          isSaveDisabled = true;
-                          _stickerController.text = '';
-                        });
+                        if(res.stockId == newCounter.stockId) {
+                          setState(() {
+                            _counterList.add(newCounter);
+                            level = 0;
+                            activeList = [false, false,  false, false];
+                            isSaveDisabled = true;
+                            _stickerController.text = '';
+                          });
+                        }  else {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content:  Text("🚨 Not successful!", textAlign: TextAlign.center,),
+                            duration: Duration(milliseconds: 3000)
+                          ));
+                        }
+
                       }).catchError((err) {
-                        print('Error: $err');
+                        print('Err -> 3: $err');
+                        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
                       });
                     });
                   },
@@ -721,9 +736,16 @@ class _ProductionState extends State<Production> {
                         // 2. if available, subtract quantity by 1 and save it to db
                           if(c.qty == 1) {
                             await CounterApi.delete(c.id.toString(), _url).then((res) {
-                              setState(() {
-                                counterList.removeWhere((item) => item.stockId == c.stockId);
-                              });
+                              if(res == c.id) {
+                                setState(() {
+                                  _counterList.removeWhere((item) => item.stockId == c.stockId);
+                                });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content:  Text("🚨 Not deleted successfully!", textAlign: TextAlign.center,),
+                                  duration: Duration(milliseconds: 3000)
+                                ));
+                              }
                             });
                           } else {
                             Counter updatedCounter = Counter(
@@ -745,7 +767,7 @@ class _ProductionState extends State<Production> {
                               print('Updated ID: $res');
 
                               setState(() {
-                                counterList[counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                                _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
                               });
 
                             }).catchError((err) {

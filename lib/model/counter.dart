@@ -113,8 +113,7 @@ class Counter {
     );
   }
 
-  Map<String, Object?> toJson() => {
-    CounterFields.id: id,
+  Map<String, dynamic> toJson() => {
     CounterFields.stockId: stockId,
     CounterFields.stockCode: stockCode,
     CounterFields.machine: machine,
@@ -123,9 +122,8 @@ class Counter {
     CounterFields.stockCategory: stockCategory,
     CounterFields.stockGroup: group,
     CounterFields.stockClass: stockClass,
-    CounterFields.weight: weight,
-    CounterFields.qty: qty,
+    CounterFields.weight: weight.toString(),
+    CounterFields.qty: qty.toString(),
     CounterFields.baseUOM: baseUOM,
-
   };
 }
