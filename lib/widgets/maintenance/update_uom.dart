@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../database/stock_db.dart';
-import '../../helper/api.dart';
+import '../../helper/stock_api.dart';
 import '../../model/stock.dart';
 import '../../helper/file_manager.dart';
 import '../../styles/theme.dart' as style;
@@ -20,7 +20,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
 
   List<Stock> stockList =[];
   int stockCounter = 0;
-  final api = Api();
+  final api = StockApi();
 
   bool _isButtonClicked = false;
   String ip = '', port = '', dbCode = '';
@@ -36,10 +36,6 @@ class _UpdateUOMState extends State<UpdateUOM> {
     var validList = [];
     for (int i = 0; i < receivedData.length; i++) {
       print('StockCode #${i + 1}: ${receivedData[i]['stockCode']}');
-      // receivedData[i]['_id'] = i;
-      if(receivedData[i]['baseUOM'] == null) {
-        receivedData[i]['baseUOM'] = 'UNIT';
-      }
 
       if(receivedData[i]['remark1'] == null) {
         receivedData[i]['remark1'] = '4';
@@ -61,7 +57,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
         receivedData[i]['weight'] = 0.0;
       }
 
-      if(receivedData[i]['isActive']) {
+      if(receivedData[i]['isActive'] && receivedData[i]['baseUOM'] != null) {
         validList.add(receivedData[i]);
       }
     }

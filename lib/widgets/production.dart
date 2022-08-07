@@ -1,14 +1,13 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../model/stock.dart';
 import '../model/counter.dart';
-import '../../database/counter_db.dart';
 import '../../database/stock_db.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
 import '../../helper/counter_api.dart';
+import '../../helper/stock_api.dart';
 import '../styles/theme.dart' as style;
 
 class Production extends StatefulWidget {
@@ -45,6 +44,8 @@ class _ProductionState extends State<Production> {
   String _shiftValue = '';
   String _supervisorPassword = '';
   String _url = '';
+  String _qneUrl = '';
+  String _scanDelay = '15';
   List<bool> activeList = [
     false,
     false,
@@ -232,6 +233,7 @@ class _ProductionState extends State<Production> {
   }
 
   Future initSettings() async {
+    _scanDelay = await FileManager.readString('scan_delay');
     _machineList = await FileManager.readStringList('machine_line');
     _supervisorPassword = await FileManager.readString('supervisor_password');
     final ip =  await FileManager.readString('counter_ip_address');
@@ -241,6 +243,15 @@ class _ProductionState extends State<Production> {
     } else {
       _url = 'http://localhost:3000';
     }
+
+    final qneIp =  await FileManager.readString('qne_ip_address');
+    final qnePort =  await FileManager.readString('qne_port_number');
+    if(qneIp != '' && qnePort != '') {
+      _qneUrl = 'http://$ip:$port';
+    } else {
+      _qneUrl = 'https://dev-api.qne.cloud';
+    }
+
     _shiftValue = await Utils.getShiftName();
     await CounterApi.readAllCounters(_url).then((res) {
       _counterList = res;
@@ -585,8 +596,24 @@ class _ProductionState extends State<Production> {
                   onPressed: () async {
                     if (isSaveDisabled == true) { return; }
                     print('Clicked the Save: $_url');
+                    var currentTime = DateTime.now();
                     await CounterApi.readCounterByCode(_masterController.text.trim(), _url).then((c) async {
                       // print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                      
+                      // Check scan_delay is out of range with (createdTime & updatedTime)
+                      var diff = currentTime.difference(c.updatedTime).inMinutes;
+
+                      if(diff < int.parse(_scanDelay)) {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', '''You can enter the 
+                        stock after $_scanDelay min later''', 'Understand');
+                        return;
+                      }
+
+                      await StockApi.readFullStock('fazsample', c.stockId, _qneUrl).then((res) {
+                        print('Res: ✅  ${res.stockId} rate = ${res.uoMs}');
+                      }).catchError((err) {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                      });
 
                       Counter updatedCounter = Counter(
                         id: c.id,
@@ -594,8 +621,11 @@ class _ProductionState extends State<Production> {
                         stockCode: c.stockCode,
                         machine: _machineLineController.text.trim(),
                         shift: _shiftValue,
-                        createdTime: DateTime.now(),
+                        createdTime: c.createdTime,
+                        updatedTime: DateTime.now(),
                         qty: c.qty + 1,
+                        // totalQty: (c.qty * rate) + 1,
+                        totalQty: 1,
                         baseUOM: c.baseUOM,
                         stockCategory: c.stockCategory,
                         group: c.group,
@@ -603,7 +633,7 @@ class _ProductionState extends State<Production> {
                         weight: c.weight
                       );
 
-                      await CounterApi.updateCounter(c.id.toString(), (c.qty + 1).toString(), _url).then((res) {
+                      await CounterApi.updateCounter(c.id.toString(), updatedCounter.updatedTime.toIso8601String(), (c.qty + 1).toString(), _url).then((res) {
                         setState(() {
                           _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
                           level = 0;
@@ -613,7 +643,7 @@ class _ProductionState extends State<Production> {
                         });
 
                       }).catchError((err) {
-                        print('Error -> 1: $err');
+                        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
                       });
 
                     }).catchError((err) async {
@@ -625,7 +655,10 @@ class _ProductionState extends State<Production> {
                         machine: _machineLineController.text.trim(),
                         shift: _shiftValue,
                         createdTime: DateTime.now(),
+                        updatedTime: DateTime.now(),
                         qty: 1,
+                        // totalQty: (c.qty * rate) + 1,
+                        totalQty: 1,
                         baseUOM: _masterStock.baseUOM,
                         stockCategory: _masterStock.category,
                         group: _masterStock.group,
@@ -633,9 +666,7 @@ class _ProductionState extends State<Production> {
                         weight: _masterStock.weight
                       );
                     // 4. save it to the db.
-                    print('TO JSON: ${newCounter.toJson()}');
                       await CounterApi.create(newCounter.toJson(), _url).then((res) async {
-                        print('Newly added ID: $res');
                         if(res.stockId == newCounter.stockId) {
                           setState(() {
                             _counterList.add(newCounter);
@@ -754,8 +785,11 @@ class _ProductionState extends State<Production> {
                               stockCode: c.stockCode,
                               machine: _machineLineController.text.trim(),
                               shift: _shiftValue,
-                              createdTime: DateTime.now(),
+                              createdTime: c.createdTime,
+                              updatedTime: DateTime.now(),
                               qty: c.qty - 1,
+                              // Here need some change
+                              totalQty: 1,
                               baseUOM: c.baseUOM,
                               stockCategory: c.stockCategory,
                               group: c.group,
@@ -763,7 +797,7 @@ class _ProductionState extends State<Production> {
                               weight: c.weight
                             );
 
-                            CounterApi.updateCounter(c.id.toString(), (c.qty - 1).toString(), _url).then((res) {
+                            CounterApi.updateCounter(c.id.toString(), updatedCounter.updatedTime.toIso8601String(), (c.qty - 1).toString(), _url).then((res) {
                               print('Updated ID: $res');
 
                               setState(() {

@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../helper/api.dart';
+import 'stock_api.dart';
 import '../../helper/file_manager.dart';
 import '../../model/stock.dart';
 import '../styles/theme.dart' as style;
 
 class Utils {
 
-  final api = Api();
+  final stockApi = StockApi();
 
 
   Future<List> fetchAndSaveStockData(String _dbCode, String _url) async {
-    var data = await api.getStocks(_dbCode, _url);
+    var data = await stockApi.getStocks(_dbCode, _url);
     
     List<Stock> stockList =[];
 

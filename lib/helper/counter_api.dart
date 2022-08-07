@@ -75,11 +75,12 @@ class CounterApi {
     }
   }
 
-  static Future<Counter> updateCounter(String _id, String _qty, String _url) async {
+  static Future<Counter> updateCounter(String _id, String _updatedAt, String _qty, String _url) async {
     var response = await http.post(
       Uri.parse('$_url/counter/updateQty'),
       body: {
         'id': _id,
+        'updated_at': _updatedAt,
         'qty': _qty
       }
     );

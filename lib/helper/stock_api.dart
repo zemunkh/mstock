@@ -3,11 +3,28 @@ import 'dart:convert' show json, utf8;
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../model/stock.dart';
+import '../model/stock1.dart';
 import '../model/stockIn.dart';
 
 
-class Api {
+class StockApi {
   final HttpClient _httpClient = HttpClient();
+
+  static Future<Stock1> readFullStock(String dbCode, String _id, String _url) async {
+    http.Response response = await http.get(
+      Uri.parse('$_url/api/Stocks/$_id'),
+      headers: {
+        "DbCode": dbCode,
+        "Content-Type": "application/json"
+      },
+    );
+    if (response.statusCode == 200) {
+      var receivedData = json.decode(response.body);
+      return Stock1.fromJson(receivedData);
+    } else {
+      throw Exception('Failed to read counter.');
+    }
+  }
 
   // final _url = 'http://$ip:$port/api/Stocks';
   Future<String> getStocks(String dbCode, String _url) async {
@@ -30,7 +47,7 @@ class Api {
     );
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
-      return receivedData.map<Stock>((json) => Stock.fromJson(json));
+      return Stock.fromJson(receivedData);
     } else {
       throw Exception('Failed to get stock.');
     }
