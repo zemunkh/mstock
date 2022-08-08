@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // [Counter IP Address]   -->          counter_ip_address
 // [Counter Port Number]  -->          counter_port_number
 // [Company Name]         -->          company_name
+// [Device Name]          -->          device_name
 // [Location]             -->          location
 // [Document Prefix]      -->          doc_prefix
 // [Activation Status]    -->          my_activation_status

@@ -4,6 +4,7 @@ import '../widgets/maintenance/machine_list.dart';
 import '../widgets/maintenance/minute_input.dart';
 import '../widgets/maintenance/supervisor_password.dart';
 import '../widgets/maintenance/shift_form.dart';
+import '../widgets/maintenance/stockin_params.dart';
 
 class Maintenance extends StatefulWidget {
   const Maintenance({Key? key}) : super(key: key);
@@ -31,6 +32,8 @@ class _MaintenanceState extends State<Maintenance> {
           ShiftForm(),
 
           Divider(height: 20.0, color: Colors.black87),
+
+          StockInParams(),
 
           SupervisorPassword(),
 
