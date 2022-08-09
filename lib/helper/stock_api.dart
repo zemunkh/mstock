@@ -4,12 +4,13 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../model/stock.dart';
 import '../model/stock1.dart';
-import '../model/stockIn.dart';
 
 
 class StockApi {
   final HttpClient _httpClient = HttpClient();
 
+
+  // Read stock is full version Stock Data
   static Future<Stock1> readFullStock(String dbCode, String _id, String _url) async {
     http.Response response = await http.get(
       Uri.parse('$_url/api/Stocks/$_id'),

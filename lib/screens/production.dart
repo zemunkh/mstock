@@ -7,7 +7,7 @@ import '../widgets/production.dart';
 import '../styles/theme.dart' as style;
 
 class ProductionScreen extends StatefulWidget {
-  static const routeName = '/production-in';
+  static const routeName = '/production';
   const ProductionScreen({Key? key}) : super(key: key);
 
   @override

@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../model/stock.dart';
 import '../model/counter.dart';
 import '../../database/stock_db.dart';

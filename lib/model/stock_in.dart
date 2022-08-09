@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 class Details {
   final String numbering;
   final String stock;
@@ -102,12 +100,12 @@ class StockIn {
       costCentre: json['costCentre'] as String,
       project: json['project'] as String,
       stockLocation: json['stockLocation'] as String,
-      details: (json['details'] as List).map((e) => Details.fromJson(e)).toList(),
+      details: json['details'].map((e) => Details.fromJson(e)).toList(),
     );
   }
 
   Map<String, dynamic> toJson() {
-    // List<Map> details = this.details != null ? this.details.map((i) => i.toJson()).toList() : null;
+    List<Map<String, dynamic>>? details = this.details.map((i) => i!.toJson()).toList();
     return {
       'stockInCode': stockInCode,
       'stockInDate': stockInDate,
@@ -124,5 +122,4 @@ class StockIn {
       'details': details,
     };
   }
-
 }

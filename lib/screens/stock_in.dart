@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:intl/intl.dart';
 import '../widgets/stock_in.dart';
 import '../widgets/main_drawer.dart';
 import '../styles/theme.dart' as style;
@@ -37,6 +38,7 @@ class _StockInScreenState extends State<StockInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    DateTime createdDate = DateTime.now();
     return WillPopScope(
       onWillPop: _backButtonPressed,
       child: Scaffold(
@@ -63,13 +65,23 @@ class _StockInScreenState extends State<StockInScreen> {
               ),
             ),
             actions: <Widget>[
-              IconButton(
-                icon: const Icon(
-                  EvaIcons.infoOutline,
-                ),
-                color: Colors.white,
-                onPressed: () {},
-              )
+              Row(
+                children: <Widget>[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormat("yyyy/MM/dd HH:mm").format(createdDate),
+                        style: const TextStyle(
+                          color: style.Colors.mainRed,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ],
           ),
         ),

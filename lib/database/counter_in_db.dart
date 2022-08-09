@@ -1,18 +1,18 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import '../model/counter.dart';
+import '../model/counter_in.dart';
 
-class CounterDatabase {
-  static final CounterDatabase instance = CounterDatabase._init();
+class CounterInDatabase {
+  static final CounterInDatabase instance = CounterInDatabase._init();
 
   static Database? _database;
 
-  CounterDatabase._init();
+  CounterInDatabase._init();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('counter.db');
+    _database = await _initDB('counterIn.db');
     return _database!;
   }
 
@@ -31,24 +31,22 @@ class CounterDatabase {
     const realType = 'REAL NOT NULL';
 
     await db.execute('''
-      CREATE TABLE $tableCounter ( 
-        ${CounterFields.id} $idType, 
-        ${CounterFields.stockId} $textType,
-        ${CounterFields.stockCode} $textType,
-        ${CounterFields.machine} $textType,
-        ${CounterFields.shift} $textType,
-        ${CounterFields.createdTime} $textType,
-        ${CounterFields.stockGroup} $textType,
-        ${CounterFields.stockClass} $textType,
-        ${CounterFields.weight} $realType,
-        ${CounterFields.qty} $integerType,
-        ${CounterFields.stockCategory} $textType,
-        ${CounterFields.baseUOM} $textType
+      CREATE TABLE $tableCounterIn ( 
+        ${CounterInFields.id} $idType, 
+        ${CounterInFields.stockInCode} $textType,
+        ${CounterInFields.description} $textType,
+        ${CounterInFields.referenceNo} $textType,
+        ${CounterInFields.stockLocation} $textType,
+        ${CounterInFields.numbering} $textType,
+        ${CounterInFields.stock} $textType,
+        ${CounterInFields.uom} $textType,
+        ${CounterInFields.qty} $integerType,
+        ${CounterInFields.createdAt} $textType
         )
       ''');
   }
 
-  Future<Counter> create(Counter counter) async {
+  Future<CounterIn> create(CounterIn counter) async {
     final db = await instance.database;
 
     // final json = counter.toJson();
@@ -59,63 +57,63 @@ class CounterDatabase {
     // final id = await db
     //     .rawInsert('INSERT INTO table_name ($columns) VALUES ($values)');
 
-    final id = await db.insert(tableCounter, counter.toJson());
+    final id = await db.insert(tableCounterIn, counter.toJson());
     return counter.copy(id: id);
   }
 
-  Future<Counter> readCounter(int id) async {
+  Future<CounterIn> readCounterIn(int id) async {
     final db = await instance.database;
 
     final maps = await db.query(
-      tableCounter,
-      columns: CounterFields.values,
-      where: '${CounterFields.id} = ?',
+      tableCounterIn,
+      columns: CounterInFields.values,
+      where: '${CounterInFields.id} = ?',
       whereArgs: [id],
     );
 
     if (maps.isNotEmpty) {
-      return Counter.fromJson(maps.first);
+      return CounterIn.fromJson(maps.first);
     } else {
       throw Exception('ID $id not found');
     }
   }
 
-  Future<Counter> readCounterByCode(String stockCode) async {
+  Future<CounterIn> readCounterInByCode(String stockCode) async {
     final db = await instance.database;
 
     final maps = await db.query(
-      tableCounter,
-      columns: CounterFields.values,
-      where: '${CounterFields.stockCode} = ?',
+      tableCounterIn,
+      columns: CounterInFields.values,
+      where: '${CounterInFields.stockInCode} = ?',
       whereArgs: [stockCode],
     );
 
     if (maps.isNotEmpty) {
-      return Counter.fromJson(maps.first);
+      return CounterIn.fromJson(maps.first);
     } else {
-      throw Exception('StockCode from Counter $stockCode not found');
+      throw Exception('StockCode from CounterIn $stockCode not found');
     }
   }
 
-  Future<List<Counter>> readAllCounters() async {
+  Future<List<CounterIn>> readAllCounterIns() async {
     final db = await instance.database;
 
-    const orderBy = '${CounterFields.stockCode} ASC';
+    const orderBy = '${CounterInFields.stockInCode} ASC';
     // final result =
     //     await db.rawQuery('SELECT * FROM $tableNotes ORDER BY $orderBy');
 
-    final result = await db.query(tableCounter, orderBy: orderBy);
+    final result = await db.query(tableCounterIn, orderBy: orderBy);
 
-    return result.map((json) => Counter.fromJson(json)).toList();
+    return result.map((json) => CounterIn.fromJson(json)).toList();
   }
 
-  Future<int> update(Counter counter) async {
+  Future<int> update(CounterIn counter) async {
     final db = await instance.database;
 
     return db.update(
-      tableCounter,
+      tableCounterIn,
       counter.toJson(),
-      where: '${CounterFields.id} = ?',
+      where: '${CounterInFields.id} = ?',
       whereArgs: [counter.id],
     );
   }
@@ -125,8 +123,8 @@ class CounterDatabase {
     final db = await instance.database;
 
     return await db.delete(
-      tableCounter,
-      where: '${CounterFields.stockCode} = ?',
+      tableCounterIn,
+      where: '${CounterInFields.stockInCode} = ?',
       whereArgs: [stockCode],
     );
   }
@@ -135,8 +133,8 @@ class CounterDatabase {
     final db = await instance.database;
 
     return await db.delete(
-      tableCounter,
-      where: '${CounterFields.id} = ?',
+      tableCounterIn,
+      where: '${CounterInFields.id} = ?',
       whereArgs: [id],
     );
   }
