@@ -16,6 +16,8 @@ class StockCheckState extends State<StockCheck> {
   final FocusNode _masterNode = FocusNode();
   final FocusNode _productNode = FocusNode();
 
+  static final _masterFormKey = GlobalKey<FormFieldState>();
+  static final _productFormKey = GlobalKey<FormFieldState>();
   // final _formKey = GlobalKey<FormFieldState>();
 
   bool matched = true;
@@ -138,13 +140,15 @@ class StockCheckState extends State<StockCheck> {
     }
 
     Widget _scannerInput(String hintext, TextEditingController _controller,
-        FocusNode currentNode) {
-      return Stack(
-        alignment: const Alignment(1.0, 1.0),
-        children: <Widget>[
-          TextFormField(
+        FocusNode currentNode, GlobalKey _formKey) {
+      return Padding(
+        padding: const EdgeInsets.all(2.0),
+        child: SizedBox(
+          height: 48,
+          child: TextFormField(
+            key: _formKey,
             style: const TextStyle(
-              fontSize: 22,
+              fontSize: 16,
               color: Color(0xFF004B83),
               fontWeight: FontWeight.bold,
             ),
@@ -159,31 +163,32 @@ class StockCheckState extends State<StockCheck> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5.0),
               ),
+              errorStyle: const TextStyle(
+                color: Colors.yellowAccent,
+              ),
+              suffixIcon: IconButton(
+                icon: const Icon(
+                  Icons.qr_code,
+                  color: Colors.blueAccent,
+                  size: 24,
+                ),
+                onPressed: () {
+                  _clearTextController(context, _controller, currentNode);
+                  if (_controller == _masterController) {
+                    _productController.clear();
+                  }
+                },
+              ),
             ),
-            // autofocus: false,
+            autofocus: false,
+            autocorrect: false,
             controller: _controller,
             focusNode: currentNode,
             onTap: () {
-              _focusNode(context, currentNode);
+              // _clearTextController(context, _mainController, _mainNode);
             },
           ),
-          ElevatedButton(
-            onPressed: () {
-              _clearTextController(context, _controller, currentNode);
-              if (_controller == _masterController) {
-                _productController.clear();
-              }
-            },
-            child: const SizedBox(
-              height: 66,
-              child: Icon(
-                EvaIcons.refresh,
-                color: Color(0xFF004B83),
-                size: 30,
-              ),
-            ),
-          ),
-        ],
+        ),
       );
     }
 
@@ -268,6 +273,7 @@ class StockCheckState extends State<StockCheck> {
             'Master key',
             _masterController,
             _masterNode,
+            _masterFormKey,
           ),
           _titleWidget('Barcode #2'),
           const SizedBox(
@@ -277,6 +283,7 @@ class StockCheckState extends State<StockCheck> {
             'Product key',
             _productController,
             _productNode,
+            _productFormKey
           ),
         ],
       ),

@@ -18,6 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 // [Document Prefix]      -->          doc_prefix
 // [Activation Status]    -->          my_activation_status
 // [Stock Length]         -->          stock_length
+// [Project Code]         -->          project_code
+
 
 
 

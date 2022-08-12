@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:intl/intl.dart';
+import '../helper/file_manager.dart';
+import '../helper/utils.dart';
+import '../model/pending.dart';
 import '../styles/theme.dart' as style;
 
 class PendingList extends StatefulWidget {
@@ -14,70 +17,50 @@ class _PendingListState extends State<PendingList> {
   final _masterController = TextEditingController();
   final FocusNode _masterNode = FocusNode();
 
-  String lineVal = 'E7';
-  List<String> lines = [
-    'E7',
-    'E8',
-    'K22',
-    'K23',
-    'K44',
-  ];
+  String lineVal = '';
+  List<String> _machineList = [];
 
-  String shiftVal = 'Noon 12-15';
+  String shiftVal = '';
+  List<String> _shiftList = [];
 
-  List<String> shifts = [
-    'Noon 12-15',
-    'Afternoon 15-18',
-    'Evening 18-21',
-    'Night 21-24',
-    'Midnight 24-03',
-    'Dawn 03-06',
-    'Morning 06-09',
-    'Late Morning 09-12',
-  ];
+  List<Pending> _pendingList = []; 
 
-  Future _focusNode(BuildContext context, FocusNode node) async {
-    FocusScope.of(context).requestFocus(node);
+  Future initSettings() async {
+    var shifts = await FileManager.readStringList('shift_list');
+    _machineList = await FileManager.readStringList('machine_line');
+    if(_machineList.isEmpty) {
+      _machineList = ['A1', 'A2'];
+      lineVal = 'A1';
+    } else {
+      lineVal = _machineList[0];
+    }
+
+    if(shifts.isEmpty) {
+      _shiftList = ['Morning', 'Afternoon', 'Night'];
+      shiftVal = 'Morning';
+    } else {
+      for (var shift in shifts) {
+        print('👉 Shift: $shift');
+        var dayName = shift.split(',')[0];
+        var startTime = shift.split(',')[1];
+        var endTime = shift.split(',')[2];
+        _shiftList.add(dayName);
+      }
+    }
+
+
+    shiftVal = await Utils.getShiftName();
+    setState(() {});
   }
 
-  Future _clearTextController(BuildContext context,
-      TextEditingController _controller, FocusNode node) async {
-    setState(() {
-      _controller.clear();
-    });
-    FocusScope.of(context).requestFocus(node);
+  @override
+  void initState() {
+    super.initState();
+    initSettings();
   }
 
   @override
   Widget build(BuildContext context) {
-    DateTime createdDate = DateTime.now();
-
-    Widget _header(BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 2, right: 2),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: const <Widget>[
-            Expanded(
-              flex: 5,
-              child: Text(
-                'Pending list: ',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: style.Colors.mainGrey,
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: Text(''),
-            ),
-          ],
-        ),
-      );
-    }
 
     Widget _filterSelectors(BuildContext context) {
       return Padding(
@@ -101,12 +84,16 @@ class _PendingListState extends State<PendingList> {
                   DropdownButton(
                     // Initial Value
                     value: lineVal,
-
+                    style: const TextStyle(
+                      color: style.Colors.button2,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                     // Down Arrow Icon
                     icon: const Icon(Icons.keyboard_arrow_down),
 
                     // Array list of items
-                    items: lines.map((String items) {
+                    items: _machineList.map((String items) {
                       return DropdownMenuItem(
                         value: items,
                         child: Text(items),
@@ -137,12 +124,16 @@ class _PendingListState extends State<PendingList> {
                   DropdownButton(
                     // Initial Value
                     value: shiftVal,
-
+                    style: const TextStyle(
+                      color: Colors.deepPurple,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                     // Down Arrow Icon
                     icon: const Icon(Icons.keyboard_arrow_down),
 
                     // Array list of items
-                    items: shifts.map((String items) {
+                    items: _shiftList.map((String items) {
                       return DropdownMenuItem(
                         value: items,
                         child: Text(items),
@@ -162,53 +153,90 @@ class _PendingListState extends State<PendingList> {
       );
     }
 
-    Widget _scannerInput(String hintext, TextEditingController _controller,
-        FocusNode currentNode) {
-      return Stack(
-        alignment: const Alignment(1.0, 1.0),
-        children: <Widget>[
-          TextFormField(
-            style: const TextStyle(
-              fontSize: 22,
-              color: Color(0xFF004B83),
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              hintText: hintext,
-              hintStyle: const TextStyle(
-                color: Color(0xFF004B83),
-                fontWeight: FontWeight.w200,
+    Widget buildContainer(Widget child) {
+      return Container(
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(5),
+        padding: const EdgeInsets.all(5),
+        height: 480,
+        width: 400,
+        child: child,
+      );
+    }
+
+    Widget _pendingTable(BuildContext context) {
+      return buildContainer(
+        SingleChildScrollView(
+          child: DataTable(
+          columnSpacing: 30,
+          showCheckboxColumn: false,
+          columns: const <DataColumn>[
+            DataColumn(
+              label: Text(
+                'Machine:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: style.Colors.mainGrey,
+                ),
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5.0),
+            ),
+            DataColumn(
+              label: Text(
+                'Shift:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: style.Colors.mainGrey,
+                ),
               ),
             ),
-            // autofocus: false,
-            controller: _controller,
-            focusNode: currentNode,
-            onTap: () {
-              _focusNode(context, currentNode);
-            },
+            DataColumn(
+              label: Text(
+                'Date:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: style.Colors.mainGrey,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Pending:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: style.Colors.mainGrey,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'In:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: style.Colors.mainGrey,
+                ),
+              ),
+            ),
+          ],
+          rows: _pendingList.map((row) => DataRow(
+            cells: [
+              DataCell(Text(row.machine)),
+              DataCell(Text(row.shift)),
+              DataCell(Text(row.date)),
+              DataCell(Text(row.pending.toString())),
+              DataCell(Text(row.stockIn.toString())),
+            ]
+          )).toList(),
+          
           ),
-          ElevatedButton(
-            onPressed: () {
-              _clearTextController(context, _controller, currentNode);
-              if (_controller == _masterController) {
-                _masterController.clear();
-              }
-            },
-            child: const SizedBox(
-              height: 66,
-              child: Icon(
-                EvaIcons.refresh,
-                color: Color(0xFF004B83),
-                size: 30,
-              ),
-            ),
-          ),
-        ],
+        )
       );
     }
 
@@ -218,16 +246,8 @@ class _PendingListState extends State<PendingList> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          _header(context),
-          const Text(
-            'Filter',
-            style: TextStyle(
-              color: Colors.red,
-            ),
-            textAlign: TextAlign.center,
-          ),
           _filterSelectors(context),
-          _scannerInput('Scan code', _masterController, _masterNode),
+          _pendingTable(context),
         ],
       ),
     );

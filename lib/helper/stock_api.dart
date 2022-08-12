@@ -36,8 +36,19 @@ class StockApi {
         "DbCode": dbCode,
         "Content-Type": "application/json"
       },
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
     );
-    return response.body;
+    if (response.statusCode == 200) {
+      return response.body;
+    } else if(response.statusCode == 408) {
+      return 'Timed out! Wrong service address';
+    } else {
+      throw Exception('Failed to fetch data.');
+    }
   }
 
   // Get Stock with BaseUOM and its UOM rate

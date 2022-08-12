@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../helper/utils.dart';
 import '../../database/stock_db.dart';
 import '../../helper/stock_api.dart';
 import '../../model/stock.dart';
@@ -28,9 +29,17 @@ class _UpdateUOMState extends State<UpdateUOM> {
   String url = '';
 
   Future<List> _fetchAndSaveStockData() async {
+    await initProfileData();
     final now = DateTime.now();
+    print('URL: 👉 $url');
     var data = await api.getStocks(dbCode, url);
-
+    if(data.contains('Timed out! Wrong service address')) {
+      Utils.openDialogPanel(context, 'close', 'Oops!', data, 'Try again');
+      setState(() {
+        _isButtonClicked = false;
+      });
+      return [];
+    }
     var receivedData = json.decode(data);
     print('\n\n Len: ${receivedData.length} \n\n');
     var validList = [];
@@ -95,7 +104,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
     return stockList;
   }
 
-  late final Future? fetching = _fetchAndSaveStockData();
+  late Future? fetching = _fetchAndSaveStockData();
 
   Future initProfileData() async {
     ip =  await FileManager.readString('qne_ip_address');
@@ -162,8 +171,9 @@ class _UpdateUOMState extends State<UpdateUOM> {
                       ElevatedButton(
                         onPressed: () {
                           setState(() {
-                            _isButtonClicked = !_isButtonClicked;
+                            _isButtonClicked = true;
                           });
+                          _fetchAndSaveStockData();
                         },
                         child: const Text('Update'),
                         style: ElevatedButton.styleFrom(
@@ -181,40 +191,17 @@ class _UpdateUOMState extends State<UpdateUOM> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                FutureBuilder(
-                  future: _isButtonClicked ? fetching : null,
-                  builder: (context, snapshot) {
-                    switch(snapshot.connectionState) {
-                      case ConnectionState.none:
-                        return Text(
-                          '${stockCounter.toString()} Stocks',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 32,
-                            color: style.Colors.button2,
-                          ),
-                        );
-                      case ConnectionState.active:
-                      case ConnectionState.waiting:
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      case ConnectionState.done:
-                        if(snapshot.hasError) {
-                          print('Error: ${snapshot.error}');
-                          return const Text('Error during fetching data!');
-                        }
-                        return Text(
-                          stockCounter.toString(),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 32,
-                            color: style.Colors.button2,
-                          ),
-                        );
-                    }
-                  }
-                )
+                _isButtonClicked ? 
+                const Center(
+                  child: CircularProgressIndicator(),
+                ) : Text(
+                  '${stockCounter.toString()} Stocks',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 32,
+                    color: style.Colors.button2,
+                  ),
+                ),
               ],
             ),
             Row(
