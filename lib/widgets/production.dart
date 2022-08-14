@@ -599,16 +599,16 @@ class _ProductionState extends State<Production> {
                       // print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                       
                       // Check scan_delay is out of range with (createdTime & updatedTime)
-                      var diff = currentTime.difference(c.updatedTime).inMinutes;
+                      // var diff = currentTime.difference(c.updatedTime).inMinutes;
 
-                      if(diff < int.parse(_scanDelay)) {
-                        Utils.openDialogPanel(context, 'close', 'Oops!', '''You can enter the 
-                        stock after $_scanDelay min later''', 'Understand');
-                        return;
-                      }
+                      // if(diff < int.parse(_scanDelay)) {
+                      //   Utils.openDialogPanel(context, 'close', 'Oops!', '''You can enter the 
+                      //   stock after $_scanDelay min later''', 'Understand');
+                      //   return;
+                      // }
 
                       await StockApi.readFullStock('fazsample', c.stockId, _qneUrl).then((res) {
-                        print('Res: ✅  ${res.stockId} rate = ${res.uoMs}');
+                        print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
                       }).catchError((err) {
                         Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
                       });

@@ -18,9 +18,21 @@ class StockApi {
         "DbCode": dbCode,
         "Content-Type": "application/json"
       },
-    );
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
+      print('✅ GOT Answer: ${receivedData['remark1']} ${receivedData['baseUOM']} ');
+      if(receivedData['remark1'] == null) {
+        receivedData['remark1'] = '1';
+      }
       return Stock1.fromJson(receivedData);
     } else {
       throw Exception('Failed to read counter.');
@@ -41,7 +53,10 @@ class StockApi {
       onTimeout: () {
         return http.Response('Error', 408);
       },
-    );
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
     if (response.statusCode == 200) {
       return response.body;
     } else if(response.statusCode == 408) {

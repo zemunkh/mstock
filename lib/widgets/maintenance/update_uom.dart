@@ -32,7 +32,13 @@ class _UpdateUOMState extends State<UpdateUOM> {
     await initProfileData();
     final now = DateTime.now();
     print('URL: 👉 $url');
-    var data = await api.getStocks(dbCode, url);
+    var data = await api.getStocks(dbCode, url).catchError((err) {
+      print('🚨 : $err');
+      setState(() {
+        _isButtonClicked = false;
+      });
+      return '[]';
+    });
     if(data.contains('Timed out! Wrong service address')) {
       Utils.openDialogPanel(context, 'close', 'Oops!', data, 'Try again');
       setState(() {
@@ -98,7 +104,8 @@ class _UpdateUOMState extends State<UpdateUOM> {
     FileManager.saveString('last_update', last.toString());
     setState(() {
       stockCounter = stockList.length;
-      lastUpdateTime = last.toString(); 
+      lastUpdateTime = last.toString();
+      _isButtonClicked = false;
     });
     print('Last update: $last');
     return stockList;
@@ -136,7 +143,6 @@ class _UpdateUOMState extends State<UpdateUOM> {
 
   @override
   void dispose() {
-    // StockDatabase.instance.close();
     super.dispose();
   }
 

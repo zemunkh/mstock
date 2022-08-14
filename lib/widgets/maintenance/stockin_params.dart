@@ -29,11 +29,20 @@ class StockInParamsState extends State<StockInParams> {
   final FocusNode _qnePortNode =  FocusNode();
   final FocusNode _cipNode =  FocusNode();
   final FocusNode _cPortNode =  FocusNode();
-
   final FocusNode _compNode =  FocusNode();
   final FocusNode _locNode =  FocusNode();
   final FocusNode _docPrefixNode =  FocusNode();
   final FocusNode _projectCodeNode =  FocusNode();
+
+  static final _deviceFormKey = GlobalKey<FormFieldState>();
+  static final _qneIpFormKey = GlobalKey<FormFieldState>();
+  static final _qnePortFormKey = GlobalKey<FormFieldState>();
+  static final _cipFormKey = GlobalKey<FormFieldState>();
+  static final _cPortFormKey = GlobalKey<FormFieldState>();
+  static final _compFormKey = GlobalKey<FormFieldState>();
+  static final _locFormKey = GlobalKey<FormFieldState>();
+  static final _docPrefixFormKey = GlobalKey<FormFieldState>();
+  static final _projectCodeFormKey = GlobalKey<FormFieldState>();
 
 
   bool lockEn = true;
@@ -101,7 +110,7 @@ class StockInParamsState extends State<StockInParams> {
   @override
   Widget build(BuildContext context) {
 
-    Widget _mainInput(String header, TextEditingController _mainController, FocusNode _mainNode) {
+    Widget _mainInput(String header, TextEditingController _mainController, FocusNode _mainNode, GlobalKey _formKey) {
       return Padding(
         padding: const EdgeInsets.only(left: 2, right: 2, top: 4),
         child: SizedBox(
@@ -123,7 +132,7 @@ class StockInParamsState extends State<StockInParams> {
               Expanded(
                 flex: 8,
                 child: TextFormField(
-                  // key: _passwordFormKey,
+                  key: _formKey,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 20,
@@ -250,17 +259,17 @@ class StockInParamsState extends State<StockInParams> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         const SizedBox(height: 15,),
-        _mainInput('Device Name', _deviceController, _deviceNode),
-        _mainInput('QNE IP',_qneIpAddressController, _qneIpNode),
-        _mainInput('QNE Port', _qnePortNumController, _qnePortNode),
+        _mainInput('Device Name', _deviceController, _deviceNode, _deviceFormKey),
+        _mainInput('QNE IP',_qneIpAddressController, _qneIpNode, _qneIpFormKey),
+        _mainInput('QNE Port', _qnePortNumController, _qnePortNode, _qnePortFormKey),
         const Divider(height: 15.0,color: Colors.black87,),
-        _mainInput('Counter IP',_cipAddressController, _cipNode),
-        _mainInput('Counter Port', _cPortNumController, _cPortNode),
+        _mainInput('Counter IP',_cipAddressController, _cipNode, _cipFormKey),
+        _mainInput('Counter Port', _cPortNumController, _cPortNode, _cPortFormKey),
         const Divider(height: 15.0,color: Colors.black87,),
         // _mainInput('Company', _companyController, _compNode),
-        _mainInput('QnE Location Code', _locationController, _locNode),
-        _mainInput('Stock INs Doc Prefix', _docPrefixController, _docPrefixNode),
-        _mainInput('Project Code', _projectCodeController, _projectCodeNode),
+        _mainInput('QnE Location Code', _locationController, _locNode, _locFormKey),
+        _mainInput('Stock INs Doc Prefix', _docPrefixController, _docPrefixNode, _docPrefixFormKey),
+        _mainInput('Project Code', _projectCodeController, _projectCodeNode, _projectCodeFormKey),
         const SizedBox(height: 15,),
 
         _saveButton(context),

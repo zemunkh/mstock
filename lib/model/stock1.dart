@@ -1,3 +1,5 @@
+import 'package:mstock/model/stock_in.dart';
+
 import './uoms.dart';
 
 class Stock1Fields {
@@ -22,7 +24,7 @@ class Stock1 {
   final String stockName;
   final String baseUOM;
   final bool isActive;
-  final Uoms uoMs;
+  final List<Uom?> uoMs;
 
   Stock1({
     required this.stockId,
@@ -34,13 +36,14 @@ class Stock1 {
   });
 
   factory Stock1.fromJson(Map<String, dynamic> json) {
+    // List<Map> details = this.details != null ? this.details.map((i) => i.toJson()).toList() : null;
     return Stock1(
       stockId: json[Stock1Fields.stockId] as String,
       stockCode: json[Stock1Fields.stockCode] as String,
       stockName: json[Stock1Fields.stockName] as String,
       baseUOM: json[Stock1Fields.baseUOM] as String,
       isActive: json[Stock1Fields.isActive] as bool,
-      uoMs: Uoms.fromJson(json[Stock1Fields.uoMs])
+      uoMs: (json[Stock1Fields.uoMs] as List).map((e) => e == null ? null : Uom.fromJson(e)).toList(),
     );
   }
 }
