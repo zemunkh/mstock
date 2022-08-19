@@ -116,8 +116,6 @@ class StockIn {
       'notes': notes,
       'costCentre': costCentre,
       'project': project,
-      'costCentre': costCentre,
-      'project': project,
       'stockLocation': stockLocation,
       'details': details,
     };

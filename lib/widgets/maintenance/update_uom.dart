@@ -116,7 +116,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
   Future initProfileData() async {
     ip =  await FileManager.readString('qne_ip_address');
     port =  await FileManager.readString('qne_port_number');
-    dbCode =  await FileManager.readString('company_name');
+    dbCode =  await FileManager.readString('db_code');
     if(ip != '' && port != '' && dbCode != '') {
       url = 'http://$ip:$port/api/Stocks';
     } else {

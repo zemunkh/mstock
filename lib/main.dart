@@ -33,9 +33,10 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         // '/': (ctx) => activated ? const HomeScreen() : ActivationScreen(),
-        '/': (ctx) => const HomeScreen(),
+        '/': (ctx) => const StockInScreen(),
         // '/': (ctx) => const PendingListScreen(),
         StockCheckScreen.routeName: (ctx) => const StockCheckScreen(),
+        StockInScreen.routeName: (ctx) => const StockInScreen(),
         ProductionScreen.routeName: (ctx) => const ProductionScreen(),
         PendingListScreen.routeName: (ctx) => const PendingListScreen(),
         MaintenanceScreen.routeName: (ctx) => const MaintenanceScreen(),

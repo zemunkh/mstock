@@ -26,22 +26,23 @@ class CounterInDatabase {
   Future _createDB(Database db, int version) async {
     const idType = 'INTEGER PRIMARY KEY';
     const textType = 'TEXT NOT NULL';
-    const boolType = 'BOOLEAN NOT NULL';
+    // const boolType = 'BOOLEAN NOT NULL';
     const integerType = 'INTEGER NOT NULL';
     const realType = 'REAL NOT NULL';
 
     await db.execute('''
       CREATE TABLE $tableCounterIn ( 
         ${CounterInFields.id} $idType, 
-        ${CounterInFields.stockInCode} $textType,
-        ${CounterInFields.description} $textType,
-        ${CounterInFields.referenceNo} $textType,
-        ${CounterInFields.stockLocation} $textType,
-        ${CounterInFields.numbering} $textType,
         ${CounterInFields.stock} $textType,
+        ${CounterInFields.description} $textType,
+        ${CounterInFields.machine} $textType,
+        ${CounterInFields.shift} $textType,
+        ${CounterInFields.device} $textType,
         ${CounterInFields.uom} $textType,
         ${CounterInFields.qty} $integerType,
-        ${CounterInFields.createdAt} $textType
+        ${CounterInFields.isPosted} $integerType,
+        ${CounterInFields.createdAt} $textType,
+        ${CounterInFields.updatedAt} $textType
         )
       ''');
   }
@@ -84,8 +85,8 @@ class CounterInDatabase {
     final maps = await db.query(
       tableCounterIn,
       columns: CounterInFields.values,
-      where: '${CounterInFields.stockInCode} = ?',
-      whereArgs: [stockCode],
+      where: '${CounterInFields.stock} = ? AND ${CounterInFields.isPosted} = ?',
+      whereArgs: [stockCode, 0],
     );
 
     if (maps.isNotEmpty) {
@@ -95,10 +96,29 @@ class CounterInDatabase {
     }
   }
 
+  Future<List<CounterIn>> readCounterInsNotPosted() async {
+    final db = await instance.database;
+    const orderBy = '${CounterInFields.updatedAt} ASC';
+
+    final maps = await db.query(
+      tableCounterIn,
+      columns: CounterInFields.values,
+      where: '${CounterInFields.isPosted} = ?',
+      whereArgs: [0],
+      orderBy: orderBy
+    );
+
+    if (maps.isNotEmpty) {
+      return maps.map((json) => CounterIn.fromJson(json)).toList();
+    } else {
+      throw Exception('Stocks [not posted] from CounterIn not found');
+    }
+  }
+
   Future<List<CounterIn>> readAllCounterIns() async {
     final db = await instance.database;
 
-    const orderBy = '${CounterInFields.stockInCode} ASC';
+    const orderBy = '${CounterInFields.stock} ASC';
     // final result =
     //     await db.rawQuery('SELECT * FROM $tableNotes ORDER BY $orderBy');
 
@@ -124,7 +144,7 @@ class CounterInDatabase {
 
     return await db.delete(
       tableCounterIn,
-      where: '${CounterInFields.stockInCode} = ?',
+      where: '${CounterInFields.stock} = ?',
       whereArgs: [stockCode],
     );
   }

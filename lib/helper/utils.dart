@@ -46,7 +46,7 @@ class Utils {
   }
 
   static bool isInRange(int start, int end, int currentTime) {
-    if(currentTime > start && currentTime < end) {
+    if(currentTime >= start && currentTime < end) {
       return true;
     } else {
       return false;
@@ -227,7 +227,7 @@ class Utils {
               const SizedBox(height: 30.0),
               TextButton(
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(style.Colors.mainAccent),
+                  backgroundColor: MaterialStateProperty.all<Color>(btnText.contains('Try') ? style.Colors.mainRed : style.Colors.mainAccent),
                   padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0)),
                   shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5.0),

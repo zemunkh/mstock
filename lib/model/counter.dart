@@ -3,13 +3,14 @@ const String tableCounter = 'counter';
 class CounterFields {
   static final List<String> values = [
     /// Add all fields
-    id, stockId, stockCode, machine, shift, stockCategory, stockGroup, 
+    id, stockId, stockCode, stockName, machine, shift, stockCategory, stockGroup, 
     stockClass, weight, qty, totalQty, baseUOM, createdTime, updatedTime
   ];
 
   static const String id = 'id';
   static const String stockId = 'stockId';
   static const String stockCode = 'stockCode';
+  static const String stockName = 'stockName';
   static const String machine = 'machine';
   static const String shift = 'shift';
   static const String stockCategory = 'category';
@@ -28,6 +29,7 @@ class Counter {
   int? id;
   final String stockId;
   final String stockCode;
+  final String stockName;
   final String machine;
   final String shift;
   final String stockCategory;
@@ -44,6 +46,7 @@ class Counter {
     this.id,
     required this.stockId,
     required this.stockCode,
+    required this.stockName,
     required this.machine,
     required this.shift,
     required this.stockCategory,
@@ -61,6 +64,7 @@ class Counter {
     int? id,
     String? stockId,
     String? stockCode,
+    String? stockName,
     String? machine,
     String? shift,
     DateTime? createdTime,
@@ -77,6 +81,7 @@ class Counter {
         id: id ?? this.id,
         stockId: stockId ?? this.stockId,
         stockCode: stockCode ?? this.stockCode,
+        stockName: stockName ?? this.stockName,
         machine: machine ?? this.machine,
         shift: shift ?? this.shift,
         stockCategory: stockCategory ?? this.stockCategory,
@@ -95,6 +100,7 @@ class Counter {
       id: json[CounterFields.id] as int,
       stockId: json[CounterFields.stockId] as String,
       stockCode: json[CounterFields.stockCode] as String,
+      stockName: json[CounterFields.stockName] as String,
       machine: json[CounterFields.machine] as String,
       shift: json[CounterFields.shift] as String,
       stockCategory: json[CounterFields.stockCategory] as String,
@@ -114,6 +120,7 @@ class Counter {
       id: json[CounterFields.id] as int,
       stockId: json[CounterFields.stockId] as String,
       stockCode: json[CounterFields.stockCode] as String,
+      stockName: json[CounterFields.stockName] as String,
       machine: json[CounterFields.machine] as String,
       shift: json[CounterFields.shift] as String,
       stockCategory: json[CounterFields.stockCategory] as String,
@@ -131,6 +138,7 @@ class Counter {
   Map<String, dynamic> toJson() => {
     CounterFields.stockId: stockId,
     CounterFields.stockCode: stockCode,
+    CounterFields.stockName: stockName,
     CounterFields.machine: machine,
     CounterFields.shift: shift,
     CounterFields.stockCategory: stockCategory,

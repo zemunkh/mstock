@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../model/counter_in.dart';
+import '../database/counter_in_db.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
+import '../../helper/counter_api.dart';
 import '../styles/theme.dart' as style;
 
 class StockIn extends StatefulWidget {
@@ -26,16 +28,19 @@ class _StockInState extends State<StockIn> {
   static final _passwordFormKey = GlobalKey<FormFieldState>();
   List<CounterIn> _counterInList = [];
   
+  bool _isLoading = false;
 
   String _qneUrl = '';
   String _url = '';
+  String _scanDelay = '15';
+  String _location = '';
+  String _docPrefix = '';
+  String _deviceName = '';
+  String _project = '';
   bool isAddView = true;
   bool _isMatched = false;
   String _supervisorPassword = '';
 
-  Future _focusNode(BuildContext context, FocusNode node) async {
-    FocusScope.of(context).requestFocus(node);
-  }
 
   Future _clearTextController(BuildContext context,
       TextEditingController _controller, FocusNode node) async {
@@ -55,11 +60,163 @@ class _StockInState extends State<StockIn> {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
       _masterNode.unfocus();
+      setState(() {
+        _isLoading = true;
+      });
+      // Add isPosted flag
+      // Read Counter with stockCode from Counter API (Network server)
+      await CounterApi.readCounterByCodeAndDate(trueVal, _url).then((c) async {
+        print('✅ Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
 
+        // If found, create CounterIn object
+        await CounterInDatabase.instance.readCounterInByCode(c.stockCode).then((res) async {
+          
+          CounterIn updateCounterIn = CounterIn(
+            id: res.id,
+            stock: res.stock,
+            description: res.description,
+            machine: res.machine,
+            shift: res.shift,
+            device: res.device,
+            uom: res.uom,
+            qty: res.qty + 1,
+            isPosted: false,
+            createdAt: res.createdAt,
+            updatedAt: DateTime.now()
+          );
+
+          await CounterInDatabase.instance.update(updateCounterIn).then((res) {
+            setState(() {
+              _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
+              _masterController.text = '';
+            });
+          }).catchError((err) {
+            Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+          });
+
+        }).catchError((err) async {
+          print('Error -> 2: $err');
+          CounterIn newCounterIn = CounterIn(
+            stock: c.stockCode, // necessary
+            description: c.stockName,
+            machine: c.machine, // necessary
+            shift: c.shift,
+            device: _deviceName,
+            uom: c.baseUOM,
+            qty: c.qty,
+            isPosted: false,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now()
+          );
+          await CounterInDatabase.instance.create(newCounterIn).then((res) {
+            setState(() {
+              _counterInList.add(newCounterIn);
+              _masterController.text = '';
+            });
+          }).catchError((err) {
+            print('Error -> 3: $err');
+            Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+          });
+      });
+        // Search the stock in the Current list
+
+        // if it is available, Update it to the CounterIn database (Locally)
+
+        // Else, Save it to the CounterIn database (Locally)
+
+
+        await Future.delayed(const Duration(milliseconds: 200), () {
+          setState(() {
+            _masterController.text = trueVal;
+            _isLoading = false;
+          });
+        });
+      }).catchError((err) async {
+        print('Error -> 3: $err');
+        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+        Future.delayed(const Duration(milliseconds: 200), () {
+          setState(() {
+            _masterController.text = '';
+            _isLoading = false;
+          });
+        });
+      });
+    }
+  }
+
+  Future deleteListener() async {
+    buffer = _deleteController.text;
+    if (buffer.endsWith(r'$')) {
+      buffer = buffer.substring(0, buffer.length - 1);
+      trueVal = buffer;
+      _deleteNode.unfocus();
+      setState(() {
+        _isLoading = true;
+      });
+
+      await CounterInDatabase.instance.readCounterInByCode(trueVal).then((res) async {
+        print('👉 Counter In : ${res.id} : ${res.stock} : ${res.stock} : ${res.description} : ${res.updatedAt} : QTY -> ${res.qty}');
+        
+        if(res.qty == 1) {
+          await CounterInDatabase.instance.delete(res.id!).then((result) {
+            if(result == res.id) {
+              setState(() {
+                _counterInList.removeWhere((item) => item.stock == res.stock);
+              });
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content:  Text("🚨 Not deleted successfully!", textAlign: TextAlign.center,),
+                duration: Duration(milliseconds: 3000)
+              ));
+            }
+          });
+        } else {
+          CounterIn updateCounterIn = CounterIn(
+            id: res.id,
+            stock: res.stock, // stockCode
+            description: res.description,
+            machine: res.machine,
+            shift: res.shift,
+            device: res.device,
+            uom: res.uom,
+            qty: res.qty - 1,
+            isPosted: false,
+            createdAt: res.createdAt,
+            updatedAt: DateTime.now()
+          );
+
+          await CounterInDatabase.instance.update(updateCounterIn).then((res) {
+            setState(() {
+              _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
+              _masterController.text = '';
+            });
+          }).catchError((err) {
+            Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+          });
+        }
+
+
+      }).catchError((err) async {
+        print('Error -> 2: $err');
+
+      });
+
+      await Future.delayed(const Duration(milliseconds: 200), () {
+        setState(() {
+          _masterController.text = trueVal;
+          _isLoading = false;
+        });
+      });
     }
   }
 
   Future initSettings() async {
+    _scanDelay = await FileManager.readString('scan_delay');
+    _supervisorPassword = await FileManager.readString('supervisor_password');
+    _location = await FileManager.readString('location');
+    _docPrefix = await FileManager.readString('doc_prefix');
+    _deviceName = await FileManager.readString('device_name');
+    _project = await FileManager.readString('project_code');
     final ip =  await FileManager.readString('counter_ip_address');
     final port =  await FileManager.readString('counter_port_number');
     if(ip != '' && port != '') {
@@ -75,6 +232,12 @@ class _StockInState extends State<StockIn> {
     } else {
       _qneUrl = 'https://dev-api.qne.cloud';
     }
+    await CounterInDatabase.instance.readCounterInsNotPosted().then((res) {
+      _counterInList = res;
+    }).catchError((err) {
+        print('Err: $err');
+        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+    });
     setState(() {});
   }
 
@@ -83,11 +246,13 @@ class _StockInState extends State<StockIn> {
     super.initState();
     initSettings();
     _masterController.addListener(masterListener);
+    _deleteController.addListener(deleteListener);
   }
 
   @override
   void dispose() {
     _masterController.dispose();
+    _deleteController.dispose();
     super.dispose();
   }
 
@@ -100,11 +265,10 @@ class _StockInState extends State<StockIn> {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: SizedBox(
-          height: 40,
+          height: 52,
           width: currentWidth,
           child: TextFormField(
             key: _formKey,
-            enabled: hintext.contains('Master') ? _isMatched : hintext.contains('Sticker') ? _isMatched : true,
             style: const TextStyle(
               fontSize: 16,
               color: Color(0xFF004B83),
@@ -124,7 +288,13 @@ class _StockInState extends State<StockIn> {
               errorStyle: const TextStyle(
                 color: Colors.yellowAccent,
               ),
-              suffixIcon: IconButton(
+              suffixIcon: _isLoading ? Transform.scale(
+                  scale: 0.6,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 8.0,
+                    valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+                  ),
+                ) : IconButton(
                 icon: const Icon(
                   Icons.qr_code,
                   color: Colors.blueAccent,
@@ -132,11 +302,6 @@ class _StockInState extends State<StockIn> {
                 ),
                 onPressed: () {
                   _clearTextController(context, _controller, currentNode);
-                  // if(!(hintext.contains('Master') || hintext.contains('Sticker'))) {
-                  //   setState(() {
-                  //     _isMatched = false;
-                  //   });
-                  // }
                 },
               ),
             ),
@@ -158,9 +323,9 @@ class _StockInState extends State<StockIn> {
             color: Colors.white,
             border: Border.all(color: Colors.grey),
             borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(5),
+        margin: const EdgeInsets.only(top: 12, bottom: 5),
         padding: const EdgeInsets.all(5),
-        height: 320,
+        height: 400,
         width: 400,
         child: child,
       );
@@ -214,49 +379,6 @@ class _StockInState extends State<StockIn> {
           
           ),
         )
-      );
-    }
-
-    Widget _header(BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 2, right: 2),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const Expanded(
-              flex: 5,
-              child: Text(
-                'Stock In: ',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: style.Colors.mainGrey,
-                ),
-              ),
-            ),
-            Expanded(
-                flex: 5,
-                child: Row(
-                  children: <Widget>[
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: const [
-                        Text('Date:'),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          DateFormat("yyyy/MM/dd HH:mm").format(createdDate),
-                        ),
-                      ],
-                    )
-                  ],
-                )),
-          ],
-        ),
       );
     }
 
@@ -322,15 +444,6 @@ class _StockInState extends State<StockIn> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Text(
-            '⚙️ Scan stock:           ',
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: style.Colors.mainGrey,
-            ),
-          ),
           Row(
             children: [
               const Expanded(
@@ -340,6 +453,37 @@ class _StockInState extends State<StockIn> {
               Expanded(
                 flex: 6,
                 child: _scanControl(context),
+              ),
+            ],
+          )
+        ],
+      );
+    }
+
+    Widget _postBtn(BuildContext context) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: [
+              const Expanded(
+                flex: 6,
+                child: Text('')
+              ),
+              Expanded(
+                flex: 4,
+                child: ElevatedButton(
+                  onPressed: () {
+
+                  },
+                  child: const Text('Save & Post'),
+                  style: ElevatedButton.styleFrom(
+                    primary: style.Colors.button4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
               ),
             ],
           )
@@ -473,6 +617,7 @@ class _StockInState extends State<StockIn> {
           _actionTab(context),
           isAddView ? _addView(context) : _deleteView(context),
           _stockInTable(context),
+          _postBtn(context)
         ],
       ),
     );

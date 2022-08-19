@@ -17,7 +17,15 @@ class CounterApi {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: body
-    );
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
@@ -32,7 +40,15 @@ class CounterApi {
   static Future<Counter> readCounter(String _id, String _url) async {
     var response = await http.get(
       Uri.parse('$_url/counter?id=$_id'),
-    );
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
@@ -47,7 +63,15 @@ class CounterApi {
     print('URL: $_url/counter?stockCode=$_stockCode');
     var response = await http.get(
       Uri.parse('$_url/counter?stockCode=$_stockCode'),
-    );
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
@@ -58,10 +82,67 @@ class CounterApi {
     }
   }
 
+  static Future<Counter> readCounterByCodeAndDate(String _stockCode, String _url) async {
+    print('URL Order 👉: $_url/counter/order?stockCode=$_stockCode');
+    var response = await http.get(
+      Uri.parse('$_url/counter/order?stockCode=$_stockCode'),
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
+
+    if (response.statusCode == 200) {
+      var receivedData = json.decode(response.body);
+      receivedData['weight'] = receivedData['weight'].toDouble();
+      return Counter.fromJson(receivedData);
+    } else {
+      throw Exception('Failed to read counter.');
+    }
+  }
+
+  static Future<List<Counter>> readCountersWithMachine(String _url, String _machine) async {
+    print('URL Machine 👉: $_url/counter/machine?machine=$_machine');
+    var response = await http.get(
+      Uri.parse('$_url/counter/machine?machine=$_machine')
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
+
+    if (response.statusCode == 200) {
+      var receivedData = json.decode(response.body);
+      for (int i = 0; i < receivedData.length; i++) {
+        receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
+      }
+
+      return receivedData.map<Counter>((json) => Counter.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to read counters.');
+    }
+  }
+
   static Future<List<Counter>> readAllCounters(String _url) async {
     var response = await http.get(
       Uri.parse('$_url/counter/all')
-    );
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);

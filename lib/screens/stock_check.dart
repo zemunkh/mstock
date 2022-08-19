@@ -46,7 +46,7 @@ class _StockCheckScreenState extends State<StockCheckScreen> {
           preferredSize: const Size.fromHeight(50.0),
           child: AppBar(
             elevation: 2.0,
-            backgroundColor: style.Colors.mainAppBar,
+            backgroundColor: style.Colors.mainGreen,
             leading: IconButton(
               icon: const Icon(
                 EvaIcons.menu2Outline,

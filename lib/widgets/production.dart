@@ -43,6 +43,7 @@ class _ProductionState extends State<Production> {
   String _supervisorPassword = '';
   String _url = '';
   String _qneUrl = '';
+  String _dbCode = '';
   String _scanDelay = '15';
   List<bool> activeList = [
     false,
@@ -127,6 +128,7 @@ class _ProductionState extends State<Production> {
       
       if(trueVal == _masterController.text) {
         if(_masterStock.remark1 != '4') {
+          isSaveDisabled = false;
           level = 4;
         } else {
           level++;
@@ -191,10 +193,10 @@ class _ProductionState extends State<Production> {
     }
   }
 
-  bool isFound = false;
 
   Future machineLineListener() async {
     buffer = _machineLineController.text;
+    bool isFound = false;
     print('Machine text: ${_machineLineController.text}');
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
@@ -207,9 +209,13 @@ class _ProductionState extends State<Production> {
       }
 
       if (isFound) {
-        Utils.openDialogPanel(context, 'accept', 'Done!', 'Matched machine line.', 'Okay');
-        setState(() {
+        await CounterApi.readCountersWithMachine(_url, trueVal).then((res) {
+          _counterList = res;
           _isMatched = true;
+          setState(() {});
+        }).catchError((err) {
+          print('Err: $err');
+          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
         });
       } else {
         Utils.openDialogPanel(context, 'close', 'Oops!', 'No found!', 'Try again');
@@ -244,20 +250,15 @@ class _ProductionState extends State<Production> {
 
     final qneIp =  await FileManager.readString('qne_ip_address');
     final qnePort =  await FileManager.readString('qne_port_number');
-    if(qneIp != '' && qnePort != '') {
+    _dbCode = await FileManager.readString('db_code');
+    if(qneIp != '' && qnePort != '' && _dbCode != '') {
       _qneUrl = 'http://$ip:$port';
     } else {
       _qneUrl = 'https://dev-api.qne.cloud';
+      _dbCode = 'fazsample';
     }
 
     _shiftValue = await Utils.getShiftName();
-    await CounterApi.readAllCounters(_url).then((res) {
-      _counterList = res;
-    }).catchError((err) {
-        print('Err: $err');
-        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-    });
-    _machineLineController.text = 'K9';
     setState(() {});
   }
 
@@ -574,13 +575,18 @@ class _ProductionState extends State<Production> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(2),
-                      child: Row(
+                      child: _masterStock.remark1 == '4' ? Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
                           levelBar(activeList[0] ? Colors.green : Colors.grey),
                           levelBar(activeList[1] ? Colors.green : Colors.grey),
                           levelBar(activeList[2] ? Colors.green : Colors.grey),
                           levelBar(activeList[3] ? Colors.green : Colors.grey),
+                        ],
+                      ) : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          levelBar(!isSaveDisabled ? Colors.green : Colors.grey),
                         ],
                       ),
                     ),
@@ -599,15 +605,14 @@ class _ProductionState extends State<Production> {
                       // print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                       
                       // Check scan_delay is out of range with (createdTime & updatedTime)
-                      // var diff = currentTime.difference(c.updatedTime).inMinutes;
+                      var diff = currentTime.difference(c.updatedTime).inMinutes;
 
-                      // if(diff < int.parse(_scanDelay)) {
-                      //   Utils.openDialogPanel(context, 'close', 'Oops!', '''You can enter the 
-                      //   stock after $_scanDelay min later''', 'Understand');
-                      //   return;
-                      // }
+                      if(diff < int.parse(_scanDelay)) {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'You can enter the stock after $_scanDelay min later', 'Understand');
+                        return;
+                      }
 
-                      await StockApi.readFullStock('fazsample', c.stockId, _qneUrl).then((res) {
+                      await StockApi.readFullStock(_dbCode, c.stockId, _qneUrl).then((res) {
                         print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
                       }).catchError((err) {
                         Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
@@ -617,6 +622,7 @@ class _ProductionState extends State<Production> {
                         id: c.id,
                         stockId: c.stockId,
                         stockCode: c.stockCode,
+                        stockName: c.stockName,
                         machine: _machineLineController.text.trim(),
                         shift: _shiftValue,
                         createdTime: c.createdTime,
@@ -650,6 +656,7 @@ class _ProductionState extends State<Production> {
                       Counter newCounter =  Counter(
                         stockId: _masterStock.stockId,
                         stockCode: _masterStock.stockCode,
+                        stockName: _masterStock.stockName,
                         machine: _machineLineController.text.trim(),
                         shift: _shiftValue,
                         createdTime: DateTime.now(),
@@ -781,6 +788,7 @@ class _ProductionState extends State<Production> {
                               id: c.id,
                               stockId: c.stockId,
                               stockCode: c.stockCode,
+                              stockName: c.stockName,
                               machine: _machineLineController.text.trim(),
                               shift: _shiftValue,
                               createdTime: c.createdTime,

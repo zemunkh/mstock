@@ -42,13 +42,13 @@ class _StockInScreenState extends State<StockInScreen> {
     return WillPopScope(
       onWillPop: _backButtonPressed,
       child: Scaffold(
-        backgroundColor: style.Colors.background,
+        backgroundColor: style.Colors.yellowAccent,
         key: _scaffoldKey,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(50.0),
           child: AppBar(
             elevation: 2.0,
-            backgroundColor: style.Colors.mainAppBar,
+            backgroundColor: style.Colors.mainYellow,
             leading: IconButton(
               icon: const Icon(
                 EvaIcons.menu2Outline,

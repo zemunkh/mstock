@@ -19,7 +19,7 @@ class StockInParamsState extends State<StockInParams> {
   final _qnePortNumController =  TextEditingController();
   final _cipAddressController =  TextEditingController();
   final _cPortNumController =  TextEditingController();
-  final _companyController =  TextEditingController();
+  final _dbCodeController =  TextEditingController();
   final _locationController =  TextEditingController();
   final _docPrefixController =  TextEditingController();
   final _projectCodeController = TextEditingController();
@@ -29,7 +29,7 @@ class StockInParamsState extends State<StockInParams> {
   final FocusNode _qnePortNode =  FocusNode();
   final FocusNode _cipNode =  FocusNode();
   final FocusNode _cPortNode =  FocusNode();
-  final FocusNode _compNode =  FocusNode();
+  final FocusNode _dbCodeNode =  FocusNode();
   final FocusNode _locNode =  FocusNode();
   final FocusNode _docPrefixNode =  FocusNode();
   final FocusNode _projectCodeNode =  FocusNode();
@@ -39,7 +39,7 @@ class StockInParamsState extends State<StockInParams> {
   static final _qnePortFormKey = GlobalKey<FormFieldState>();
   static final _cipFormKey = GlobalKey<FormFieldState>();
   static final _cPortFormKey = GlobalKey<FormFieldState>();
-  static final _compFormKey = GlobalKey<FormFieldState>();
+  static final _dbCodeFormKey = GlobalKey<FormFieldState>();
   static final _locFormKey = GlobalKey<FormFieldState>();
   static final _docPrefixFormKey = GlobalKey<FormFieldState>();
   static final _projectCodeFormKey = GlobalKey<FormFieldState>();
@@ -67,7 +67,7 @@ class StockInParamsState extends State<StockInParams> {
     _qnePortNumController.text = await FileManager.readString('qne_port_number');
     _cipAddressController.text = await FileManager.readString('counter_ip_address');
     _cPortNumController.text = await FileManager.readString('counter_port_number');
-    _companyController.text = await FileManager.readString('company_name');
+    _dbCodeController.text = await FileManager.readString('db_code');
     _deviceController.text = await FileManager.readString('device_name');
     _locationController.text = await FileManager.readString('location');
     _docPrefixController.text = await FileManager.readString('doc_prefix');
@@ -168,7 +168,7 @@ class StockInParamsState extends State<StockInParams> {
             String qnePort = _qnePortNumController.text.trim();
             String cip = _cipAddressController.text.trim();
             String cPort = _cPortNumController.text.trim();
-            String company = _companyController.text.trim();
+            String dbCode = _dbCodeController.text.trim();
             String location = _locationController.text.trim();
             String docPrefix = _docPrefixController.text.trim();
             String projectCode = _projectCodeController.text.trim();
@@ -178,7 +178,7 @@ class StockInParamsState extends State<StockInParams> {
               FileManager.saveString('qne_ip_address', qneIp);
               FileManager.saveString('qne_port_number', qnePort);
               FileManager.saveString('device_name', device);
-              FileManager.saveString('company_name', company);
+              FileManager.saveString('db_code', dbCode);
               FileManager.saveString('location', location);
               FileManager.saveString('doc_prefix', docPrefix);
               FileManager.saveString('project_code', projectCode);
@@ -266,7 +266,7 @@ class StockInParamsState extends State<StockInParams> {
         _mainInput('Counter IP',_cipAddressController, _cipNode, _cipFormKey),
         _mainInput('Counter Port', _cPortNumController, _cPortNode, _cPortFormKey),
         const Divider(height: 15.0,color: Colors.black87,),
-        // _mainInput('Company', _companyController, _compNode),
+        _mainInput('DbCode', _dbCodeController, _dbCodeNode, _dbCodeFormKey),
         _mainInput('QnE Location Code', _locationController, _locNode, _locFormKey),
         _mainInput('Stock INs Doc Prefix', _docPrefixController, _docPrefixNode, _docPrefixFormKey),
         _mainInput('Project Code', _projectCodeController, _projectCodeNode, _projectCodeFormKey),
