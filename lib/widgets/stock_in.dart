@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../model/counter_in.dart';
+import '../model/counterIn.dart';
+import '../model/stockIn.dart';
 import '../database/counter_in_db.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
 import '../../helper/counter_api.dart';
+import '../../helper/stock_api.dart';
 import '../styles/theme.dart' as style;
 
-class StockIn extends StatefulWidget {
-  const StockIn({Key? key}) : super(key: key);
+class StockInWidget extends StatefulWidget {
+  const StockInWidget({Key? key}) : super(key: key);
 
   @override
-  State<StockIn> createState() => _StockInState();
+  State<StockInWidget> createState() => _StockInWidgetState();
 }
 
-class _StockInState extends State<StockIn> {
+class _StockInWidgetState extends State<StockInWidget> {
   final _masterController = TextEditingController();
   final _deleteController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -32,13 +34,14 @@ class _StockInState extends State<StockIn> {
 
   String _qneUrl = '';
   String _url = '';
+  String _dbCode = '';
   String _scanDelay = '15';
   String _location = '';
   String _docPrefix = '';
   String _deviceName = '';
   String _project = '';
   bool isAddView = true;
-  bool _isMatched = false;
+  bool isPosting = false;
   String _supervisorPassword = '';
 
 
@@ -80,6 +83,7 @@ class _StockInState extends State<StockIn> {
             device: res.device,
             uom: res.uom,
             qty: res.qty + 1,
+            purchasePrice: res.purchasePrice,
             isPosted: false,
             createdAt: res.createdAt,
             updatedAt: DateTime.now()
@@ -104,6 +108,7 @@ class _StockInState extends State<StockIn> {
             device: _deviceName,
             uom: c.baseUOM,
             qty: c.qty,
+            purchasePrice: c.purchasePrice,
             isPosted: false,
             createdAt: DateTime.now(),
             updatedAt: DateTime.now()
@@ -180,6 +185,7 @@ class _StockInState extends State<StockIn> {
             device: res.device,
             uom: res.uom,
             qty: res.qty - 1,
+            purchasePrice: res.purchasePrice,
             isPosted: false,
             createdAt: res.createdAt,
             updatedAt: DateTime.now()
@@ -227,10 +233,12 @@ class _StockInState extends State<StockIn> {
 
     final qneIp =  await FileManager.readString('qne_ip_address');
     final qnePort =  await FileManager.readString('qne_port_number');
-    if(qneIp != '' && qnePort != '') {
+    _dbCode = await FileManager.readString('db_code');
+    if(qneIp != '' && qnePort != '' && _dbCode != '') {
       _qneUrl = 'http://$ip:$port';
     } else {
       _qneUrl = 'https://dev-api.qne.cloud';
+      _dbCode = 'fazsample';
     }
     await CounterInDatabase.instance.readCounterInsNotPosted().then((res) {
       _counterInList = res;
@@ -473,10 +481,66 @@ class _StockInState extends State<StockIn> {
               Expanded(
                 flex: 4,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    DateTime currentTime = DateTime.now();
+                    setState(() {
+                      isPosting = true;
+                    });
+                    List<Details> details = [];
+                    for (var i = 0; i < _counterInList.length; i++) {
+                      Details n = Details(
+                        numbering: i.toString(),
+                        stock: _counterInList[i].stock,
+                        pos: 0,
+                        description: _counterInList[i].description,
+                        price: _counterInList[i].purchasePrice,
+                        uom: _counterInList[i].uom,
+                        qty: _counterInList[i].qty,
+                        amount: _counterInList[i].qty * _counterInList[i].purchasePrice,
+                        note: '$_deviceName ${_counterInList[i].shift} ${_counterInList[i].machine} ${DateFormat("ddMMyyyy HH:mm").format(currentTime)}',
+                        costCentre: '',
+                        project: _project,
+                        stockLocation: _location
+                      );
+                      details.add(n);
+                    }
 
+                    StockIn newValue = StockIn(
+                      stockInCode: '${_docPrefix}${DateFormat("ddMMyyyyHms").format(currentTime)}',
+                      stockInDate: currentTime,
+                      description: 'App Stock In from $_deviceName',
+                      referenceNo: 'String',
+                      title: '',
+                      notes: '',
+                      costCentre: '',
+                      project: _project,
+                      stockLocation: _location,
+                      details: details,
+                    );
+
+                    await StockApi.postStockIns(_dbCode, newValue.toJson(), _qneUrl).then((status) {
+                      if(status == 200) {
+                        Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn is successfully posted!', 'Okay');
+                        _counterInList = [];
+                      } else if(status == 408) {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Timed out! Check your network connection.', 'Understand');
+                      } else {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to post StockIns', 'Understand');
+                      }
+                      isPosting = false;
+                    }).catchError((err) {
+                      Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                      isPosting = false;
+                    });
+                    setState(() {});
                   },
-                  child: const Text('Save & Post'),
+                  child: isPosting ? Transform.scale(
+                    scale: 0.6,
+                    child: const CircularProgressIndicator(
+                        strokeWidth: 8.0,
+                        valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+                      ),
+                    ) : const Text('Save & Post'),
                   style: ElevatedButton.styleFrom(
                     primary: style.Colors.button4,
                     shape: RoundedRectangleBorder(

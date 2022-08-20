@@ -88,7 +88,7 @@ class _StockInScreenState extends State<StockInScreen> {
         drawer: const MainDrawer(),
         body: const Padding(
           padding: EdgeInsets.all(16.0),
-          child: StockIn(),
+          child: StockInWidget(),
         ),
       ),
     );

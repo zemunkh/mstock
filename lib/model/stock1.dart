@@ -1,4 +1,4 @@
-import 'package:mstock/model/stock_in.dart';
+import '../model/stockIn.dart';
 
 import './uoms.dart';
 

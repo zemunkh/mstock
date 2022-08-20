@@ -3,7 +3,7 @@ const String tableStocks = 'stocks';
 class StockFields {
   static final List<String> values = [
     /// Add all fields
-    id, stockId, stockCode, stockName, baseUOM, remark1, isActive, weight, category, stockGroup, stockClass
+    id, stockId, stockCode, stockName, baseUOM, remark1, purchasePrice, weight, category, stockGroup, stockClass
   ];
 
   static const String id = '_id';
@@ -12,7 +12,7 @@ class StockFields {
   static const String stockName = 'stockName';
   static const String baseUOM = 'baseUOM';
   static const String remark1 = 'remark1';
-  static const String isActive = 'isActive';
+  static const String purchasePrice = 'purchasePrice';
   static const String weight = 'weight';
   static const String category = 'category';
   static const String stockGroup = 'stockGroup';
@@ -28,7 +28,7 @@ class Stock {
   // final String description;
   final String baseUOM;
   final double weight;
-  final bool isActive;
+  final double purchasePrice;
   final String remark1;
   final String category;
   final String group;
@@ -42,7 +42,7 @@ class Stock {
     // required this.description,
     required this.baseUOM,
     required this.weight,
-    required this.isActive,
+    required this.purchasePrice,
     required this.remark1,
     required this.category,
     required this.group,
@@ -54,10 +54,10 @@ class Stock {
     String? stockId,
     String? stockCode,
     String? stockName,
-    String? remark1,
-    bool? isActive,
     String? baseUOM,
     double? weight,
+    double? purchasePrice,
+    String? remark1,
     String? category,
     String? group,
     String? stockClass
@@ -67,10 +67,10 @@ class Stock {
         stockId: stockId ?? this.stockId,
         stockCode: stockCode ?? this.stockCode,
         stockName: stockName ?? this.stockName,
-        remark1: remark1 ?? this.remark1,
-        isActive: isActive ?? this.isActive,
         baseUOM: baseUOM ?? this.baseUOM,
         weight: weight ?? this.weight,
+        purchasePrice: purchasePrice ?? this.purchasePrice,
+        remark1: remark1 ?? this.remark1,
         category: category ?? this.category,
         group: group ?? this.group,
         stockClass: stockClass ?? this.stockClass,
@@ -85,28 +85,11 @@ class Stock {
       // description: json['description'] ?? json['description'],
       baseUOM: json[StockFields.baseUOM] as String,
       weight: json[StockFields.weight] as double,
-      isActive: json[StockFields.isActive] as bool,
+      purchasePrice: json[StockFields.purchasePrice] as double,
       remark1: json[StockFields.remark1] as String,
       category: json[StockFields.category] as String,
       group: json['group'] as String,
       stockClass: json['class'] as String,
-    );
-  }
-
-  factory Stock.fromJsonSQL(Map<String, dynamic> json) {
-    return Stock(
-      id: json[StockFields.id] as int?,
-      stockId: json[StockFields.stockId] as String,
-      stockCode: json[StockFields.stockCode] as String,
-      stockName: json[StockFields.stockName] as String,
-      // description: json['description'] ?? json['description'],
-      baseUOM: json[StockFields.baseUOM] as String,
-      weight: json[StockFields.weight] as double,
-      isActive: json[StockFields.isActive] == 1,
-      remark1: json[StockFields.remark1] as String,
-      category: json[StockFields.category] as String,
-      group: json[StockFields.stockGroup] as String,
-      stockClass: json[StockFields.stockClass] as String,
     );
   }
 
@@ -115,10 +98,10 @@ class Stock {
     StockFields.stockId: stockId,
     StockFields.stockCode: stockCode,
     StockFields.stockName: stockName,
-    StockFields.remark1: remark1,
-    StockFields.isActive: isActive ? 1 : 0,
     StockFields.baseUOM: baseUOM,
     StockFields.weight: weight,
+    StockFields.purchasePrice: purchasePrice,
+    StockFields.remark1: remark1,
     StockFields.category: category,
     StockFields.stockGroup: group,
     StockFields.stockClass: stockClass

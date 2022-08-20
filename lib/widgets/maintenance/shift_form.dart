@@ -217,6 +217,7 @@ class _ShiftFormState extends State<ShiftForm> {
                     ElevatedButton(
                       onPressed: () {
                         bool isOverlapped = false;
+                        FocusScope.of(context).unfocus();
                         var selectedStartMin = (startTimeSelected.hour * 60) + startTimeSelected.minute;
                         var selectedEndMin = (endTimeSelected.hour * 60) + endTimeSelected.minute;
                         if((selectedEndMin - selectedStartMin).abs() < 60) {

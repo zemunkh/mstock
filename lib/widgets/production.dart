@@ -63,7 +63,7 @@ class _ProductionState extends State<Production> {
     stockName: '',
     baseUOM: '',
     weight: 0.0,
-    isActive: false,
+    purchasePrice: 0.0,
     remark1: '',
     category: '',
     group: '',
@@ -601,7 +601,7 @@ class _ProductionState extends State<Production> {
                     if (isSaveDisabled == true) { return; }
                     print('Clicked the Save: $_url');
                     var currentTime = DateTime.now();
-                    await CounterApi.readCounterByCode(_masterController.text.trim(), _url).then((c) async {
+                    await CounterApi.readCounterByCodeAndMachine(_masterController.text.trim(), _machineLineController.text.trim(), _url).then((c) async {
                       // print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                       
                       // Check scan_delay is out of range with (createdTime & updatedTime)
@@ -630,6 +630,7 @@ class _ProductionState extends State<Production> {
                         qty: c.qty + 1,
                         // totalQty: (c.qty * rate) + 1,
                         totalQty: 1,
+                        purchasePrice: c.purchasePrice,
                         baseUOM: c.baseUOM,
                         stockCategory: c.stockCategory,
                         group: c.group,
@@ -664,6 +665,7 @@ class _ProductionState extends State<Production> {
                         qty: 1,
                         // totalQty: (c.qty * rate) + 1,
                         totalQty: 1,
+                        purchasePrice: _masterStock.purchasePrice,
                         baseUOM: _masterStock.baseUOM,
                         stockCategory: _masterStock.category,
                         group: _masterStock.group,
@@ -767,7 +769,7 @@ class _ProductionState extends State<Production> {
                       'Confirm',
                       () async {
                         print('You called!');
-                        await CounterApi.readCounterByCode(_stickerDeleteController.text.trim(), _url).then((c) async {
+                        await CounterApi.readCounterByCodeAndMachine(_stickerDeleteController.text.trim(), _machineLineController.text.trim(), _url).then((c) async {
                           print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                         // 2. if available, subtract quantity by 1 and save it to db
                           if(c.qty == 1) {
@@ -796,6 +798,7 @@ class _ProductionState extends State<Production> {
                               qty: c.qty - 1,
                               // Here need some change
                               totalQty: 1,
+                              purchasePrice: c.purchasePrice,
                               baseUOM: c.baseUOM,
                               stockCategory: c.stockCategory,
                               group: c.group,

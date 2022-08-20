@@ -4,7 +4,7 @@ class CounterFields {
   static final List<String> values = [
     /// Add all fields
     id, stockId, stockCode, stockName, machine, shift, stockCategory, stockGroup, 
-    stockClass, weight, qty, totalQty, baseUOM, createdTime, updatedTime
+    stockClass, weight, qty, totalQty, purchasePrice, baseUOM, createdTime, updatedTime
   ];
 
   static const String id = 'id';
@@ -19,6 +19,7 @@ class CounterFields {
   static const String weight = 'weight';
   static const String qty = 'qty';
   static const String totalQty = 'totalQty'; 
+  static const String purchasePrice = 'purchasePrice';
   static const String baseUOM = 'baseUOM';
   static const String createdTime = 'created_at';
   static const String updatedTime = 'updated_at';
@@ -38,6 +39,7 @@ class Counter {
   final double weight;
   final int qty;
   final int totalQty;
+  final double purchasePrice;
   final String baseUOM;
   final DateTime createdTime;
   final DateTime updatedTime;
@@ -55,6 +57,7 @@ class Counter {
     required this.weight,
     required this.qty,
     required this.totalQty,
+    required this.purchasePrice,
     required this.baseUOM,
     required this.createdTime,
     required this.updatedTime
@@ -67,15 +70,16 @@ class Counter {
     String? stockName,
     String? machine,
     String? shift,
-    DateTime? createdTime,
-    DateTime? updatedTime,
     String? stockCategory,
     String? group,
     String? stockClass,
     double? weight,
     int? qty,
     int? totalQty,
-    String? baseUOM
+    double? purchasePrice,
+    String? baseUOM,
+    DateTime? createdTime,
+    DateTime? updatedTime
   }) =>
       Counter(
         id: id ?? this.id,
@@ -90,30 +94,11 @@ class Counter {
         weight: weight ?? this.weight,
         qty: qty ?? this.qty,
         totalQty: totalQty ?? this.totalQty,
+        purchasePrice: purchasePrice ?? this.purchasePrice,
         baseUOM: baseUOM ?? this.baseUOM,
         createdTime: createdTime ?? this.createdTime,
         updatedTime: updatedTime ?? this.updatedTime
       );
-
-  factory Counter.fromJsonSQL(Map<String, dynamic> json) {
-    return Counter(
-      id: json[CounterFields.id] as int,
-      stockId: json[CounterFields.stockId] as String,
-      stockCode: json[CounterFields.stockCode] as String,
-      stockName: json[CounterFields.stockName] as String,
-      machine: json[CounterFields.machine] as String,
-      shift: json[CounterFields.shift] as String,
-      stockCategory: json[CounterFields.stockCategory] as String,
-      group: json[CounterFields.stockGroup] as String,
-      stockClass: json[CounterFields.stockClass] as String,
-      weight: json[CounterFields.weight] as double,
-      qty: json[CounterFields.qty] as int,
-      totalQty: json[CounterFields.totalQty] as int,
-      baseUOM: json[CounterFields.baseUOM] as String,
-      createdTime: DateTime.parse(json[CounterFields.createdTime] as String),
-      updatedTime: DateTime.parse(json[CounterFields.updatedTime] as String)
-    );
-  }
 
   factory Counter.fromJson(Map<String, dynamic> json) {
     return Counter(
@@ -129,6 +114,7 @@ class Counter {
       weight: json[CounterFields.weight] as double,
       qty: json[CounterFields.qty] as int,
       totalQty: json[CounterFields.totalQty] as int,
+      purchasePrice: json[CounterFields.purchasePrice] as double,
       baseUOM: json[CounterFields.baseUOM] as String,
       createdTime: DateTime.parse(json[CounterFields.createdTime] as String),
       updatedTime: DateTime.parse(json[CounterFields.updatedTime] as String)
@@ -147,6 +133,7 @@ class Counter {
     CounterFields.weight: weight.toString(),
     CounterFields.qty: qty.toString(),
     CounterFields.totalQty: totalQty.toString(),
+    CounterFields.purchasePrice: purchasePrice.toString(),
     CounterFields.baseUOM: baseUOM,
     CounterFields.createdTime: createdTime.toIso8601String(),
     CounterFields.updatedTime: updatedTime.toIso8601String(),

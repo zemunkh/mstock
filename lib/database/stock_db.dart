@@ -37,8 +37,8 @@ class StockDatabase {
         ${StockFields.stockCode} $textType,
         ${StockFields.stockName} $textType,
         ${StockFields.remark1} $textType,
-        ${StockFields.isActive} $boolType,
         ${StockFields.weight} $realType,
+        ${StockFields.purchasePrice} $realType,
         ${StockFields.stockGroup} $textType,
         ${StockFields.baseUOM} $textType,
         ${StockFields.category} $textType,
@@ -95,7 +95,7 @@ class StockDatabase {
 
     if (maps.isNotEmpty) {
       print('Row: ${maps.first}');
-      return Stock.fromJsonSQL(maps.first);
+      return Stock.fromJson(maps.first);
     } else {
       throw Exception('Code $stockCode not found');
     }
@@ -111,7 +111,7 @@ class StockDatabase {
 
     final result = await db.query(tableStocks, orderBy: orderBy);
 
-    return result.map((json) => Stock.fromJsonSQL(json)).toList();
+    return result.map((json) => Stock.fromJson(json)).toList();
   }
 
   Future<int> update(Stock stock) async {

@@ -63,11 +63,10 @@ class Details {
 
 class StockIn {
   final String stockInCode;
-  final String stockInDate;
+  final DateTime stockInDate;
   final String description;
   final String referenceNo;
   final String title;
-  final bool isCancelled;
   final String notes;
   final String costCentre;
   final String project;
@@ -80,7 +79,6 @@ class StockIn {
     required this.description,
     required this.referenceNo,
     required this.title,
-    required this.isCancelled,
     required this.notes,
     required this.costCentre,
     required this.project,
@@ -91,11 +89,10 @@ class StockIn {
   factory StockIn.fromJson(Map<String, dynamic> json) {
     return StockIn(
       stockInCode: json['stockInCode'] as String,
-      stockInDate: json['stockInDate'] as String,
+      stockInDate: DateTime.parse(json['stockInDate'] as String),
       description: json['description'] as String,
       referenceNo: json['referenceNo'] as String,
       title: json['title'] as String,
-      isCancelled: json['isCancelled'] as bool,
       notes: json['notes'] as String,
       costCentre: json['costCentre'] as String,
       project: json['project'] as String,
@@ -108,11 +105,10 @@ class StockIn {
     List<Map<String, dynamic>>? details = this.details.map((i) => i!.toJson()).toList();
     return {
       'stockInCode': stockInCode,
-      'stockInDate': stockInDate,
+      'stockInDate': stockInDate.toIso8601String(),
       'description': description,
       'referenceNo': referenceNo,
       'title': title,
-      'isCancelled': isCancelled,
       'notes': notes,
       'costCentre': costCentre,
       'project': project,

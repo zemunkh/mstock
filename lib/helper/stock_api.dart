@@ -9,7 +9,6 @@ import '../model/stock1.dart';
 class StockApi {
   final HttpClient _httpClient = HttpClient();
 
-
   // Read stock is full version Stock Data
   static Future<Stock1> readFullStock(String dbCode, String _id, String _url) async {
     http.Response response = await http.get(
@@ -80,58 +79,28 @@ class StockApi {
     }
   }
 
-  Future postStockIns(String dbCode, String body, String _url) async {
+  static Future<int> postStockIns(String dbCode, Map body, String _url) async {
     // Prepare for the Post request (http)
     var response = await http.post(
-      Uri.parse(_url),
+      Uri.parse('$_url/api/StockIns'),
       headers: {
         "Content-Type": "application/json",  
         "DbCode": dbCode
       },
-      body: body);
-    // includes datas into body
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-  }
-
-  Future postMultipleStockIns(String dbCode, List<String> body, String _url) async {
-    // Prepare for the Post request (http)   
-    for(int i = 0; i < body.length; i++) {
-      try {
-        var response = await http.post(
-          Uri.parse(_url),
-          headers: {
-            "Content-Type": "application/json",  
-            "DbCode": dbCode
-          },
-          body: body[i]);
-        print('Response body: ${response.body}');
-      } finally {
-        _httpClient.close();
-      }
-    }
-  }
-
-  Future<Map<String, dynamic>> getJson (Uri uri) async {
-    try {
-      final httpRequest = await _httpClient.getUrl(uri);
-      final httpResponse = await httpRequest.close();
-      if(httpResponse.statusCode != HttpStatus.ok) {
-        throw Exception('Failed to load stock data');
-      }
-
-      final responseBody = await httpResponse.transform(utf8.decoder).join();
-
-      return json.decode(responseBody);
-    } on Exception catch(e) {
-      print('$e');
-      return {};
-    }
+      body: body
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Timed out', 408);
+      },
+    ).catchError((err) {
+      print('Post 👉 : $err');
+      return http.Response('Failed to post data', 500);
+    });
+    print('✅ Response status: ${response.statusCode}');
+    return response.statusCode;
   }
 }
-
-
-
     // "id": "b7c15a9f-1397-4d83-9873-244b7cdfb203",
     // "stockInCode": "SIN1801/001",
     // "stockInDate": "2018-01-30",
@@ -141,4 +110,4 @@ class StockApi {
     // "totalAmount": 943.4,
     // "costCentre": null,
     // "project": "Serdang",
-    // "stockLocation": "HQ"
+    // "stockLocation": "HQ",

@@ -82,6 +82,29 @@ class CounterApi {
     }
   }
 
+  static Future<Counter> readCounterByCodeAndMachine(String _stockCode, String _machine, String _url) async {
+    print('URL: $_url/counter/stock/machine?stockCode=$_stockCode?machine=$_machine');
+    var response = await http.get(
+      Uri.parse('$_url/counter/stock/machine?stockCode=$_stockCode?machine=$_machine'),
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
+
+    if (response.statusCode == 200) {
+      var receivedData = json.decode(response.body);
+      receivedData['weight'] = receivedData['weight'].toDouble();
+      return Counter.fromJson(receivedData);
+    } else {
+      throw Exception('Failed to read counter.');
+    }
+  }
+
   static Future<Counter> readCounterByCodeAndDate(String _stockCode, String _url) async {
     print('URL Order 👉: $_url/counter/order?stockCode=$_stockCode');
     var response = await http.get(

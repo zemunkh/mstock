@@ -1,6 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import '../model/counter_in.dart';
+import '../model/counterIn.dart';
 
 class CounterInDatabase {
   static final CounterInDatabase instance = CounterInDatabase._init();
@@ -40,6 +40,7 @@ class CounterInDatabase {
         ${CounterInFields.device} $textType,
         ${CounterInFields.uom} $textType,
         ${CounterInFields.qty} $integerType,
+        ${CounterInFields.purchasePrice} $realType,
         ${CounterInFields.isPosted} $integerType,
         ${CounterInFields.createdAt} $textType,
         ${CounterInFields.updatedAt} $textType
