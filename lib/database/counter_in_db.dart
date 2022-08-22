@@ -139,6 +139,19 @@ class CounterInDatabase {
     );
   }
 
+  Future<int> updatePostedStatus(int id) async {
+    final db = await instance.database;
+
+    return db.update(
+      tableCounterIn,
+      {
+        CounterInFields.isPosted: 1,
+      },
+      where: '${CounterInFields.id} = ?',
+      whereArgs: [id],
+    );
+  }
+
 
   Future<int> deleteByStockCode(String stockCode) async {
     final db = await instance.database;

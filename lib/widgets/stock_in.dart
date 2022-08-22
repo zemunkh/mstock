@@ -53,11 +53,9 @@ class _StockInWidgetState extends State<StockInWidget> {
     FocusScope.of(context).requestFocus(node);
   }
 
-
-  String buffer = '';
-  String trueVal = '';
-
   Future masterListener() async {
+    String buffer = '';
+    String trueVal = '';
     buffer = _masterController.text;
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
@@ -122,7 +120,7 @@ class _StockInWidgetState extends State<StockInWidget> {
             print('Error -> 3: $err');
             Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
           });
-      });
+        });
         // Search the stock in the Current list
 
         // if it is available, Update it to the CounterIn database (Locally)
@@ -150,6 +148,8 @@ class _StockInWidgetState extends State<StockInWidget> {
   }
 
   Future deleteListener() async {
+    String buffer = '';
+    String trueVal = '';
     buffer = _deleteController.text;
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
@@ -157,54 +157,6 @@ class _StockInWidgetState extends State<StockInWidget> {
       _deleteNode.unfocus();
       setState(() {
         _isLoading = true;
-      });
-
-      await CounterInDatabase.instance.readCounterInByCode(trueVal).then((res) async {
-        print('👉 Counter In : ${res.id} : ${res.stock} : ${res.stock} : ${res.description} : ${res.updatedAt} : QTY -> ${res.qty}');
-        
-        if(res.qty == 1) {
-          await CounterInDatabase.instance.delete(res.id!).then((result) {
-            if(result == res.id) {
-              setState(() {
-                _counterInList.removeWhere((item) => item.stock == res.stock);
-              });
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content:  Text("🚨 Not deleted successfully!", textAlign: TextAlign.center,),
-                duration: Duration(milliseconds: 3000)
-              ));
-            }
-          });
-        } else {
-          CounterIn updateCounterIn = CounterIn(
-            id: res.id,
-            stock: res.stock, // stockCode
-            description: res.description,
-            machine: res.machine,
-            shift: res.shift,
-            device: res.device,
-            uom: res.uom,
-            qty: res.qty - 1,
-            purchasePrice: res.purchasePrice,
-            isPosted: false,
-            createdAt: res.createdAt,
-            updatedAt: DateTime.now()
-          );
-
-          await CounterInDatabase.instance.update(updateCounterIn).then((res) {
-            setState(() {
-              _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
-              _masterController.text = '';
-            });
-          }).catchError((err) {
-            Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-          });
-        }
-
-
-      }).catchError((err) async {
-        print('Error -> 2: $err');
-
       });
 
       await Future.delayed(const Duration(milliseconds: 200), () {
@@ -486,6 +438,9 @@ class _StockInWidgetState extends State<StockInWidget> {
                     setState(() {
                       isPosting = true;
                     });
+
+                    // For Same day logic check
+
                     List<Details> details = [];
                     for (var i = 0; i < _counterInList.length; i++) {
                       Details n = Details(
@@ -517,10 +472,20 @@ class _StockInWidgetState extends State<StockInWidget> {
                       stockLocation: _location,
                       details: details,
                     );
-
+                    
                     await StockApi.postStockIns(_dbCode, newValue.toJson(), _qneUrl).then((status) {
                       if(status == 200) {
                         Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn is successfully posted!', 'Okay');
+                        // Update isPosted status to TRUE
+                        for (var el in _counterInList) {
+                          CounterInDatabase.instance.updatePostedStatus(el.id!).then((result) {
+                            if(el.id == result) {
+                              print('Done ✅');
+                            }
+                          }).catchError((err) {
+                            Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                          });
+                        }
                         _counterInList = [];
                       } else if(status == 408) {
                         Utils.openDialogPanel(context, 'close', 'Oops!', 'Timed out! Check your network connection.', 'Understand');
@@ -638,10 +603,58 @@ class _StockInWidgetState extends State<StockInWidget> {
                       _passwordNode,
                       _passwordFormKey,
                       'padlock',
-                      'Do you want to delete the counter?',
+                      'Do you want to delete the StockIn value?',
                       'Confirm',
                       () async {
-                        print('You called!');
+
+                        await CounterInDatabase.instance.readCounterInByCode(_deleteController.text.trim()).then((res) async {
+                          print('👉 Counter In : ${res.id} : ${res.stock} : ${res.stock} : ${res.description} : ${res.updatedAt} : QTY -> ${res.qty}');
+                          
+                          if(res.qty == 1) {
+                            await CounterInDatabase.instance.delete(res.id!).then((result) {
+                              if(result == res.id) {
+                                setState(() {
+                                  _counterInList.removeWhere((item) => item.stock == res.stock);
+                                });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content:  Text("🚨 Not deleted successfully!", textAlign: TextAlign.center,),
+                                  duration: Duration(milliseconds: 3000)
+                                ));
+                              }
+                            });
+                          } else {
+                            CounterIn updateCounterIn = CounterIn(
+                              id: res.id,
+                              stock: res.stock, // stockCode
+                              description: res.description,
+                              machine: res.machine,
+                              shift: res.shift,
+                              device: res.device,
+                              uom: res.uom,
+                              qty: res.qty - 1,
+                              purchasePrice: res.purchasePrice,
+                              isPosted: false,
+                              createdAt: res.createdAt,
+                              updatedAt: DateTime.now()
+                            );
+
+                            await CounterInDatabase.instance.update(updateCounterIn).then((res) {
+                              setState(() {
+                                _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
+                                _masterController.text = '';
+                              });
+                            }).catchError((err) {
+                              Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                            });
+                          }
+
+
+                        }).catchError((err) async {
+                          print('Error -> 2: $err');
+
+                        });
+
 
                       },
                       () {

@@ -64,7 +64,6 @@ class CounterIn {
     bool? isPosted,
     DateTime? createdAt,
     DateTime? updatedAt
-
   }) =>
       CounterIn(
         id: id ?? this.id,
@@ -110,5 +109,8 @@ class CounterIn {
     CounterInFields.isPosted: isPosted ? 1 : 0,
     CounterInFields.createdAt: createdAt.toIso8601String(),
     CounterInFields.updatedAt: updatedAt.toIso8601String()
+  };
+  Map<String, dynamic> postedToJson() => {
+    CounterInFields.isPosted: 1,
   };
 }

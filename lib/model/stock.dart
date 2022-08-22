@@ -3,7 +3,8 @@ const String tableStocks = 'stocks';
 class StockFields {
   static final List<String> values = [
     /// Add all fields
-    id, stockId, stockCode, stockName, baseUOM, remark1, purchasePrice, weight, category, stockGroup, stockClass
+    id, stockId, stockCode, stockName, baseUOM, remark1, purchasePrice, 
+    weight, category, stockGroup, stockClass
   ];
 
   static const String id = '_id';
@@ -90,6 +91,23 @@ class Stock {
       category: json[StockFields.category] as String,
       group: json['group'] as String,
       stockClass: json['class'] as String,
+    );
+  }
+
+  factory Stock.fromJsonSQL(Map<String, dynamic> json) {
+    return Stock(
+      id: json[StockFields.id] as int?,
+      stockId: json[StockFields.stockId] as String,
+      stockCode: json[StockFields.stockCode] as String,
+      stockName: json[StockFields.stockName] as String,
+      // description: json['description'] ?? json['description'],
+      baseUOM: json[StockFields.baseUOM] as String,
+      weight: json[StockFields.weight] as double,
+      purchasePrice: json[StockFields.purchasePrice] as double,
+      remark1: json[StockFields.remark1] as String,
+      category: json[StockFields.category] as String,
+      group: json[StockFields.stockGroup] as String,
+      stockClass: json[StockFields.stockClass] as String,
     );
   }
 

@@ -77,7 +77,7 @@ class StockDatabase {
     );
 
     if (maps.isNotEmpty) {
-      return Stock.fromJson(maps.first);
+      return Stock.fromJsonSQL(maps.first);
     } else {
       throw Exception('ID $id not found');
     }
@@ -95,7 +95,7 @@ class StockDatabase {
 
     if (maps.isNotEmpty) {
       print('Row: ${maps.first}');
-      return Stock.fromJson(maps.first);
+      return Stock.fromJsonSQL(maps.first);
     } else {
       throw Exception('Code $stockCode not found');
     }
@@ -111,7 +111,7 @@ class StockDatabase {
 
     final result = await db.query(tableStocks, orderBy: orderBy);
 
-    return result.map((json) => Stock.fromJson(json)).toList();
+    return result.map((json) => Stock.fromJsonSQL(json)).toList();
   }
 
   Future<int> update(Stock stock) async {

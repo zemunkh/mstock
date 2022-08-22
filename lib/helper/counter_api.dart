@@ -31,6 +31,7 @@ class CounterApi {
       var receivedData = json.decode(response.body);
       print('Rec: $receivedData');
       receivedData['weight'] = receivedData['weight'].toDouble();
+      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
       return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to create counter.');
@@ -53,6 +54,7 @@ class CounterApi {
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
       receivedData['weight'] = receivedData['weight'].toDouble();
+      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
       return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to read counter.');
@@ -76,6 +78,7 @@ class CounterApi {
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
       receivedData['weight'] = receivedData['weight'].toDouble();
+      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
       return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to read counter.');
@@ -83,9 +86,9 @@ class CounterApi {
   }
 
   static Future<Counter> readCounterByCodeAndMachine(String _stockCode, String _machine, String _url) async {
-    print('URL: $_url/counter/stock/machine?stockCode=$_stockCode?machine=$_machine');
+    print('URL: $_url/counter/stock/machine?stockCode=$_stockCode&machine=$_machine');
     var response = await http.get(
-      Uri.parse('$_url/counter/stock/machine?stockCode=$_stockCode?machine=$_machine'),
+      Uri.parse('$_url/counter/stock/machine?stockCode=$_stockCode&machine=$_machine'),
     ).timeout(
       const Duration(seconds: 4),
       onTimeout: () {
@@ -99,6 +102,7 @@ class CounterApi {
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
       receivedData['weight'] = receivedData['weight'].toDouble();
+      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
       return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to read counter.');
@@ -122,6 +126,7 @@ class CounterApi {
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
       receivedData['weight'] = receivedData['weight'].toDouble();
+      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
       return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to read counter.');
@@ -146,6 +151,7 @@ class CounterApi {
       var receivedData = json.decode(response.body);
       for (int i = 0; i < receivedData.length; i++) {
         receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
+        receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
       }
 
       return receivedData.map<Counter>((json) => Counter.fromJson(json)).toList();
@@ -171,6 +177,7 @@ class CounterApi {
       var receivedData = json.decode(response.body);
       for (int i = 0; i < receivedData.length; i++) {
         receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
+        receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
       }
 
       return receivedData.map<Counter>((json) => Counter.fromJson(json)).toList();
@@ -192,6 +199,7 @@ class CounterApi {
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
       receivedData['weight'] = receivedData['weight'].toDouble();
+      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
       return Counter.fromJson(receivedData);
     } else {
       throw Exception('Failed to update counter.');

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:intl/intl.dart';
+import '../database/counter_in_db.dart';
+import '../helper/counter_api.dart';
 import '../helper/file_manager.dart';
 import '../helper/utils.dart';
 import '../model/pending.dart';
+import '../model/counter.dart';
 import '../styles/theme.dart' as style;
 
 class PendingList extends StatefulWidget {
@@ -19,15 +21,97 @@ class _PendingListState extends State<PendingList> {
 
   String lineVal = '';
   List<String> _machineList = [];
-
+  String _url = '';
+  bool _isLoading = true;
   String shiftVal = '';
   List<String> _shiftList = [];
-
   List<Pending> _pendingList = []; 
+
+  Future initPendingTable() async {
+    // Same day logic and Pending table
+
+    // Category Priorities
+    // 1. Created Date
+    // 2. Machine Line
+    // 3. Shift name
+    for (var m in _machineList) {
+      var dateList = [];
+      print('Machine 👉 : $m');
+      await CounterApi.readCountersWithMachine(_url, m).then((list) async {
+        for (var item in list) {
+          var tempDate = DateFormat('dd/MM/yyyy').format(item.createdTime);
+          final index = dateList.indexWhere((d) => d == tempDate);
+          if (index >= 0) {
+            print('Already there!');
+          } else {
+            dateList.add(tempDate);
+          }  
+        }
+
+        for (var d in dateList) {
+          var shiftList = [];
+          for (var item in list) {
+            var tempDate = DateFormat('dd/MM/yyyy').format(item.createdTime);
+            if( d == tempDate) {
+              final index = shiftList.indexWhere((s) => s == item.shift);
+              if (index >= 0) {
+                print('Already there shift!');
+              } else {
+                shiftList.add(item.shift);
+              }
+            }
+          }
+
+          for (var s in shiftList) {
+            List<Counter> tempCounters = [];
+            var total = 0;
+            for (var item in list) {
+              var tempDate = DateFormat('dd/MM/yyyy').format(item.createdTime);
+              if( d == tempDate && s == item.shift) {
+                tempCounters.add(item);
+                total = total + item.qty;
+              }
+            }
+            if(tempCounters.isNotEmpty) {
+              Pending newPending = Pending(
+                machine: tempCounters[0].machine,
+                shift: tempCounters[0].shift,
+                date: DateFormat('dd/MM/yyyy').format(tempCounters[0].createdTime),
+                pending: total,
+                stockIn: 1
+              );
+              _pendingList.add(newPending);
+            }
+          }
+        }
+
+        // await CounterInDatabase.instance.readCounterInByCode(item.stockCode).then((res) async {
+
+        // }).catchError((err) async {
+
+        // });
+        _isLoading = false;
+      }).catchError((err) async {
+        _isLoading = false;
+        // Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
+        print('Counters with 👉 $m Machine code is not found!');
+      });
+    }
+    setState(() {});
+  }
 
   Future initSettings() async {
     var shifts = await FileManager.readStringList('shift_list');
     _machineList = await FileManager.readStringList('machine_line');
+    final ip =  await FileManager.readString('counter_ip_address');
+    final port =  await FileManager.readString('counter_port_number');
+
+    if(ip != '' && port != '') {
+      _url = 'http://$ip:$port';
+    } else {
+      _url = 'http://localhost:3000';
+    }
+
     if(_machineList.isEmpty) {
       _machineList = ['A1', 'A2'];
       lineVal = 'A1';
@@ -50,6 +134,10 @@ class _PendingListState extends State<PendingList> {
 
 
     shiftVal = await Utils.getShiftName();
+
+
+    initPendingTable();
+
     setState(() {});
   }
 
@@ -171,7 +259,7 @@ class _PendingListState extends State<PendingList> {
       return buildContainer(
         SingleChildScrollView(
           child: DataTable(
-          columnSpacing: 30,
+          columnSpacing: 14,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
@@ -179,7 +267,7 @@ class _PendingListState extends State<PendingList> {
                 'Machine:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 11,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -189,18 +277,21 @@ class _PendingListState extends State<PendingList> {
                 'Shift:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 14,
                   color: style.Colors.mainGrey,
                 ),
               ),
             ),
             DataColumn(
-              label: Text(
-                'Date:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: style.Colors.mainGrey,
+              label: Expanded(
+                child: Text(
+                  'Date:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: style.Colors.mainGrey,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
@@ -209,9 +300,10 @@ class _PendingListState extends State<PendingList> {
                 'Pending:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 14,
                   color: style.Colors.mainGrey,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
             DataColumn(
@@ -219,7 +311,7 @@ class _PendingListState extends State<PendingList> {
                 'In:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 14,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -227,10 +319,43 @@ class _PendingListState extends State<PendingList> {
           ],
           rows: _pendingList.map((row) => DataRow(
             cells: [
-              DataCell(Text(row.machine)),
-              DataCell(Text(row.shift)),
-              DataCell(Text(row.date)),
-              DataCell(Text(row.pending.toString())),
+              DataCell(
+                Text(
+                  row.machine,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: style.Colors.button2,
+                  ),
+                ),
+              ),
+              DataCell(
+                Text(
+                  row.shift,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple,
+                  ),
+                ),
+              ),
+              DataCell(
+                Text(
+                  row.date,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: style.Colors.button2,
+                  ),
+                ),
+              ),
+              DataCell(
+                Center(
+                  child: Text(
+                    row.pending.toString(),
+                  ),
+                )
+              ),
               DataCell(Text(row.stockIn.toString())),
             ]
           )).toList(),
@@ -247,7 +372,12 @@ class _PendingListState extends State<PendingList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _filterSelectors(context),
-          _pendingTable(context),
+          _isLoading ? const Center(
+            child: CircularProgressIndicator(
+                strokeWidth: 8.0,
+                valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+              ),
+            ) : _pendingTable(context),
         ],
       ),
     );

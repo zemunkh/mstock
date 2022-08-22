@@ -393,7 +393,7 @@ class _ProductionState extends State<Production> {
             controller: _controller,
             focusNode: currentNode,
             onTap: () {
-              // _clearTextController(context, _mainController, _mainNode);
+              _clearTextController(context, _controller, currentNode);
             },
           ),
         ),
