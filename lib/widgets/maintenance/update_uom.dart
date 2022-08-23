@@ -53,7 +53,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
       print('StockCode #${i + 1}: ${receivedData[i]['stockCode']}');
 
       if(receivedData[i]['remark1'] == null) {
-        receivedData[i]['remark1'] = '4';
+        receivedData[i]['remark1'] = '1';
       }
 
       if(receivedData[i]['category'] == null) {

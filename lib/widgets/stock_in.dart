@@ -466,7 +466,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                       description: 'App Stock In from $_deviceName',
                       referenceNo: 'String',
                       title: '',
-                      notes: '',
+                      notes: currentTime.toIso8601String(),
                       costCentre: '',
                       project: _project,
                       stockLocation: _location,
@@ -505,7 +505,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                         strokeWidth: 8.0,
                         valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
                       ),
-                    ) : const Text('Save & Post'),
+                    ) : const Text('Post'),
                   style: ElevatedButton.styleFrom(
                     primary: style.Colors.button4,
                     shape: RoundedRectangleBorder(
