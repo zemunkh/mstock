@@ -18,6 +18,8 @@ class PendingList extends StatefulWidget {
 class _PendingListState extends State<PendingList> {
   final _masterController = TextEditingController();
   final FocusNode _masterNode = FocusNode();
+  static final _machineKey = GlobalKey<FormFieldState>();
+  static final _shiftKey = GlobalKey<FormFieldState>();
 
   String lineVal = '';
   List<String> _machineList = [];
@@ -170,6 +172,7 @@ class _PendingListState extends State<PendingList> {
                     ),
                   ),
                   DropdownButton(
+                    key: _machineKey,
                     // Initial Value
                     value: lineVal,
                     style: const TextStyle(
@@ -211,6 +214,7 @@ class _PendingListState extends State<PendingList> {
                   ),
                   DropdownButton(
                     // Initial Value
+                    key: _shiftKey,
                     value: shiftVal,
                     style: const TextStyle(
                       color: Colors.deepPurple,

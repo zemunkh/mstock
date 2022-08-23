@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mstock/model/uoms.dart';
 import '../model/stock.dart';
 import '../model/counter.dart';
 import '../../database/stock_db.dart';
@@ -37,6 +38,7 @@ class _ProductionState extends State<Production> {
 
 
   List<Counter> _counterList = [];
+  bool _isLoading = false;
   bool isSaveDisabled = true;
   bool _isMatched = false;
   String _shiftValue = '';
@@ -456,7 +458,7 @@ class _ProductionState extends State<Production> {
             cells: [
               DataCell(Text(row.stockCode)),
               DataCell(Text(row.qty.toString())),
-              DataCell(Text(row.baseUOM)),
+              DataCell(Text(row.uom)),
             ]
           )).toList(),
           
@@ -599,6 +601,9 @@ class _ProductionState extends State<Production> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (isSaveDisabled == true) { return; }
+                    setState(() {
+                      _isLoading = true;
+                    });
                     print('Clicked the Save: $_url');
                     var currentTime = DateTime.now();
                     await CounterApi.readCounterByCodeAndMachine(_masterController.text.trim(), _machineLineController.text.trim(), _url).then((c) async {
@@ -612,90 +617,118 @@ class _ProductionState extends State<Production> {
                         return;
                       }
 
-                      await StockApi.readFullStock(_dbCode, c.stockId, _qneUrl).then((res) {
-                        print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
-                      }).catchError((err) {
-                        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-                      });
-
                       Counter updatedCounter = Counter(
-                        id: c.id,
-                        stockId: c.stockId,
-                        stockCode: c.stockCode,
-                        stockName: c.stockName,
-                        machine: _machineLineController.text.trim(),
-                        shift: _shiftValue,
-                        createdTime: c.createdTime,
-                        updatedTime: DateTime.now(),
-                        qty: c.qty + 1,
-                        // totalQty: (c.qty * rate) + 1,
-                        totalQty: 1,
-                        purchasePrice: c.purchasePrice,
-                        baseUOM: c.baseUOM,
-                        stockCategory: c.stockCategory,
-                        group: c.group,
-                        stockClass: c.stockClass,
-                        weight: c.weight
-                      );
+                          id: c.id,
+                          stockId: c.stockId,
+                          stockCode: c.stockCode,
+                          stockName: c.stockName, 
+                          machine: _machineLineController.text.trim(),
+                          shift: _shiftValue,
+                          createdTime: c.createdTime,
+                          updatedTime: DateTime.now(),
+                          qty: c.qty + 1,
+                          totalQty: ((c.totalQty / c.qty) * (c.qty + 1)).toInt(),
+                          // totalQty: 1,
+                          purchasePrice: c.purchasePrice,
+                          uom: c.uom,
+                          stockCategory: c.stockCategory,
+                          group: c.group,
+                          stockClass: c.stockClass,
+                          weight: c.weight
+                        );
 
-                      await CounterApi.updateCounter(c.id.toString(), updatedCounter.updatedTime.toIso8601String(), (c.qty + 1).toString(), _url).then((res) {
-                        setState(() {
-                          _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
-                          level = 0;
-                          activeList = [false, false,  false, false];
-                          isSaveDisabled = true;
-                          _stickerController.text = '';
+                        await CounterApi.updateCounter(c.id.toString(), updatedCounter.updatedTime.toIso8601String(), (c.qty + 1).toString(), ((c.totalQty / c.qty) * (c.qty + 1)).toInt().toString(), _url).then((res) {
+                          setState(() {
+                            _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                            level = 0;
+                            activeList = [false, false,  false, false];
+                            isSaveDisabled = true;
+                            _stickerController.text = '';
+                            _isLoading = false;
+                          });
+
+                        }).catchError((err) {
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                          setState(() {
+                            _isLoading = false;
+                          });
                         });
-
-                      }).catchError((err) {
-                        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-                      });
 
                     }).catchError((err) async {
                       print('Error -> 2: $err');
                     // 3. if not, create new Counter object
-                      Counter newCounter =  Counter(
-                        stockId: _masterStock.stockId,
-                        stockCode: _masterStock.stockCode,
-                        stockName: _masterStock.stockName,
-                        machine: _machineLineController.text.trim(),
-                        shift: _shiftValue,
-                        createdTime: DateTime.now(),
-                        updatedTime: DateTime.now(),
-                        qty: 1,
-                        // totalQty: (c.qty * rate) + 1,
-                        totalQty: 1,
-                        purchasePrice: _masterStock.purchasePrice,
-                        baseUOM: _masterStock.baseUOM,
-                        stockCategory: _masterStock.category,
-                        group: _masterStock.group,
-                        stockClass: _masterStock.stockClass,
-                        weight: _masterStock.weight
-                      );
-                    // 4. save it to the db.
-                      await CounterApi.create(newCounter.toJson(), _url).then((res) async {
-                        if(res.stockId == newCounter.stockId) {
-                          setState(() {
+
+                      await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
+                        print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
+                        
+                        var activeUoms = [];
+                        for (var u in res.uoMs) {
+                          if(u!.isActive) {
+                            activeUoms.add(u);
+                          }
+                        }
+                        activeUoms.sort((a, b) => a!.rate.compareTo(b!.rate));
+                        Uom bigger = res.uoMs[0]!;
+                        print('UOM: ✅  ${bigger.isActive} : ${bigger.uomCode} : ${bigger.rate}');
+
+                        Counter newCounter =  Counter(
+                          stockId: _masterStock.stockId,
+                          stockCode: _masterStock.stockCode,
+                          stockName: _masterStock.stockName,
+                          machine: _machineLineController.text.trim(),
+                          shift: _shiftValue,
+                          createdTime: DateTime.now(),
+                          updatedTime: DateTime.now(),
+                          qty: 1,
+                          totalQty: bigger.rate.toInt(),
+                          // totalQty: 1,
+                          purchasePrice: _masterStock.purchasePrice,
+                          uom: bigger.uomCode,
+                          stockCategory: _masterStock.category,
+                          group: _masterStock.group,
+                          stockClass: _masterStock.stockClass,
+                          weight: _masterStock.weight
+                        );
+                      // 4. save it to the db.
+                        await CounterApi.create(newCounter.toJson(), _url).then((res) async {
+                          if(res.stockId == newCounter.stockId) {
                             _counterList.add(newCounter);
                             level = 0;
                             activeList = [false, false,  false, false];
                             isSaveDisabled = true;
                             _stickerController.text = '';
+                            _isLoading = false;
+                          }  else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content:  Text("🚨 Not successful!", textAlign: TextAlign.center,),
+                              duration: Duration(milliseconds: 3000)
+                            ));
+                          }
+                          _isLoading = false;
+                          setState(() {});
+                        }).catchError((err) {
+                          print('Err -> 3: $err');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                          setState(() {
+                            _isLoading = false;
                           });
-                        }  else {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content:  Text("🚨 Not successful!", textAlign: TextAlign.center,),
-                            duration: Duration(milliseconds: 3000)
-                          ));
-                        }
+                        });
 
                       }).catchError((err) {
-                        print('Err -> 3: $err');
                         Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                        setState(() {
+                          _isLoading = false;
+                        });
                       });
                     });
                   },
-                  child: const Text(
+                  child: _isLoading ? Transform.scale(
+                      scale: 0.6,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 8.0,
+                        valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+                      ),
+                    ) :  const Text(
                     'Add',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -797,16 +830,16 @@ class _ProductionState extends State<Production> {
                               updatedTime: DateTime.now(),
                               qty: c.qty - 1,
                               // Here need some change
-                              totalQty: 1,
+                              totalQty: (c.totalQty - (c.totalQty/c.qty)).toInt(),
                               purchasePrice: c.purchasePrice,
-                              baseUOM: c.baseUOM,
+                              uom: c.uom,
                               stockCategory: c.stockCategory,
                               group: c.group,
                               stockClass: c.stockClass,
                               weight: c.weight
                             );
 
-                            CounterApi.updateCounter(c.id.toString(), updatedCounter.updatedTime.toIso8601String(), (c.qty - 1).toString(), _url).then((res) {
+                            CounterApi.updateCounter(c.id.toString(), updatedCounter.updatedTime.toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url).then((res) {
                               print('Updated ID: $res');
 
                               setState(() {

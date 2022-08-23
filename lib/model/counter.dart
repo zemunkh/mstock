@@ -4,7 +4,7 @@ class CounterFields {
   static final List<String> values = [
     /// Add all fields
     id, stockId, stockCode, stockName, machine, shift, stockCategory, stockGroup, 
-    stockClass, weight, qty, totalQty, purchasePrice, baseUOM, createdTime, updatedTime
+    stockClass, weight, qty, totalQty, purchasePrice, uom, createdTime, updatedTime
   ];
 
   static const String id = 'id';
@@ -20,7 +20,7 @@ class CounterFields {
   static const String qty = 'qty';
   static const String totalQty = 'totalQty'; 
   static const String purchasePrice = 'purchasePrice';
-  static const String baseUOM = 'baseUOM';
+  static const String uom = 'uom';
   static const String createdTime = 'created_at';
   static const String updatedTime = 'updated_at';
 }
@@ -40,7 +40,7 @@ class Counter {
   final int qty;
   final int totalQty;
   final double purchasePrice;
-  final String baseUOM;
+  final String uom;
   final DateTime createdTime;
   final DateTime updatedTime;
 
@@ -58,7 +58,7 @@ class Counter {
     required this.qty,
     required this.totalQty,
     required this.purchasePrice,
-    required this.baseUOM,
+    required this.uom,
     required this.createdTime,
     required this.updatedTime
   });
@@ -77,7 +77,7 @@ class Counter {
     int? qty,
     int? totalQty,
     double? purchasePrice,
-    String? baseUOM,
+    String? uom,
     DateTime? createdTime,
     DateTime? updatedTime
   }) =>
@@ -95,7 +95,7 @@ class Counter {
         qty: qty ?? this.qty,
         totalQty: totalQty ?? this.totalQty,
         purchasePrice: purchasePrice ?? this.purchasePrice,
-        baseUOM: baseUOM ?? this.baseUOM,
+        uom: uom ?? this.uom,
         createdTime: createdTime ?? this.createdTime,
         updatedTime: updatedTime ?? this.updatedTime
       );
@@ -115,7 +115,7 @@ class Counter {
       qty: json[CounterFields.qty] as int,
       totalQty: json[CounterFields.totalQty] as int,
       purchasePrice: json[CounterFields.purchasePrice] as double,
-      baseUOM: json[CounterFields.baseUOM] as String,
+      uom: json[CounterFields.uom] as String,
       createdTime: DateTime.parse(json[CounterFields.createdTime] as String),
       updatedTime: DateTime.parse(json[CounterFields.updatedTime] as String)
     );
@@ -134,7 +134,7 @@ class Counter {
     CounterFields.qty: qty.toString(),
     CounterFields.totalQty: totalQty.toString(),
     CounterFields.purchasePrice: purchasePrice.toString(),
-    CounterFields.baseUOM: baseUOM,
+    CounterFields.uom: uom,
     CounterFields.createdTime: createdTime.toIso8601String(),
     CounterFields.updatedTime: updatedTime.toIso8601String(),
   };

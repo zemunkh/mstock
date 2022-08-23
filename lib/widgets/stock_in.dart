@@ -19,15 +19,11 @@ class StockInWidget extends StatefulWidget {
 class _StockInWidgetState extends State<StockInWidget> {
   final _masterController = TextEditingController();
   final _deleteController = TextEditingController();
-  final _passwordController = TextEditingController();
 
   final FocusNode _masterNode = FocusNode();
-  final FocusNode _deleteNode = FocusNode();
-  final FocusNode _passwordNode = FocusNode();
 
   static final _masterFormKey = GlobalKey<FormFieldState>();
-  static final _deleteFormKey = GlobalKey<FormFieldState>();
-  static final _passwordFormKey = GlobalKey<FormFieldState>();
+
   List<CounterIn> _counterInList = [];
   
   bool _isLoading = false;
@@ -40,7 +36,6 @@ class _StockInWidgetState extends State<StockInWidget> {
   String _docPrefix = '';
   String _deviceName = '';
   String _project = '';
-  bool isAddView = true;
   bool isPosting = false;
   String _supervisorPassword = '';
 
@@ -68,6 +63,8 @@ class _StockInWidgetState extends State<StockInWidget> {
       // Read Counter with stockCode from Counter API (Network server)
       await CounterApi.readCounterByCodeAndDate(trueVal, _url).then((c) async {
         print('✅ Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+
+        // SameDay logic
 
         // If found, create CounterIn object
         await CounterInDatabase.instance.readCounterInByCode(c.stockCode).then((res) async {
@@ -104,7 +101,7 @@ class _StockInWidgetState extends State<StockInWidget> {
             machine: c.machine, // necessary
             shift: c.shift,
             device: _deviceName,
-            uom: c.baseUOM,
+            uom: c.uom,
             qty: c.qty,
             purchasePrice: c.purchasePrice,
             isPosted: false,
@@ -147,27 +144,6 @@ class _StockInWidgetState extends State<StockInWidget> {
     }
   }
 
-  Future deleteListener() async {
-    String buffer = '';
-    String trueVal = '';
-    buffer = _deleteController.text;
-    if (buffer.endsWith(r'$')) {
-      buffer = buffer.substring(0, buffer.length - 1);
-      trueVal = buffer;
-      _deleteNode.unfocus();
-      setState(() {
-        _isLoading = true;
-      });
-
-      await Future.delayed(const Duration(milliseconds: 200), () {
-        setState(() {
-          _masterController.text = trueVal;
-          _isLoading = false;
-        });
-      });
-    }
-  }
-
   Future initSettings() async {
     _scanDelay = await FileManager.readString('scan_delay');
     _supervisorPassword = await FileManager.readString('supervisor_password');
@@ -195,8 +171,8 @@ class _StockInWidgetState extends State<StockInWidget> {
     await CounterInDatabase.instance.readCounterInsNotPosted().then((res) {
       _counterInList = res;
     }).catchError((err) {
-        print('Err: $err');
-        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+      print('Err: $err');
+      Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
     });
     setState(() {});
   }
@@ -206,7 +182,6 @@ class _StockInWidgetState extends State<StockInWidget> {
     super.initState();
     initSettings();
     _masterController.addListener(masterListener);
-    _deleteController.addListener(deleteListener);
   }
 
   @override
@@ -342,84 +317,6 @@ class _StockInWidgetState extends State<StockInWidget> {
       );
     }
 
-    Widget _scanControl(BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 2, right: 2),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    if(!isAddView) {
-                      _deleteController.text = '';
-                    }
-                    setState(() {
-                      isAddView = true;
-                    });
-                  },
-                  child: const Text('Add'),
-                  style: ElevatedButton.styleFrom(
-                    primary: isAddView
-                        ? style.Colors.button4
-                        : style.Colors.mainDarkGrey,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if(isAddView) {
-                      _deleteController.text = '';
-                      _masterController.text = '';
-                    }
-                    setState(() {
-                      isAddView = false;
-                    });
-                  },
-                  child: const Text('Del.'),
-                  style: ElevatedButton.styleFrom(
-                    primary: isAddView
-                        ? style.Colors.mainDarkGrey
-                        : style.Colors.button2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }
-
-    Widget _actionTab(BuildContext context) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: [
-              const Expanded(
-                flex: 4,
-                child: Text('')
-              ),
-              Expanded(
-                flex: 6,
-                child: _scanControl(context),
-              ),
-            ],
-          )
-        ],
-      );
-    }
-
     Widget _postBtn(BuildContext context) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -551,139 +448,6 @@ class _StockInWidgetState extends State<StockInWidget> {
       );
     }
 
-    Widget _deleteView(BuildContext context) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const SizedBox(
-            height: 32,
-          ),
-          const Text(
-            '🏷 Delete stock: ',
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: style.Colors.mainGrey,
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: _scannerInput(
-                  'Delete key',
-                  _deleteController,
-                  _deleteNode,
-                  double.infinity,
-                  _deleteFormKey,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              const Expanded(
-                flex: 4,
-                child: Text(''),
-              ),
-              const Expanded(
-                flex: 3,
-                child: Text(''),
-              ),
-              Expanded(
-                flex: 3,
-                child: ElevatedButton(
-                  onPressed: () async {
-
-                    Utils.openPasswordPanel(
-                      context,
-                      _supervisorPassword,
-                      _passwordController,
-                      _passwordNode,
-                      _passwordFormKey,
-                      'padlock',
-                      'Do you want to delete the StockIn value?',
-                      'Confirm',
-                      () async {
-
-                        await CounterInDatabase.instance.readCounterInByCode(_deleteController.text.trim()).then((res) async {
-                          print('👉 Counter In : ${res.id} : ${res.stock} : ${res.stock} : ${res.description} : ${res.updatedAt} : QTY -> ${res.qty}');
-                          
-                          if(res.qty == 1) {
-                            await CounterInDatabase.instance.delete(res.id!).then((result) {
-                              if(result == res.id) {
-                                setState(() {
-                                  _counterInList.removeWhere((item) => item.stock == res.stock);
-                                });
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                  content:  Text("🚨 Not deleted successfully!", textAlign: TextAlign.center,),
-                                  duration: Duration(milliseconds: 3000)
-                                ));
-                              }
-                            });
-                          } else {
-                            CounterIn updateCounterIn = CounterIn(
-                              id: res.id,
-                              stock: res.stock, // stockCode
-                              description: res.description,
-                              machine: res.machine,
-                              shift: res.shift,
-                              device: res.device,
-                              uom: res.uom,
-                              qty: res.qty - 1,
-                              purchasePrice: res.purchasePrice,
-                              isPosted: false,
-                              createdAt: res.createdAt,
-                              updatedAt: DateTime.now()
-                            );
-
-                            await CounterInDatabase.instance.update(updateCounterIn).then((res) {
-                              setState(() {
-                                _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
-                                _masterController.text = '';
-                              });
-                            }).catchError((err) {
-                              Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-                            });
-                          }
-
-
-                        }).catchError((err) async {
-                          print('Error -> 2: $err');
-
-                        });
-
-
-                      },
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content:  Text("❌ Wrong password!", textAlign: TextAlign.center,),
-                          duration: Duration(milliseconds: 3000)
-                        ));
-                      }
-                    );
-    
-                  },
-                  child: const Text(
-                    'Delete',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    primary: style.Colors.button2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
-
 
     final transaction = Padding(
       padding: const EdgeInsets.only(left: 12, right: 12),
@@ -691,8 +455,7 @@ class _StockInWidgetState extends State<StockInWidget> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          _actionTab(context),
-          isAddView ? _addView(context) : _deleteView(context),
+          _addView(context),
           _stockInTable(context),
           _postBtn(context)
         ],
