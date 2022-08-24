@@ -41,7 +41,7 @@ class _PendingListState extends State<PendingList> {
       print('Machine 👉 : $m');
       await CounterApi.readCountersWithMachine(_url, m).then((list) async {
         for (var item in list) {
-          var tempDate = DateFormat('dd/MM/yyyy').format(item.createdTime);
+          var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
           final index = dateList.indexWhere((d) => d == tempDate);
           if (index >= 0) {
             print('Already there!');
@@ -53,7 +53,7 @@ class _PendingListState extends State<PendingList> {
         for (var d in dateList) {
           var shiftList = [];
           for (var item in list) {
-            var tempDate = DateFormat('dd/MM/yyyy').format(item.createdTime);
+            var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
             if( d == tempDate) {
               final index = shiftList.indexWhere((s) => s == item.shift);
               if (index >= 0) {
@@ -67,31 +67,41 @@ class _PendingListState extends State<PendingList> {
           for (var s in shiftList) {
             List<Counter> tempCounters = [];
             var total = 0;
+            var stockInTotal = 0;
             for (var item in list) {
-              var tempDate = DateFormat('dd/MM/yyyy').format(item.createdTime);
+              var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
               if( d == tempDate && s == item.shift) {
                 tempCounters.add(item);
                 total = total + item.qty;
               }
             }
+
+            for (var el in tempCounters) {
+              await CounterInDatabase.instance.readCounterInByCodeAndMachine(el.stockCode, el.machine).then((result) async {
+                print('👉 Got it! ${el.stockCode}');
+                for (var item in result) {
+                  var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
+                  if( d == tempDate) {
+                    stockInTotal = stockInTotal + item.qty;
+                  }
+                }
+              }).catchError((err) async {
+                print('Not found! Or $err');
+              });        
+            }
+
             if(tempCounters.isNotEmpty) {
               Pending newPending = Pending(
                 machine: tempCounters[0].machine,
                 shift: tempCounters[0].shift,
-                date: DateFormat('dd/MM/yyyy').format(tempCounters[0].createdTime),
+                date: DateFormat('dd/MM/yyyy').format(tempCounters[0].shiftDate),
                 pending: total,
-                stockIn: 1
+                stockIn: stockInTotal
               );
               _pendingList.add(newPending);
             }
           }
         }
-
-        // await CounterInDatabase.instance.readCounterInByCode(item.stockCode).then((res) async {
-
-        // }).catchError((err) async {
-
-        // });
         _isLoading = false;
       }).catchError((err) async {
         _isLoading = false;

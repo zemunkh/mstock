@@ -1,5 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:multiple_result/multiple_result.dart';
 import '../model/counterIn.dart';
 
 class CounterInDatabase {
@@ -42,6 +43,7 @@ class CounterInDatabase {
         ${CounterInFields.qty} $integerType,
         ${CounterInFields.purchasePrice} $realType,
         ${CounterInFields.isPosted} $integerType,
+        ${CounterInFields.shiftDate} $textType,
         ${CounterInFields.createdAt} $textType,
         ${CounterInFields.updatedAt} $textType
         )
@@ -97,7 +99,7 @@ class CounterInDatabase {
     }
   }
 
-  Future<List<CounterIn>> readCounterInsNotPosted() async {
+  Future<Result<Exception, List<CounterIn>>> readCounterInsNotPosted() async {
     final db = await instance.database;
     const orderBy = '${CounterInFields.updatedAt} ASC';
 
@@ -110,9 +112,30 @@ class CounterInDatabase {
     );
 
     if (maps.isNotEmpty) {
+      print('👉 $maps');
+      return Success(maps.map((json) => CounterIn.fromJson(json)).toList());
+    } else {
+      return Error(Exception('Stocks from Counter stockIns are not found'));
+    }
+  }
+
+  Future<List<CounterIn>> readCounterInByCodeAndMachine(String stock, String machine) async {
+    final db = await instance.database;
+    const orderBy = '${CounterInFields.updatedAt} ASC';
+
+    final maps = await db.query(
+      tableCounterIn,
+      columns: CounterInFields.values,
+      where: '${CounterInFields.stock} = ? AND ${CounterInFields.machine} = ?',
+      whereArgs: [stock, machine],
+      orderBy: orderBy
+    );
+
+    if (maps.isNotEmpty) {
+      print('👉 Search: $maps');
       return maps.map((json) => CounterIn.fromJson(json)).toList();
     } else {
-      throw Exception('Stocks [not posted] from CounterIn not found');
+      throw Exception('Stocks from Counter stockIns are not found');
     }
   }
 

@@ -4,7 +4,7 @@ class CounterInFields {
   static final List<String> values = [
     /// Add all fields
     id, stock, description, machine, shift, 
-    device, uom, qty, purchasePrice, isPosted, createdAt, updatedAt
+    device, uom, qty, purchasePrice, isPosted, shiftDate, createdAt, updatedAt
   ];
 
   static const String id = '_id';
@@ -17,6 +17,7 @@ class CounterInFields {
   static const String qty = 'qty'; // Quantity
   static const String purchasePrice = 'purchasePrice'; // purchasePrice
   static const String isPosted = 'isPosted'; // Flag to identify Posted or not
+  static const String shiftDate = 'shiftDate';
   static const String createdAt = 'created_at'; // createdDate
   static const String updatedAt = 'updated_at'; // updatedDate
 }
@@ -33,6 +34,7 @@ class CounterIn {
   final int qty;
   final double purchasePrice;
   final bool isPosted;
+  final DateTime shiftDate;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -47,6 +49,7 @@ class CounterIn {
     required this.qty,
     required this.purchasePrice,
     required this.isPosted,
+    required this.shiftDate,
     required this.createdAt,
     required this.updatedAt
   });
@@ -62,6 +65,7 @@ class CounterIn {
     int? qty,
     double? purchasePrice,
     bool? isPosted,
+    DateTime? shiftDate,
     DateTime? createdAt,
     DateTime? updatedAt
   }) =>
@@ -76,6 +80,7 @@ class CounterIn {
         qty: qty ?? this.qty,
         purchasePrice: purchasePrice ?? this.purchasePrice,
         isPosted: isPosted ?? this.isPosted,
+        shiftDate: shiftDate ?? this.shiftDate,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt
       );
@@ -92,6 +97,7 @@ class CounterIn {
       qty: json[CounterInFields.qty] as int,
       purchasePrice: json[CounterInFields.purchasePrice] as double,
       isPosted: json[CounterInFields.isPosted]  == 1,
+      shiftDate: DateTime.parse(json[CounterInFields.shiftDate] as String),
       createdAt: DateTime.parse(json[CounterInFields.createdAt] as String),
       updatedAt: DateTime.parse(json[CounterInFields.updatedAt] as String)
     );
@@ -107,6 +113,7 @@ class CounterIn {
     CounterInFields.qty: qty.toString(),
     CounterInFields.purchasePrice: purchasePrice.toString(),
     CounterInFields.isPosted: isPosted ? 1 : 0,
+    CounterInFields.shiftDate: shiftDate.toIso8601String(),
     CounterInFields.createdAt: createdAt.toIso8601String(),
     CounterInFields.updatedAt: updatedAt.toIso8601String()
   };

@@ -21,6 +21,7 @@ class CounterFields {
   static const String totalQty = 'totalQty'; 
   static const String purchasePrice = 'purchasePrice';
   static const String uom = 'uom';
+  static const String shiftDate = 'shiftDate';
   static const String createdTime = 'created_at';
   static const String updatedTime = 'updated_at';
 }
@@ -41,6 +42,7 @@ class Counter {
   final int totalQty;
   final double purchasePrice;
   final String uom;
+  final DateTime shiftDate;
   final DateTime createdTime;
   final DateTime updatedTime;
 
@@ -59,6 +61,7 @@ class Counter {
     required this.totalQty,
     required this.purchasePrice,
     required this.uom,
+    required this.shiftDate,
     required this.createdTime,
     required this.updatedTime
   });
@@ -78,6 +81,7 @@ class Counter {
     int? totalQty,
     double? purchasePrice,
     String? uom,
+    DateTime? shiftDate,
     DateTime? createdTime,
     DateTime? updatedTime
   }) =>
@@ -96,6 +100,7 @@ class Counter {
         totalQty: totalQty ?? this.totalQty,
         purchasePrice: purchasePrice ?? this.purchasePrice,
         uom: uom ?? this.uom,
+        shiftDate: shiftDate ?? this.shiftDate,
         createdTime: createdTime ?? this.createdTime,
         updatedTime: updatedTime ?? this.updatedTime
       );
@@ -116,6 +121,7 @@ class Counter {
       totalQty: json[CounterFields.totalQty] as int,
       purchasePrice: json[CounterFields.purchasePrice] as double,
       uom: json[CounterFields.uom] as String,
+      shiftDate: DateTime.parse(json[CounterFields.shiftDate] as String),
       createdTime: DateTime.parse(json[CounterFields.createdTime] as String),
       updatedTime: DateTime.parse(json[CounterFields.updatedTime] as String)
     );
@@ -135,6 +141,7 @@ class Counter {
     CounterFields.totalQty: totalQty.toString(),
     CounterFields.purchasePrice: purchasePrice.toString(),
     CounterFields.uom: uom,
+    CounterFields.shiftDate: shiftDate.toIso8601String(),
     CounterFields.createdTime: createdTime.toIso8601String(),
     CounterFields.updatedTime: updatedTime.toIso8601String(),
   };

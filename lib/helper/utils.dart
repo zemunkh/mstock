@@ -86,6 +86,39 @@ class Utils {
     return 'Not found';
   }
 
+
+  static Future<DateTime> getShiftConvertedTime(DateTime _date) async {
+    var _shiftList = await FileManager.readStringList('shift_list');
+    var _dateHHmm = (_date.hour * 60) + _date.minute;
+
+    for (var shift in _shiftList) {
+      // var dayName = shift.split(',')[0];
+      var startTime = shift.split(',')[1];
+      var endTime = shift.split(',')[2];
+      var startMin = int.parse(startTime.split(':')[0])*60 + int.parse(startTime.split(':')[1]);
+      var endMin = int.parse(endTime.split(':')[0])*60 + int.parse(endTime.split(':')[1]);
+
+      if(startMin > endMin && _dateHHmm >= 0) {
+        // Elapsed preset intervals
+        print('⭐️ Elapsed interval');
+        if(Utils.isInRange(startMin, 1440, _dateHHmm) || Utils.isInRange(0, endMin, _dateHHmm)) {
+          // Convert currentDay to 1 day before
+          DateTime date = DateTime(
+            _date.year,
+            _date.month,
+            _date.day - 1, 
+            23,
+            59,
+          );
+          print('Day before 👉 : $date');
+          return date;
+        }
+      }
+    }
+    return _date;
+  }
+
+
   static Widget _scannerInput(BuildContext context, String hintext, TextEditingController _controller,
       FocusNode currentNode, double currentWidth, GlobalKey _formKey) {
     return Padding(
@@ -139,10 +172,12 @@ class Utils {
   }
 
   static Future openPasswordPanel(BuildContext context, String password, TextEditingController passwordController, FocusNode _node, GlobalKey _formKey, String img, String title, String btnText, Function matchedCallback, Function unMatchedCallback) {
+    final _alertKey = GlobalKey<FormFieldState>();
     return showDialog(
       context: context,
       builder: (_) {
         return AlertDialog(
+          key: _alertKey,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

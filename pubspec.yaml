@@ -23,6 +23,7 @@ dependencies:
   pin_code_fields: ^7.4.0
   time_picker_sheet: ^0.0.2+1
   regexed_validator: ^2.0.0+1
+  multiple_result: ^1.0.4
   
 dev_dependencies:
   flutter_test:

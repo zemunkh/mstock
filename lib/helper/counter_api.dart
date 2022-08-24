@@ -195,7 +195,15 @@ class CounterApi {
         'totalQty': _totalQty,
         'qty': _qty
       }
-    );
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
 
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);

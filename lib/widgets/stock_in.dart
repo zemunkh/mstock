@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:multiple_result/multiple_result.dart';
 import '../model/counterIn.dart';
+import '../model/counter.dart';
 import '../model/stockIn.dart';
 import '../database/counter_in_db.dart';
 import '../../helper/utils.dart';
@@ -56,91 +58,15 @@ class _StockInWidgetState extends State<StockInWidget> {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
       _masterNode.unfocus();
-      setState(() {
-        _isLoading = true;
+
+      await Future.delayed(const Duration(milliseconds: 200), () {
+        setState(() {
+          _masterController.text = trueVal;
+        });
+        _masterNode.unfocus();
+        FocusScope.of(context).requestFocus(FocusNode());
       });
-      // Add isPosted flag
-      // Read Counter with stockCode from Counter API (Network server)
-      await CounterApi.readCounterByCodeAndDate(trueVal, _url).then((c) async {
-        print('✅ Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
 
-        // SameDay logic
-
-        // If found, create CounterIn object
-        await CounterInDatabase.instance.readCounterInByCode(c.stockCode).then((res) async {
-          
-          CounterIn updateCounterIn = CounterIn(
-            id: res.id,
-            stock: res.stock,
-            description: res.description,
-            machine: res.machine,
-            shift: res.shift,
-            device: res.device,
-            uom: res.uom,
-            qty: res.qty + 1,
-            purchasePrice: res.purchasePrice,
-            isPosted: false,
-            createdAt: res.createdAt,
-            updatedAt: DateTime.now()
-          );
-
-          await CounterInDatabase.instance.update(updateCounterIn).then((res) {
-            setState(() {
-              _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
-              _masterController.text = '';
-            });
-          }).catchError((err) {
-            Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-          });
-
-        }).catchError((err) async {
-          print('Error -> 2: $err');
-          CounterIn newCounterIn = CounterIn(
-            stock: c.stockCode, // necessary
-            description: c.stockName,
-            machine: c.machine, // necessary
-            shift: c.shift,
-            device: _deviceName,
-            uom: c.uom,
-            qty: c.qty,
-            purchasePrice: c.purchasePrice,
-            isPosted: false,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now()
-          );
-          await CounterInDatabase.instance.create(newCounterIn).then((res) {
-            setState(() {
-              _counterInList.add(newCounterIn);
-              _masterController.text = '';
-            });
-          }).catchError((err) {
-            print('Error -> 3: $err');
-            Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-          });
-        });
-        // Search the stock in the Current list
-
-        // if it is available, Update it to the CounterIn database (Locally)
-
-        // Else, Save it to the CounterIn database (Locally)
-
-
-        await Future.delayed(const Duration(milliseconds: 200), () {
-          setState(() {
-            _masterController.text = trueVal;
-            _isLoading = false;
-          });
-        });
-      }).catchError((err) async {
-        print('Error -> 3: $err');
-        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-        Future.delayed(const Duration(milliseconds: 200), () {
-          setState(() {
-            _masterController.text = '';
-            _isLoading = false;
-          });
-        });
-      });
     }
   }
 
@@ -156,7 +82,7 @@ class _StockInWidgetState extends State<StockInWidget> {
     if(ip != '' && port != '') {
       _url = 'http://$ip:$port';
     } else {
-      _url = 'http://localhost:3000';
+      _url = 'http://localhost:8080';
     }
 
     final qneIp =  await FileManager.readString('qne_ip_address');
@@ -168,12 +94,20 @@ class _StockInWidgetState extends State<StockInWidget> {
       _qneUrl = 'https://dev-api.qne.cloud';
       _dbCode = 'fazsample';
     }
-    await CounterInDatabase.instance.readCounterInsNotPosted().then((res) {
-      _counterInList = res;
-    }).catchError((err) {
-      print('Err: $err');
-      Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-    });
+
+    // await CounterInDatabase.instance.delete(2);
+
+    final result = await CounterInDatabase.instance.readCounterInsNotPosted();
+    
+    result.when(
+      (e) {
+        Utils.openDialogPanel(context, 'close', 'Oops!', '$e', 'Understand');
+      },
+      (res) {
+        _counterInList = res;
+      }
+    );
+
     setState(() {});
   }
 
@@ -223,13 +157,7 @@ class _StockInWidgetState extends State<StockInWidget> {
               errorStyle: const TextStyle(
                 color: Colors.yellowAccent,
               ),
-              suffixIcon: _isLoading ? Transform.scale(
-                  scale: 0.6,
-                  child: const CircularProgressIndicator(
-                    strokeWidth: 8.0,
-                    valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
-                  ),
-                ) : IconButton(
+              suffixIcon:IconButton(
                 icon: const Icon(
                   Icons.qr_code,
                   color: Colors.blueAccent,
@@ -331,10 +259,11 @@ class _StockInWidgetState extends State<StockInWidget> {
                 flex: 4,
                 child: ElevatedButton(
                   onPressed: () async {
-                    DateTime currentTime = DateTime.now();
                     setState(() {
                       isPosting = true;
                     });
+                    DateTime currentTime = DateTime.now();
+                    DateTime shiftConvertedTime = await Utils.getShiftConvertedTime(currentTime);
 
                     // For Same day logic check
 
@@ -359,7 +288,7 @@ class _StockInWidgetState extends State<StockInWidget> {
 
                     StockIn newValue = StockIn(
                       stockInCode: '${_docPrefix}${DateFormat("ddMMyyyyHms").format(currentTime)}',
-                      stockInDate: currentTime,
+                      stockInDate: shiftConvertedTime,
                       description: 'App Stock In from $_deviceName',
                       referenceNo: 'String',
                       title: '',
@@ -440,6 +369,127 @@ class _StockInWidgetState extends State<StockInWidget> {
                   _masterNode,
                   double.infinity,
                   _masterFormKey,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Expanded(
+                flex: 4,
+                child: Text(''),
+              ),
+              const Expanded(flex: 3, child: Text('')),
+              Expanded(
+                flex: 3,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (_isLoading == true) { return; }
+
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    var currentTime = DateTime.now();
+                    // Add isPosted flag
+                    // Read Counter with stockCode from Counter API (Network server)
+                    await CounterApi.readCounterByCodeAndDate(_masterController.text.trim(), _url).then((c) async {
+                      print('✅ Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+
+                      // SameDay logic
+
+                      // If found, create CounterIn object
+                      await CounterInDatabase.instance.readCounterInByCode(c.stockCode).then((res) async {
+                        
+                        CounterIn updateCounterIn = CounterIn(
+                          id: res.id,
+                          stock: res.stock,
+                          description: res.description,
+                          machine: res.machine,
+                          shift: res.shift,
+                          device: res.device,
+                          uom: res.uom,
+                          qty: res.qty + 1,
+                          purchasePrice: res.purchasePrice,
+                          isPosted: false,
+                          shiftDate: res.shiftDate,
+                          createdAt: res.createdAt,
+                          updatedAt: currentTime
+                        );
+
+                        await CounterInDatabase.instance.update(updateCounterIn).then((res) {
+                          _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
+                          _masterController.text = '';
+                        }).catchError((err) {
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                        });
+
+                      }).catchError((err) async {
+                        print('Error -> 2: $err');
+                        var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
+                        CounterIn newCounterIn = CounterIn(
+                          stock: c.stockCode, // necessary
+                          description: c.stockName,
+                          machine: c.machine, // necessary
+                          shift: c.shift,
+                          device: _deviceName,
+                          uom: c.uom,
+                          qty: 1,
+                          purchasePrice: c.purchasePrice,
+                          isPosted: false,
+                          shiftDate: _shiftConvertedDate,
+                          createdAt: currentTime,
+                          updatedAt: currentTime
+                        );
+                        await CounterInDatabase.instance.create(newCounterIn).then((res) {
+                          _counterInList.add(newCounterIn);
+                          _masterController.text = '';
+                          
+                        }).catchError((err) {
+                          print('Error -> 3: $err');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                        });
+                      });
+                      // Search the stock in the Current list
+
+                      // if it is available, Update it to the CounterIn database (Locally)
+
+                      // Else, Save it to the CounterIn database (Locally)
+
+                      if(c.qty > 0) {
+                        CounterApi.updateCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url).then((r) {
+                          print('👉 Updated ID: $r');
+                        }).catchError((err) {
+                          print('Error: $err');
+                        });
+                      }
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }).catchError((err) async {
+                      print('Error -> 3: $err');
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                    });
+
+                  },
+                  child: _isLoading ? Transform.scale(
+                      scale: 0.6,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 8.0,
+                        valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+                      ),
+                    ) :  const Text(
+                    'Add',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    primary: style.Colors.button4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
               ),
             ],

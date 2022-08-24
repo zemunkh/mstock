@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mstock/model/uoms.dart';
+import '../model/uoms.dart';
 import '../model/stock.dart';
 import '../model/counter.dart';
 import '../../database/stock_db.dart';
@@ -236,6 +236,11 @@ class _ProductionState extends State<Production> {
         FocusScope.of(context).requestFocus(FocusNode());
       });
     }
+    if(buffer.isEmpty) {
+      setState(() {
+        _counterList = [];
+      });
+    }
   }
 
   Future initSettings() async {
@@ -247,7 +252,7 @@ class _ProductionState extends State<Production> {
     if(ip != '' && port != '') {
       _url = 'http://$ip:$port';
     } else {
-      _url = 'http://localhost:3000';
+      _url = 'http://localhost:8080';
     }
 
     final qneIp =  await FileManager.readString('qne_ip_address');
@@ -624,6 +629,7 @@ class _ProductionState extends State<Production> {
                           stockName: c.stockName, 
                           machine: _machineLineController.text.trim(),
                           shift: _shiftValue,
+                          shiftDate: c.shiftDate,
                           createdTime: c.createdTime,
                           updatedTime: DateTime.now(),
                           qty: c.qty + 1,
@@ -657,7 +663,7 @@ class _ProductionState extends State<Production> {
                     }).catchError((err) async {
                       print('Error -> 2: $err');
                     // 3. if not, create new Counter object
-
+                      var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
                       await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
                         print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
                         
@@ -677,8 +683,9 @@ class _ProductionState extends State<Production> {
                           stockName: _masterStock.stockName,
                           machine: _machineLineController.text.trim(),
                           shift: _shiftValue,
-                          createdTime: DateTime.now(),
-                          updatedTime: DateTime.now(),
+                          shiftDate: _shiftConvertedDate,
+                          createdTime: currentTime,
+                          updatedTime: currentTime,
                           qty: 1,
                           totalQty: bigger.rate.toInt(),
                           // totalQty: 1,
@@ -826,6 +833,7 @@ class _ProductionState extends State<Production> {
                               stockName: c.stockName,
                               machine: _machineLineController.text.trim(),
                               shift: _shiftValue,
+                              shiftDate: c.shiftDate,
                               createdTime: c.createdTime,
                               updatedTime: DateTime.now(),
                               qty: c.qty - 1,
