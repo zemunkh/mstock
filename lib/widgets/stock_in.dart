@@ -101,7 +101,7 @@ class _StockInWidgetState extends State<StockInWidget> {
     
     result.when(
       (e) {
-        Utils.openDialogPanel(context, 'close', 'Oops!', '$e', 'Understand');
+        Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
       },
       (res) {
         _counterInList = res;
@@ -420,7 +420,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                           _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
                           _masterController.text = '';
                         }).catchError((err) {
-                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update new StockIn counter.', 'Understand');
                         });
 
                       }).catchError((err) async {
@@ -445,8 +445,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                           _masterController.text = '';
                           
                         }).catchError((err) {
-                          print('Error -> 3: $err');
-                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
                         });
                       });
                       // Search the stock in the Current list
@@ -466,11 +465,10 @@ class _StockInWidgetState extends State<StockInWidget> {
                         _isLoading = false;
                       });
                     }).catchError((err) async {
-                      print('Error -> 3: $err');
                       setState(() {
                         _isLoading = false;
                       });
-                      Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Not counter is available for the stockCode', 'Understand');
                     });
 
                   },

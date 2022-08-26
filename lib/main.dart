@@ -33,8 +33,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         // '/': (ctx) => activated ? const HomeScreen() : ActivationScreen(),
-        '/': (ctx) => const StockInScreen(),
-        // '/': (ctx) => const PendingListScreen(),
+        '/': (ctx) => const HomeScreen(),
         StockCheckScreen.routeName: (ctx) => const StockCheckScreen(),
         StockInScreen.routeName: (ctx) => const StockInScreen(),
         ProductionScreen.routeName: (ctx) => const ProductionScreen(),
@@ -46,7 +45,7 @@ class MyApp extends StatelessWidget {
       },
       onUnknownRoute: (settings) {
         return MaterialPageRoute(
-          builder: (ctx) => const HomeScreen(),
+          settings: const RouteSettings(name: HomeScreen.routeName), builder: (ctx) => const HomeScreen(),
         );
       },
     );

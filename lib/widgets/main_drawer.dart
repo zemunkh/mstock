@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:path/path.dart';
 import '../screens/home.dart';
 import '../screens/pending_list.dart';
 import '../screens/production.dart';
@@ -67,9 +68,23 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
+                bool isNewRouteSameAsCurrent = false;
+                Navigator.popUntil(context, (route) {
+                  print('RouteName: 👉 ${route.settings.name}');
+                  if (route.settings.name == HomeScreen.routeName) {
+                    isNewRouteSameAsCurrent = true;
+                  }
+                  return true;
                 });
+                const settings = RouteSettings(
+                  name: HomeScreen.routeName
+                );
+                print('Route: 👉 $isNewRouteSameAsCurrent');
+                if(!isNewRouteSameAsCurrent) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.pushReplacement(context, MaterialPageRoute(settings: settings, builder:  (_) => HomeScreen()));
+                  });
+                }
               },
             ),  
 
@@ -89,9 +104,23 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => StockCheckScreen()));
+                bool isNewRouteSameAsCurrent = false;
+                Navigator.popUntil(context, (route) {
+                  print('RouteName: 👉 ${route.settings.name}');
+                  if (route.settings.name == StockCheckScreen.routeName) {
+                    isNewRouteSameAsCurrent = true;
+                  }
+                  return true;
                 });
+                print('Route: 👉 $isNewRouteSameAsCurrent');
+                const settings = RouteSettings(
+                  name: StockCheckScreen.routeName
+                );
+                if(!isNewRouteSameAsCurrent) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.pushReplacement(context, MaterialPageRoute(settings: settings, builder: (_) => StockCheckScreen()));
+                  });                  
+                }
               },
             ),      
 
@@ -109,9 +138,22 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ProductionScreen()));
+                bool isNewRouteSameAsCurrent = false;
+                Navigator.popUntil(context, (route) {
+                  print('RouteName: 👉 ${route.settings.name}');
+                  if (route.settings.name == ProductionScreen.routeName) {
+                    isNewRouteSameAsCurrent = true;
+                  }
+                  return true;
                 });
+                const settings = RouteSettings(
+                  name: ProductionScreen.routeName
+                );
+                if(!isNewRouteSameAsCurrent) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.pushReplacement(context, MaterialPageRoute(settings: settings, builder:  (_) => ProductionScreen()));
+                  });
+                }
               },
             ),
 
@@ -129,9 +171,22 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PendingListScreen()));
+                bool isNewRouteSameAsCurrent = false;
+                Navigator.popUntil(context, (route) {
+                  print('RouteName: 👉 ${route.settings.name}');
+                  if (route.settings.name == PendingListScreen.routeName) {
+                    isNewRouteSameAsCurrent = true;
+                  }
+                  return true;
                 });
+                const settings = RouteSettings(
+                  name: PendingListScreen.routeName
+                );
+                if(!isNewRouteSameAsCurrent) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.pushReplacement(context, MaterialPageRoute(settings: settings, builder:  (_) => PendingListScreen()));
+                  });
+                }
               },
             ), 
 
@@ -149,9 +204,22 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockInScreen()));
+                bool isNewRouteSameAsCurrent = false;
+                Navigator.popUntil(context, (route) {
+                  print('RouteName: 👉 ${route.settings.name}');
+                  if (route.settings.name == StockInScreen.routeName) {
+                    isNewRouteSameAsCurrent = true;
+                  }
+                  return true;
                 });
+                const settings = RouteSettings(
+                  name: StockInScreen.routeName
+                );
+                if(!isNewRouteSameAsCurrent) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.pushReplacement(context, MaterialPageRoute(settings: settings, builder:  (_) => StockInScreen()));
+                  });
+                }
               },
             ),
           ],

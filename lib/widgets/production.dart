@@ -302,7 +302,7 @@ class _ProductionState extends State<Production> {
                 ElevatedButton(
                   onPressed: () {
                     if(!isAddView) {
-                      _stickerController.text = '';
+                      _stickerDeleteController.text = '';
                     }
                     setState(() {
                       isAddView = true;
@@ -400,7 +400,7 @@ class _ProductionState extends State<Production> {
             controller: _controller,
             focusNode: currentNode,
             onTap: () {
-              _clearTextController(context, _controller, currentNode);
+              // _clearTextController(context, _controller, currentNode);
             },
           ),
         ),

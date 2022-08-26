@@ -27,7 +27,8 @@ class _PendingListState extends State<PendingList> {
   bool _isLoading = true;
   String shiftVal = '';
   List<String> _shiftList = [];
-  List<Pending> _pendingList = []; 
+  List<Pending> _pendingList = [];
+  List<Pending> _pendingListView = [];
 
   Future initPendingTable() async {
     // Same day logic and Pending table
@@ -102,6 +103,7 @@ class _PendingListState extends State<PendingList> {
             }
           }
         }
+        _pendingListView = _pendingList;
         _isLoading = false;
       }).catchError((err) async {
         _isLoading = false;
@@ -169,7 +171,7 @@ class _PendingListState extends State<PendingList> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Column(
                 children: [
                   const Text(
@@ -201,16 +203,16 @@ class _PendingListState extends State<PendingList> {
                       );
                     }).toList(),
                     onChanged: (Object? value) {
-                      setState(() {
-                        lineVal = value.toString();
-                      });
+                      lineVal = value.toString();
+                      _pendingListView = _pendingList.where((el) => el.machine == lineVal).toList();
+                      setState(() {});
                     },
                   ),
                 ],
               ),
             ),
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Column(
                 children: [
                   const Text(
@@ -242,10 +244,35 @@ class _PendingListState extends State<PendingList> {
                       );
                     }).toList(),
                     onChanged: (Object? value) {
+                      shiftVal = value.toString();
+                      _pendingListView = _pendingList.where((el) => el.machine == lineVal).toList();
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
                       setState(() {
-                        shiftVal = value.toString();
+                        _pendingListView = _pendingList;
                       });
                     },
+                    child: const Icon(
+                      Icons.replay,
+                      size: 24,
+                      color: style.Colors.mainGrey,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      primary: style.Colors.background,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -331,7 +358,7 @@ class _PendingListState extends State<PendingList> {
               ),
             ),
           ],
-          rows: _pendingList.map((row) => DataRow(
+          rows: _pendingListView.map((row) => DataRow(
             cells: [
               DataCell(
                 Text(
