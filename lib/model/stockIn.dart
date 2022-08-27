@@ -1,3 +1,5 @@
+import 'dart:convert' show json, utf8;
+
 class Details {
   final String numbering;
   final String stock;
@@ -102,7 +104,8 @@ class StockIn {
   }
 
   Map<String, dynamic> toJson() {
-    List<Map<String, dynamic>>? details = this.details.map((i) => i!.toJson()).toList();
+    List<Map<String, dynamic>> details = this.details.map((i) => i!.toJson()).toList();
+    // print('Here 👉 ${details.join(',')}');
     return {
       'stockInCode': stockInCode,
       'stockInDate': stockInDate.toIso8601String(),

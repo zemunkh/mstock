@@ -112,7 +112,6 @@ class CounterInDatabase {
     );
 
     if (maps.isNotEmpty) {
-      print('👉 $maps');
       return Success(maps.map((json) => CounterIn.fromJson(json)).toList());
     } else {
       return Error(Exception('Stocks from Counter stockIns are not found'));

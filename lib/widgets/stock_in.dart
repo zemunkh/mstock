@@ -316,10 +316,11 @@ class _StockInWidgetState extends State<StockInWidget> {
                       } else if(status == 408) {
                         Utils.openDialogPanel(context, 'close', 'Oops!', 'Timed out! Check your network connection.', 'Understand');
                       } else {
-                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to post StockIns', 'Understand');
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Code: $status \n Failed to post StockIns', 'Understand');
                       }
                       isPosting = false;
                     }).catchError((err) {
+                      print('Err:  ❌ $err');
                       Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
                       isPosting = false;
                     });
