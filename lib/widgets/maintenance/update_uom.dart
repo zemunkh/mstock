@@ -37,13 +37,17 @@ class _UpdateUOMState extends State<UpdateUOM> {
       setState(() {
         _isButtonClicked = false;
       });
+      Utils.openDialogPanel(context, 'close', 'Oops!', err, 'Try again');
       return '[]';
     });
+
     if(data.contains('Timed out! Wrong service address')) {
       Utils.openDialogPanel(context, 'close', 'Oops!', data, 'Try again');
       setState(() {
         _isButtonClicked = false;
       });
+      return [];
+    } else if(data == '[]') {
       return [];
     }
     var receivedData = json.decode(data);
@@ -110,9 +114,7 @@ class _UpdateUOMState extends State<UpdateUOM> {
     print('Last update: $last');
     return stockList;
   }
-
-  late Future? fetching = _fetchAndSaveStockData();
-
+  
   Future initProfileData() async {
     ip =  await FileManager.readString('qne_ip_address');
     port =  await FileManager.readString('qne_port_number');

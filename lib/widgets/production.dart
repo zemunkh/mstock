@@ -259,9 +259,9 @@ class _ProductionState extends State<Production> {
     final qnePort =  await FileManager.readString('qne_port_number');
     _dbCode = await FileManager.readString('db_code');
     if(qneIp != '' && qnePort != '' && _dbCode != '') {
-      _qneUrl = 'http://$ip:$port';
+      _qneUrl = 'http://$qneIp:$qnePort/api/Stocks';
     } else {
-      _qneUrl = 'https://dev-api.qne.cloud';
+      _qneUrl = 'https://dev-api.qne.cloud/api/Stocks';
       _dbCode = 'fazsample';
     }
 
@@ -654,7 +654,7 @@ class _ProductionState extends State<Production> {
                           });
 
                         }).catchError((err) {
-                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '#2 $err', 'Understand');
                           setState(() {
                             _isLoading = false;
                           });
@@ -715,14 +715,14 @@ class _ProductionState extends State<Production> {
                           setState(() {});
                         }).catchError((err) {
                           print('Err -> 3: $err');
-                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '3# $err', 'Understand');
                           setState(() {
                             _isLoading = false;
                           });
                         });
 
                       }).catchError((err) {
-                        Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                        Utils.openDialogPanel(context, 'close', 'Oops!', '4# $err', 'Understand');
                         setState(() {
                           _isLoading = false;
                         });
@@ -749,6 +749,10 @@ class _ProductionState extends State<Production> {
               ),
             ],
           ),
+          // Text(_masterStock.stockId),
+          // Text(_qneUrl),
+          // Text(_dbCode),
+          // Text('Full url: $_qneUrl/${_masterStock.stockId}'),
         ],
       );
     }

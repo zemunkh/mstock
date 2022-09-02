@@ -12,7 +12,7 @@ class StockApi {
   // Read stock is full version Stock Data
   static Future<Stock1> readFullStock(String dbCode, String _id, String _url) async {
     http.Response response = await http.get(
-      Uri.parse('$_url/api/Stocks/$_id'),
+      Uri.parse('$_url/$_id'),
       headers: {
         "DbCode": dbCode,
         "Content-Type": "application/json"
@@ -34,7 +34,7 @@ class StockApi {
       }
       return Stock1.fromJson(receivedData);
     } else {
-      throw Exception('Failed to read counter.');
+      throw Exception('${response.statusCode} Failed to read full stock');
     }
   }
 

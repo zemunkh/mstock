@@ -4,7 +4,7 @@ class Uom {
   final String id;
   final String stockCode;
   final String uomCode;
-  final String description;
+  // final String description;
   // final double salesPrice;
   final double rate;
   final bool isBaseUOM;
@@ -23,7 +23,7 @@ class Uom {
     required this.id,
     required this.stockCode,
     required this.uomCode,
-    required this.description,
+    // required this.description,
     // required this.salesPrice,
     required this.rate,
     required this.isBaseUOM,
@@ -44,7 +44,7 @@ class Uom {
       id: json['id'] as String,
       stockCode: json['stockCode'] as String,
       uomCode: json['uomCode'] as String,
-      description: json['description'] as String,
+      // description: json['description'] as String,
       // salesPrice: json['salesPrice'] as double,
       rate: json['rate'] as double,
       isBaseUOM: json['isBaseUOM'] as bool,
