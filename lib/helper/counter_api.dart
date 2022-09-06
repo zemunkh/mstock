@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:multiple_result/multiple_result.dart';
 import '../model/counter.dart';
 
 
@@ -85,7 +86,7 @@ class CounterApi {
     }
   }
 
-  static Future<Counter> readCounterByCodeAndMachine(String _stockCode, String _machine, String _url) async {
+  static Future<Result<Exception, Counter>> readCounterByCodeAndMachine(String _stockCode, String _machine, String _url) async {
     print('URL: $_url/counter/stock/machine?stockCode=$_stockCode&machine=$_machine');
     var response = await http.get(
       Uri.parse('$_url/counter/stock/machine?stockCode=$_stockCode&machine=$_machine'),
@@ -100,12 +101,16 @@ class CounterApi {
     });
 
     if (response.statusCode == 200) {
-      var receivedData = json.decode(response.body);
-      receivedData['weight'] = receivedData['weight'].toDouble();
-      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
-      return Counter.fromJson(receivedData);
+      if(response.body.isEmpty) {
+        return Error(Exception('404'));
+      } else {
+        var receivedData = json.decode(response.body);
+        receivedData['weight'] = receivedData['weight'].toDouble();
+        receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
+        return Success(Counter.fromJson(receivedData));
+      }
     } else {
-      throw Exception('Failed to read counter.');
+      return Error(Exception(response));
     }
   }
 

@@ -400,7 +400,7 @@ class _ProductionState extends State<Production> {
             controller: _controller,
             focusNode: currentNode,
             onTap: () {
-              // _clearTextController(context, _controller, currentNode);
+              _clearTextController(context, _controller, currentNode);
             },
           ),
         ),
@@ -611,9 +611,82 @@ class _ProductionState extends State<Production> {
                     });
                     print('Clicked the Save: $_url');
                     var currentTime = DateTime.now();
-                    await CounterApi.readCounterByCodeAndMachine(_masterController.text.trim(), _machineLineController.text.trim(), _url).then((c) async {
+                    final result = await CounterApi.readCounterByCodeAndMachine(_masterController.text.trim(), _machineLineController.text.trim(), _url);
+                    
+                    result.when((err) async {
+                      if('$err'.contains('404')) {
+                        var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
+                        await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
+                          print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
+                          
+                          List<Uom> activeUoms = [];
+                          for (var u in res.uoMs) {
+                            if(u!.isActive) {
+                              // print('unit 👉 : ${u.uomCode} : ${u.rate}');
+                              activeUoms.add(u);
+                            }
+                          }
+                          activeUoms.sort((a, b) => a.rate.compareTo(b.rate));
+                          Uom bigger = activeUoms.last;
+                          // print('UOM: ✅  ${bigger.isActive} : ${bigger.uomCode} : ${bigger.rate}');
+
+                          Counter newCounter =  Counter(
+                            stockId: _masterStock.stockId,
+                            stockCode: _masterStock.stockCode,
+                            stockName: _masterStock.stockName,
+                            machine: _machineLineController.text.trim(),
+                            shift: _shiftValue,
+                            shiftDate: _shiftConvertedDate,
+                            createdTime: currentTime,
+                            updatedTime: currentTime,
+                            qty: 1,
+                            totalQty: bigger.rate.round(),
+                            // totalQty: 1,
+                            purchasePrice: _masterStock.purchasePrice,
+                            uom: bigger.uomCode,
+                            stockCategory: _masterStock.category,
+                            group: _masterStock.group,
+                            stockClass: _masterStock.stockClass,
+                            weight: _masterStock.weight
+                          );
+                        // 4. save it to the db.
+                          await CounterApi.create(newCounter.toJson(), _url).then((res) async {
+                            if(res.stockId == newCounter.stockId) {
+                              _counterList.add(newCounter);
+                              level = 0;
+                              activeList = [false, false,  false, false];
+                              isSaveDisabled = true;
+                              _masterController.text = '';
+                              _stickerController.text = '';
+                              _isLoading = false;
+                            }  else {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                content:  Text("🚨 Not successful!", textAlign: TextAlign.center,),
+                                duration: Duration(milliseconds: 3000)
+                              ));
+                            }
+                            _isLoading = false;
+                            setState(() {});
+                          }).catchError((err) {
+                            print('Err -> 3: $err');
+                            Utils.openDialogPanel(context, 'close', 'Oops!', '3# $err', 'Understand');
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          });
+
+                        }).catchError((err) {
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '4# $err', 'Understand');
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        });
+                      } else {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', '#2 $err', 'Understand');
+                      }
+
+                    }, (c) async {
                       print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
-                      
                       // Check scan_delay is out of range with (createdTime & updatedTime)
                       var diff = currentTime.difference(c.updatedTime).inMinutes;
 
@@ -626,15 +699,16 @@ class _ProductionState extends State<Production> {
                         await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
                           print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
                           
-                          var activeUoms = [];
+                          List<Uom> activeUoms = [];
                           for (var u in res.uoMs) {
                             if(u!.isActive) {
+                              // print('unit 👉 : ${u.uomCode} : ${u.rate}');
                               activeUoms.add(u);
                             }
                           }
-                          activeUoms.sort((a, b) => a!.rate.compareTo(b!.rate));
-                          Uom bigger = res.uoMs[0]!;
-                          print('UOM: ✅  ${bigger.isActive} : ${bigger.uomCode} : ${bigger.rate}');
+                          activeUoms.sort((a, b) => a.rate.compareTo(b.rate));
+                          Uom bigger = activeUoms.last;
+                          // print('UOM: ✅  ${bigger.isActive} : ${bigger.uomCode} : ${bigger.rate}');
 
                           Counter updatedCounter = Counter(
                             id: c.id,
@@ -729,73 +803,6 @@ class _ProductionState extends State<Production> {
                           });
                         }); 
                       }
-                    }).catchError((err) async {
-                      print('Error -> 2: $err');
-                    // 3. if not, create new Counter object
-                      var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
-                      await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
-                        print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
-                        
-                        var activeUoms = [];
-                        for (var u in res.uoMs) {
-                          if(u!.isActive) {
-                            activeUoms.add(u);
-                          }
-                        }
-                        activeUoms.sort((a, b) => a!.rate.compareTo(b!.rate));
-                        Uom bigger = res.uoMs[0]!;
-                        print('UOM: ✅  ${bigger.isActive} : ${bigger.uomCode} : ${bigger.rate}');
-
-                        Counter newCounter =  Counter(
-                          stockId: _masterStock.stockId,
-                          stockCode: _masterStock.stockCode,
-                          stockName: _masterStock.stockName,
-                          machine: _machineLineController.text.trim(),
-                          shift: _shiftValue,
-                          shiftDate: _shiftConvertedDate,
-                          createdTime: currentTime,
-                          updatedTime: currentTime,
-                          qty: 1,
-                          totalQty: bigger.rate.round(),
-                          // totalQty: 1,
-                          purchasePrice: _masterStock.purchasePrice,
-                          uom: bigger.uomCode,
-                          stockCategory: _masterStock.category,
-                          group: _masterStock.group,
-                          stockClass: _masterStock.stockClass,
-                          weight: _masterStock.weight
-                        );
-                      // 4. save it to the db.
-                        await CounterApi.create(newCounter.toJson(), _url).then((res) async {
-                          if(res.stockId == newCounter.stockId) {
-                            _counterList.add(newCounter);
-                            level = 0;
-                            activeList = [false, false,  false, false];
-                            isSaveDisabled = true;
-                            _stickerController.text = '';
-                            _isLoading = false;
-                          }  else {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content:  Text("🚨 Not successful!", textAlign: TextAlign.center,),
-                              duration: Duration(milliseconds: 3000)
-                            ));
-                          }
-                          _isLoading = false;
-                          setState(() {});
-                        }).catchError((err) {
-                          print('Err -> 3: $err');
-                          Utils.openDialogPanel(context, 'close', 'Oops!', '3# $err', 'Understand');
-                          setState(() {
-                            _isLoading = false;
-                          });
-                        });
-
-                      }).catchError((err) {
-                        Utils.openDialogPanel(context, 'close', 'Oops!', '4# $err', 'Understand');
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      });
                     });
                   },
                   child: _isLoading ? Transform.scale(
@@ -882,7 +889,12 @@ class _ProductionState extends State<Production> {
                       'Confirm',
                       () async {
                         print('You called!');
-                        await CounterApi.readCounterByCodeAndMachine(_stickerDeleteController.text.trim(), _machineLineController.text.trim(), _url).then((c) async {
+                        final result = await CounterApi.readCounterByCodeAndMachine(_stickerDeleteController.text.trim(), _machineLineController.text.trim(), _url);
+                        
+                        result.when((err) {
+                          print('Error: $err');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
+                        }, (c) async {
                           print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                         // 2. if available, subtract quantity by 1 and save it to db
                           if(c.qty == 1) {
@@ -931,9 +943,6 @@ class _ProductionState extends State<Production> {
                               print('Error: $err');
                             });
                           }
-                        }).catchError((err) async {
-                          print('Error: $err');
-                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
                         });
                       },
                       () {

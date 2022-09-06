@@ -289,10 +289,10 @@ class _PendingListState extends State<PendingList> {
             color: Colors.white,
             border: Border.all(color: Colors.grey),
             borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(5),
-        padding: const EdgeInsets.all(5),
+        margin: const EdgeInsets.only(right: 2, left: 2, top: 5, bottom: 5),
+        padding: const EdgeInsets.only(right: 2, left: 2, top: 5, bottom: 5),
         height: 480,
-        width: 400,
+        width: 440,
         child: child,
       );
     }
@@ -301,7 +301,7 @@ class _PendingListState extends State<PendingList> {
       return buildContainer(
         SingleChildScrollView(
           child: DataTable(
-          columnSpacing: 14,
+          columnSpacing: 10,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
@@ -319,7 +319,7 @@ class _PendingListState extends State<PendingList> {
                 'Shift:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -330,7 +330,7 @@ class _PendingListState extends State<PendingList> {
                   'Date:',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 12,
                     color: style.Colors.mainGrey,
                   ),
                   textAlign: TextAlign.center,
@@ -342,7 +342,7 @@ class _PendingListState extends State<PendingList> {
                 'Pending:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
                 textAlign: TextAlign.center,
@@ -353,7 +353,7 @@ class _PendingListState extends State<PendingList> {
                 'In:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
               ),

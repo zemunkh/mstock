@@ -94,6 +94,8 @@ class CounterInDatabase {
 
     if (maps.isNotEmpty) {
       return CounterIn.fromJson(maps.first);
+    } else if(maps.isEmpty) {
+      throw Exception('404'); 
     } else {
       throw Exception('StockCode from CounterIn $stockCode not found');
     }

@@ -212,7 +212,7 @@ class _StockInWidgetState extends State<StockInWidget> {
             controller: _controller,
             focusNode: currentNode,
             onTap: () {
-              // _clearTextController(context, _mainController, _mainNode);
+              _clearTextController(context, _controller, currentNode);
             },
           ),
         ),
@@ -318,6 +318,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                         qty: _counterInList[i].qty,
                         amount: _counterInList[i].qty * _counterInList[i].purchasePrice,
                         note: '$_deviceName ${_counterInList[i].shift} ${_counterInList[i].machine} ${DateFormat("ddMMyyyy HH:mm").format(currentTime)}',
+                        ref1: _deviceName,
                         costCentre: '',
                         project: _project,
                         stockLocation: _location
@@ -467,29 +468,33 @@ class _StockInWidgetState extends State<StockInWidget> {
 
                       }).catchError((err) async {
                         print('Error -> 2: $err');
-                        var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
-                        CounterIn newCounterIn = CounterIn(
-                          stock: c.stockCode, // necessary
-                          description: c.stockName,
-                          machine: c.machine, // necessary
-                          shift: c.shift,
-                          device: _deviceName,
-                          uom: c.uom,
-                          qty: 1,
-                          purchasePrice: c.purchasePrice,
-                          isPosted: false,
-                          shiftDate: _shiftConvertedDate,
-                          createdAt: currentTime,
-                          updatedAt: currentTime
-                        );
-                        await CounterInDatabase.instance.create(newCounterIn).then((res) {
-                          _counterInList.add(newCounterIn);
-                          _prepareListView();
-                          _masterController.text = '';
-                          
-                        }).catchError((err) {
-                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
-                        });
+                        if('$err'.contains('404')) {
+                          var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
+                          CounterIn newCounterIn = CounterIn(
+                            stock: c.stockCode, // necessary
+                            description: c.stockName,
+                            machine: c.machine, // necessary
+                            shift: c.shift,
+                            device: _deviceName,
+                            uom: c.uom,
+                            qty: 1,
+                            purchasePrice: c.purchasePrice,
+                            isPosted: false,
+                            shiftDate: _shiftConvertedDate,
+                            createdAt: currentTime,
+                            updatedAt: currentTime
+                          );
+                          await CounterInDatabase.instance.create(newCounterIn).then((res) {
+                            _counterInList.add(newCounterIn);
+                            _prepareListView();
+                            _masterController.text = '';
+                            
+                          }).catchError((err) {
+                            Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
+                          });
+                        } else {
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                        }
                       });
                       // Search the stock in the Current list
 

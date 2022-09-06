@@ -10,6 +10,10 @@ class Details {
   final int qty;
   final double amount;
   final String note;
+  final String ref1;
+  // final String ref2;
+  // final String ref3;
+  // final String ref4;
   final String costCentre;
   final String project;
   final String stockLocation;
@@ -24,6 +28,10 @@ class Details {
     required this.qty,
     required this.amount,
     required this.note,
+    required this.ref1,
+    // required this.ref2,
+    // required this.ref3,
+    // required this.ref4,
     required this.costCentre,
     required this.project,
     required this.stockLocation,
@@ -40,6 +48,10 @@ class Details {
       qty: json['qty'] as int,
       amount: json['amount'] as double,
       note: json['note'] as String,
+      ref1: json['ref1'] as String,
+      // ref2: json['Ref2'] as String,
+      // ref3: json['Ref3'] as String,
+      // ref4: json['Ref4'] as String,
       costCentre: json['costCentre'] as String,
       project: json['project'] as String,
       stockLocation: json['stockLocation'] as String,
@@ -57,6 +69,10 @@ class Details {
     'qty': qty,
     'amount': amount,
     'note': note,
+    'ref1': ref1,
+    // 'Ref2': ref2,
+    // 'Ref3': ref3,
+    // 'Ref4': ref4,
     'costCentre': costCentre,
     'project': project,
     'stockLocation': stockLocation,
