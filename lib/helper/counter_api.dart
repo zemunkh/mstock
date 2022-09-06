@@ -133,7 +133,7 @@ class CounterApi {
     }
   }
 
-  static Future<List<Counter>> readCountersWithMachine(String _url, String _machine) async {
+  static Future<List<Counter>> readCountersWithMachine(String _url, String _machine, bool isPending) async {
     print('URL Machine 👉: $_url/counter/machine?machine=$_machine');
     var response = await http.get(
       Uri.parse('$_url/counter/machine?machine=$_machine')
@@ -148,13 +148,21 @@ class CounterApi {
     });
 
     if (response.statusCode == 200) {
+      var receivedList = [];
       var receivedData = json.decode(response.body);
       for (int i = 0; i < receivedData.length; i++) {
         receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
         receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
+        if(isPending) {
+          receivedList.add(receivedData[i]);
+        } else {
+          if(receivedData[i]['qty'] > 0) {
+            receivedList.add(receivedData[i]);
+          }
+        }
       }
 
-      return receivedData.map<Counter>((json) => Counter.fromJson(json)).toList();
+      return receivedList.map<Counter>((json) => Counter.fromJson(json)).toList();
     } else {
       throw Exception('Failed to read counters.');
     }

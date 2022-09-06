@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:multiple_result/multiple_result.dart';
 import '../model/counterIn.dart';
-import '../model/counter.dart';
 import '../model/stockIn.dart';
 import '../database/counter_in_db.dart';
 import '../../helper/utils.dart';
@@ -27,6 +25,7 @@ class _StockInWidgetState extends State<StockInWidget> {
   static final _masterFormKey = GlobalKey<FormFieldState>();
 
   List<CounterIn> _counterInList = [];
+  List<CounterIn> _counterInListView = [];
   
   bool _isLoading = false;
 
@@ -41,6 +40,44 @@ class _StockInWidgetState extends State<StockInWidget> {
   bool isPosting = false;
   String _supervisorPassword = '';
 
+  _prepareListView() {
+    _counterInListView = [];
+    for (var el in _counterInList) {
+      var index = _counterInListView.indexWhere((item) => item.stock == el.stock);
+      if(index > -1) {
+        CounterIn updateCounterInView = CounterIn(
+          id: el.id,
+          stock: el.stock,
+          description: el.description,
+          machine: el.machine,
+          shift: el.shift,
+          device: el.device,
+          uom: el.uom,
+          qty: _counterInListView[index].qty + el.qty,
+          purchasePrice: el.purchasePrice,
+          isPosted: false,
+          shiftDate: el.shiftDate,
+          createdAt: el.createdAt,
+          updatedAt: el.updatedAt
+        );
+        _counterInListView[index] = updateCounterInView;
+      } else {
+        _counterInListView.add(el);
+      }
+    }
+  }
+
+  Future _deletePostedStockIns() async {
+    final currentTime = DateTime.now();
+    final result = await CounterInDatabase.instance.readCounterInsPosted();
+
+    for (var el in result) {
+      final diff = currentTime.difference(el.updatedAt);
+      if(diff.inHours > 48) {
+        await CounterInDatabase.instance.delete(el.id!);
+      }
+    }
+  }
 
   Future _clearTextController(BuildContext context,
       TextEditingController _controller, FocusNode node) async {
@@ -89,22 +126,23 @@ class _StockInWidgetState extends State<StockInWidget> {
     final qnePort =  await FileManager.readString('qne_port_number');
     _dbCode = await FileManager.readString('db_code');
     if(qneIp != '' && qnePort != '' && _dbCode != '') {
-      _qneUrl = 'http://$ip:$port';
+      _qneUrl = 'http://$qneIp:$qnePort';
     } else {
       _qneUrl = 'https://dev-api.qne.cloud';
       _dbCode = 'fazsample';
     }
 
-    // await CounterInDatabase.instance.delete(2);
+    // await CounterInDatabase.instance.delete(1);
 
     final result = await CounterInDatabase.instance.readCounterInsNotPosted();
-    
+
     result.when(
       (e) {
         Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
       },
       (res) {
         _counterInList = res;
+        _prepareListView();
       }
     );
 
@@ -115,6 +153,7 @@ class _StockInWidgetState extends State<StockInWidget> {
   void initState() {
     super.initState();
     initSettings();
+    _deletePostedStockIns();
     _masterController.addListener(masterListener);
   }
 
@@ -232,7 +271,7 @@ class _StockInWidgetState extends State<StockInWidget> {
               ),
             ),
           ],
-          rows: _counterInList.map((row) => DataRow(
+          rows: _counterInListView.map((row) => DataRow(
             cells: [
               DataCell(Text(row.stock)),
               DataCell(Text(row.qty.toString())),
@@ -288,11 +327,11 @@ class _StockInWidgetState extends State<StockInWidget> {
 
                     StockIn newValue = StockIn(
                       stockInCode: '${_docPrefix}${DateFormat("ddMMyyyyHms").format(currentTime)}',
-                      stockInDate: shiftConvertedTime,
+                      stockInDate: shiftConvertedTime.toUtc(),
                       description: 'App Stock In from $_deviceName',
-                      referenceNo: 'String',
+                      referenceNo: '',
                       title: '',
-                      notes: currentTime.toIso8601String(),
+                      notes: currentTime.toUtc().toIso8601String(),
                       costCentre: '',
                       project: _project,
                       stockLocation: _location,
@@ -313,6 +352,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                           });
                         }
                         _counterInList = [];
+                        _counterInListView = [];
                       } else if(status == 408) {
                         Utils.openDialogPanel(context, 'close', 'Oops!', 'Timed out! Check your network connection.', 'Understand');
                       } else {
@@ -399,7 +439,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                       // SameDay logic
 
                       // If found, create CounterIn object
-                      await CounterInDatabase.instance.readCounterInByCode(c.stockCode).then((res) async {
+                      await CounterInDatabase.instance.readCounterInByCode(c.stockCode, c.machine).then((res) async {
                         
                         CounterIn updateCounterIn = CounterIn(
                           id: res.id,
@@ -419,6 +459,7 @@ class _StockInWidgetState extends State<StockInWidget> {
 
                         await CounterInDatabase.instance.update(updateCounterIn).then((res) {
                           _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
+                          _prepareListView();
                           _masterController.text = '';
                         }).catchError((err) {
                           Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update new StockIn counter.', 'Understand');
@@ -443,6 +484,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                         );
                         await CounterInDatabase.instance.create(newCounterIn).then((res) {
                           _counterInList.add(newCounterIn);
+                          _prepareListView();
                           _masterController.text = '';
                           
                         }).catchError((err) {
@@ -471,7 +513,6 @@ class _StockInWidgetState extends State<StockInWidget> {
                       });
                       Utils.openDialogPanel(context, 'close', 'Oops!', 'Not counter is available for the stockCode', 'Understand');
                     });
-
                   },
                   child: _isLoading ? Transform.scale(
                       scale: 0.6,

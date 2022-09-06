@@ -82,14 +82,14 @@ class CounterInDatabase {
     }
   }
 
-  Future<CounterIn> readCounterInByCode(String stockCode) async {
+  Future<CounterIn> readCounterInByCode(String stockCode, String machine) async {
     final db = await instance.database;
 
     final maps = await db.query(
       tableCounterIn,
       columns: CounterInFields.values,
-      where: '${CounterInFields.stock} = ? AND ${CounterInFields.isPosted} = ?',
-      whereArgs: [stockCode, 0],
+      where: '${CounterInFields.stock} = ? AND ${CounterInFields.isPosted} = ? AND ${CounterInFields.machine} = ?',
+      whereArgs: [stockCode, 0, machine],
     );
 
     if (maps.isNotEmpty) {
@@ -118,6 +118,26 @@ class CounterInDatabase {
     }
   }
 
+  Future<List<CounterIn>> readCounterInsPosted() async {
+    final db = await instance.database;
+    const orderBy = '${CounterInFields.updatedAt} ASC';
+
+    final maps = await db.query(
+      tableCounterIn,
+      columns: CounterInFields.values,
+      where: '${CounterInFields.isPosted} = ?',
+      whereArgs: [1],
+      orderBy: orderBy
+    );
+
+    if (maps.isNotEmpty) {
+      // print('👉 Search: $maps');
+      return maps.map((json) => CounterIn.fromJson(json)).toList();
+    } else {
+      throw Exception('Stocks from Counter stockIns are not found');
+    }
+  }
+
   Future<List<CounterIn>> readCounterInByCodeAndMachine(String stock, String machine) async {
     final db = await instance.database;
     const orderBy = '${CounterInFields.updatedAt} ASC';
@@ -131,7 +151,7 @@ class CounterInDatabase {
     );
 
     if (maps.isNotEmpty) {
-      print('👉 Search: $maps');
+      // print('👉 Search: $maps');
       return maps.map((json) => CounterIn.fromJson(json)).toList();
     } else {
       throw Exception('Stocks from Counter stockIns are not found');

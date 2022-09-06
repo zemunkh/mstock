@@ -211,7 +211,7 @@ class _ProductionState extends State<Production> {
       }
 
       if (isFound) {
-        await CounterApi.readCountersWithMachine(_url, trueVal).then((res) {
+        await CounterApi.readCountersWithMachine(_url, trueVal, false).then((res) {
           _counterList = res;
           _isMatched = true;
           setState(() {});
@@ -612,7 +612,7 @@ class _ProductionState extends State<Production> {
                     print('Clicked the Save: $_url');
                     var currentTime = DateTime.now();
                     await CounterApi.readCounterByCodeAndMachine(_masterController.text.trim(), _machineLineController.text.trim(), _url).then((c) async {
-                      // print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                      print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                       
                       // Check scan_delay is out of range with (createdTime & updatedTime)
                       var diff = currentTime.difference(c.updatedTime).inMinutes;
@@ -622,7 +622,70 @@ class _ProductionState extends State<Production> {
                         return;
                       }
 
-                      Counter updatedCounter = Counter(
+                      if(c.qty <= 0) {
+                        await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
+                          print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
+                          
+                          var activeUoms = [];
+                          for (var u in res.uoMs) {
+                            if(u!.isActive) {
+                              activeUoms.add(u);
+                            }
+                          }
+                          activeUoms.sort((a, b) => a!.rate.compareTo(b!.rate));
+                          Uom bigger = res.uoMs[0]!;
+                          print('UOM: ✅  ${bigger.isActive} : ${bigger.uomCode} : ${bigger.rate}');
+
+                          Counter updatedCounter = Counter(
+                            id: c.id,
+                            stockId: c.stockId,
+                            stockCode: c.stockCode,
+                            stockName: c.stockName, 
+                            machine: _machineLineController.text.trim(),
+                            shift: _shiftValue,
+                            shiftDate: c.shiftDate,
+                            createdTime: c.createdTime,
+                            updatedTime: DateTime.now(),
+                            qty: c.qty + 1,
+                            totalQty: bigger.rate.round(),
+                            // totalQty: 1,
+                            purchasePrice: c.purchasePrice,
+                            uom: c.uom,
+                            stockCategory: c.stockCategory,
+                            group: c.group,
+                            stockClass: c.stockClass,
+                            weight: c.weight
+                          );
+
+                          await CounterApi.updateCounter(
+                              c.id.toString(),
+                              updatedCounter.updatedTime.toIso8601String(),
+                              (c.qty + 1).toString(), 
+                              updatedCounter.totalQty.toString(),
+                              _url)
+                            .then((res) {
+                            setState(() {
+                              _counterList.add(updatedCounter);
+                              level = 0;
+                              activeList = [false, false,  false, false];
+                              isSaveDisabled = true;
+                              _stickerController.text = '';
+                              _isLoading = false;
+                            });
+                          }).catchError((err) {
+                            Utils.openDialogPanel(context, 'close', 'Oops!', '#2 $err', 'Understand');
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          });
+                        }).catchError((err) {
+                          Utils.openDialogPanel(context, 'close', 'Oops!', '4# $err', 'Understand');
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        });
+                      } else {
+                        Counter updatedCounter = Counter(
                           id: c.id,
                           stockId: c.stockId,
                           stockCode: c.stockCode,
@@ -633,7 +696,7 @@ class _ProductionState extends State<Production> {
                           createdTime: c.createdTime,
                           updatedTime: DateTime.now(),
                           qty: c.qty + 1,
-                          totalQty: ((c.totalQty / c.qty) * (c.qty + 1)).toInt(),
+                          totalQty: ((c.totalQty / c.qty) * (c.qty + 1)).round(),
                           // totalQty: 1,
                           purchasePrice: c.purchasePrice,
                           uom: c.uom,
@@ -643,7 +706,13 @@ class _ProductionState extends State<Production> {
                           weight: c.weight
                         );
 
-                        await CounterApi.updateCounter(c.id.toString(), updatedCounter.updatedTime.toIso8601String(), (c.qty + 1).toString(), ((c.totalQty / c.qty) * (c.qty + 1)).toInt().toString(), _url).then((res) {
+                        await CounterApi.updateCounter(
+                            c.id.toString(),
+                            updatedCounter.updatedTime.toIso8601String(),
+                            (c.qty + 1).toString(), 
+                            ((c.totalQty / c.qty) * (c.qty + 1)).round().toString(),
+                            _url)
+                          .then((res) {
                           setState(() {
                             _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
                             level = 0;
@@ -658,8 +727,8 @@ class _ProductionState extends State<Production> {
                           setState(() {
                             _isLoading = false;
                           });
-                        });
-
+                        }); 
+                      }
                     }).catchError((err) async {
                       print('Error -> 2: $err');
                     // 3. if not, create new Counter object
@@ -687,7 +756,7 @@ class _ProductionState extends State<Production> {
                           createdTime: currentTime,
                           updatedTime: currentTime,
                           qty: 1,
-                          totalQty: bigger.rate.toInt(),
+                          totalQty: bigger.rate.round(),
                           // totalQty: 1,
                           purchasePrice: _masterStock.purchasePrice,
                           uom: bigger.uomCode,
