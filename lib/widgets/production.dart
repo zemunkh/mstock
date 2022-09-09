@@ -413,10 +413,10 @@ class _ProductionState extends State<Production> {
             color: Colors.white,
             border: Border.all(color: Colors.grey),
             borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(5),
-        padding: const EdgeInsets.all(5),
-        height: 320,
-        width: 400,
+        margin: const EdgeInsets.only(right: 2, left: 2, top: 5, bottom: 5),
+        padding: const EdgeInsets.only(right: 2, left: 2, top: 5, bottom: 5),
+        height: 480,
+        width: 440,
         child: child,
       );
     }
@@ -425,7 +425,7 @@ class _ProductionState extends State<Production> {
       return buildContainer(
         SingleChildScrollView(
           child: DataTable(
-          columnSpacing: 60,
+          columnSpacing: 40,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
@@ -689,10 +689,12 @@ class _ProductionState extends State<Production> {
                       print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                       // Check scan_delay is out of range with (createdTime & updatedTime)
                       var diff = currentTime.difference(c.updatedTime).inMinutes;
-
-                      if(diff < int.parse(_scanDelay)) {
-                        Utils.openDialogPanel(context, 'close', 'Oops!', 'You can enter the stock after $_scanDelay min later', 'Understand');
-                        return;
+                      
+                      if(_scanDelay.isNotEmpty) {
+                        if(diff < int.parse(_scanDelay)) {
+                          Utils.openDialogPanel(context, 'close', 'Oops!', 'You can enter the stock after $_scanDelay min later', 'Understand');
+                          return;
+                        }
                       }
 
                       if(c.qty <= 0) {

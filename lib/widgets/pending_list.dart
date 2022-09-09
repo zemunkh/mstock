@@ -24,15 +24,18 @@ class _PendingListState extends State<PendingList> {
   String lineVal = '';
   List<String> _machineList = [];
   String _url = '';
-  bool _isLoading = true;
+  bool _isLoading = false;
   String shiftVal = '';
+  bool _isEmptyValue = true;
   List<String> _shiftList = [];
   List<Pending> _pendingList = [];
   List<Pending> _pendingListView = [];
 
   Future initPendingTable() async {
     // Same day logic and Pending table
-
+    setState(() {
+      _isLoading = true;
+    });
     // Category Priorities
     // 1. Created Date
     // 2. Machine Line
@@ -132,12 +135,14 @@ class _PendingListState extends State<PendingList> {
       lineVal = 'A1';
     } else {
       lineVal = _machineList[0];
+      _isEmptyValue = _isEmptyValue && false;
     }
-
+    print('👉 $shifts');
     if(shifts.isEmpty) {
       _shiftList = ['Morning', 'Afternoon', 'Night'];
       shiftVal = 'Morning';
     } else {
+      _isEmptyValue = _isEmptyValue && false;
       for (var shift in shifts) {
         print('👉 Shift: $shift');
         var dayName = shift.split(',')[0];
@@ -145,13 +150,12 @@ class _PendingListState extends State<PendingList> {
         var endTime = shift.split(',')[2];
         _shiftList.add(dayName);
       }
+      shiftVal = await Utils.getShiftName();
     }
 
-
-    shiftVal = await Utils.getShiftName();
-
-
-    initPendingTable();
+    if(!_isEmptyValue) {
+      initPendingTable();
+    }
 
     setState(() {});
   }

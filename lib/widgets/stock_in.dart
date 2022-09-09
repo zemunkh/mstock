@@ -318,16 +318,16 @@ class _StockInWidgetState extends State<StockInWidget> {
                         qty: _counterInList[i].qty,
                         amount: _counterInList[i].qty * _counterInList[i].purchasePrice,
                         note: '$_deviceName ${_counterInList[i].shift} ${_counterInList[i].machine} ${DateFormat("ddMMyyyy HH:mm").format(currentTime)}',
-                        ref1: _deviceName,
+                        // ref1: _deviceName,
                         costCentre: '',
                         project: _project,
                         stockLocation: _location
                       );
                       details.add(n);
                     }
-
+                    // print('👉 date format: ${DateFormat("yyMMHHmmss").format(currentTime)}');
                     StockIn newValue = StockIn(
-                      stockInCode: '${_docPrefix}${DateFormat("ddMMyyyyHms").format(currentTime)}',
+                      stockInCode: '${_docPrefix}${DateFormat("yyMMHHmmss").format(currentTime)}',
                       stockInDate: shiftConvertedTime.toUtc(),
                       description: 'App Stock In from $_deviceName',
                       referenceNo: '',

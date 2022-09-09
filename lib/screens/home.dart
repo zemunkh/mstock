@@ -53,8 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget boxMenuItem(String image, String title) {
     return Container(
       width: 120,
-      height: 120,
-      margin: const EdgeInsets.all(16),
+      height: 130,
+      margin: const EdgeInsets.only(right: 16, left: 16, top: 12, bottom: 16),
+      padding: const EdgeInsets.only(right: 16, left: 16, top: 0, bottom: 12),
       decoration: style.Colors.menuBoxDecor,
       child: Stack(
         children: [
