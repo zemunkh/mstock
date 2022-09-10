@@ -15,7 +15,7 @@ class ActivationScreen extends StatelessWidget {
   var onTapRecognizer;
   // StreamController<ErrorAnimationType> _errorController ;
 
-  Future<void> _activationHandler(BuildContext context, TextEditingController _controller) async {
+  Future _activationHandler(BuildContext context, TextEditingController _controller) async {
     String inputText = _controller.text;
     const int adder = 53127429; // has to change
     String currentDate = DateFormat("yyyyMMdd").format(DateTime.now());
@@ -44,7 +44,7 @@ class ActivationScreen extends StatelessWidget {
           alignment: const Alignment(1.0, 1.0),
           children: <Widget>[
             SizedBox(
-              width: double.infinity,
+              width: 440,
               child: PinCodeTextField(
                 appContext: context,
                 controller: _activationController,

@@ -162,6 +162,8 @@ class _ProductionState extends State<Production> {
           activeList = [true, true, true, true];
           // Utils.openDialogPanel(context, 'close', 'Oops!', 'Already filled!', 'Try again');
         }
+      } else {
+        Utils.openDialogPanel(context, 'close', 'Oops!', '$trueVal is not matched!', 'Try again');
       }
 
       setState(() {});
@@ -215,6 +217,7 @@ class _ProductionState extends State<Production> {
           _counterList = res;
           _isMatched = true;
           setState(() {});
+          FocusScope.of(context).requestFocus(_masterNode);
         }).catchError((err) {
           print('Err: $err');
           Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
@@ -233,7 +236,7 @@ class _ProductionState extends State<Production> {
         _machineLineController.text = trueVal;
       }).then((value) {
         _machineLineNode.unfocus();
-        FocusScope.of(context).requestFocus(FocusNode());
+        isFound ? FocusScope.of(context).requestFocus(_masterNode) : FocusScope.of(context).requestFocus(FocusNode());
       });
     }
     if(buffer.isEmpty) {

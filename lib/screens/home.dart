@@ -54,23 +54,23 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: 120,
       height: 130,
-      margin: const EdgeInsets.only(right: 16, left: 16, top: 12, bottom: 16),
-      padding: const EdgeInsets.only(right: 16, left: 16, top: 0, bottom: 12),
+      margin: const EdgeInsets.only(right: 16, left: 16, top: 12, bottom: 8),
+      padding: const EdgeInsets.only(right: 16, left: 16, top: 0, bottom: 2),
       decoration: style.Colors.menuBoxDecor,
       child: Stack(
         children: [
           Center(
-            child: Image.asset("assets/icons/$image.png", width: 100.0),
+            child: Image.asset("assets/icons/$image.png", width: 90.0),
           ),
           Container(
-            margin: const EdgeInsets.only(top: 130),
+            margin: const EdgeInsets.only(top: 120),
             alignment: Alignment.center,
             child: Text(
               title,
               style: const TextStyle(
                 color: style.Colors.mainAppBar,
                 fontWeight: FontWeight.bold,
-                fontSize: 22.0,
+                fontSize: 20.0,
               ),
             ),
           ),

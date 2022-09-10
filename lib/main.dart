@@ -32,8 +32,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
-        // '/': (ctx) => activated ? const HomeScreen() : ActivationScreen(),
-        '/': (ctx) => const HomeScreen(),
+        '/': (ctx) => activated ? const HomeScreen() : ActivationScreen(),
+        // '/': (ctx) => const HomeScreen(),
         StockCheckScreen.routeName: (ctx) => const StockCheckScreen(),
         StockInScreen.routeName: (ctx) => const StockInScreen(),
         ProductionScreen.routeName: (ctx) => const ProductionScreen(),

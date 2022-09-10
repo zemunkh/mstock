@@ -69,14 +69,16 @@ class _StockInWidgetState extends State<StockInWidget> {
 
   Future _deletePostedStockIns() async {
     final currentTime = DateTime.now();
-    final result = await CounterInDatabase.instance.readCounterInsPosted();
-
-    for (var el in result) {
-      final diff = currentTime.difference(el.updatedAt);
-      if(diff.inHours > 48) {
-        await CounterInDatabase.instance.delete(el.id!);
+    await CounterInDatabase.instance.readCounterInsPosted().then((res) async {
+      for (var el in res) {
+        final diff = currentTime.difference(el.updatedAt);
+        if(diff.inHours > 48) {
+          await CounterInDatabase.instance.delete(el.id!);
+        }
       }
-    }
+    }).catchError((err){
+      print('Err: $err');
+    });
   }
 
   Future _clearTextController(BuildContext context,
@@ -138,7 +140,8 @@ class _StockInWidgetState extends State<StockInWidget> {
 
     result.when(
       (e) {
-        Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
+        // Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
+        print('Empty list');
       },
       (res) {
         _counterInList = res;
@@ -228,7 +231,7 @@ class _StockInWidgetState extends State<StockInWidget> {
         margin: const EdgeInsets.only(top: 12, bottom: 5),
         padding: const EdgeInsets.all(5),
         height: 400,
-        width: 400,
+        width: 440,
         child: child,
       );
     }
@@ -325,9 +328,9 @@ class _StockInWidgetState extends State<StockInWidget> {
                       );
                       details.add(n);
                     }
-                    // print('👉 date format: ${DateFormat("yyMMHHmmss").format(currentTime)}');
+                    // print('👉 date format: ${DateFormat("yyMMddHHmmss").format(currentTime)}');
                     StockIn newValue = StockIn(
-                      stockInCode: '${_docPrefix}${DateFormat("yyMMHHmmss").format(currentTime)}',
+                      stockInCode: '${_docPrefix}${DateFormat("yyMMddHHmmss").format(currentTime)}',
                       stockInDate: shiftConvertedTime.toUtc(),
                       description: 'App Stock In from $_deviceName',
                       referenceNo: '',
@@ -339,21 +342,24 @@ class _StockInWidgetState extends State<StockInWidget> {
                       details: details,
                     );
                     
-                    await StockApi.postStockIns(_dbCode, newValue.toJson(), _qneUrl).then((status) {
+                    await StockApi.postStockIns(_dbCode, newValue.toJson(), _qneUrl).then((status) async {
                       if(status == 200) {
-                        Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn is successfully posted!', 'Okay');
                         // Update isPosted status to TRUE
-                        for (var el in _counterInList) {
-                          CounterInDatabase.instance.updatePostedStatus(el.id!).then((result) {
+                        for (CounterIn el in _counterInList) {
+                          await CounterInDatabase.instance.updatePostedStatus(el.id!).then((result) {
                             if(el.id == result) {
                               print('Done ✅');
                             }
                           }).catchError((err) {
-                            Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                            // Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                            print('Wrong ❌');
                           });
                         }
-                        _counterInList = [];
-                        _counterInListView = [];
+                        setState(() {
+                          _counterInList = [];
+                          _counterInListView = [];     
+                        });
+                        Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn is successfully posted!', 'Okay');
                       } else if(status == 408) {
                         Utils.openDialogPanel(context, 'close', 'Oops!', 'Timed out! Check your network connection.', 'Understand');
                       } else {

@@ -185,7 +185,7 @@ class StockCheckState extends State<StockCheck> {
             controller: _controller,
             focusNode: currentNode,
             onTap: () {
-              // _clearTextController(context, _mainController, _mainNode);
+              _clearTextController(context, _controller, currentNode);
             },
           ),
         ),
