@@ -16,7 +16,7 @@ class Production extends StatefulWidget {
   State<Production> createState() => _ProductionState();
 }
 
-class _ProductionState extends State<Production> {
+class _ProductionState extends State<Production> with SingleTickerProviderStateMixin{
   final _machineLineController = TextEditingController();
   final _masterController = TextEditingController();
   final _stickerController = TextEditingController();
@@ -172,11 +172,11 @@ class _ProductionState extends State<Production> {
 
       // else, remove stock item/decrease by the count 
 
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        _stickerController.text = trueVal;
+      Future.delayed(const Duration(milliseconds: 800), () {
+        _stickerController.text = '';
       }).then((value) {
-        _stickerNode.unfocus();
-        FocusScope.of(context).requestFocus(FocusNode());
+        // _stickerNode.unfocus();
+        // FocusScope.of(context).requestFocus(FocusNode());
       });
     }
   }
@@ -491,7 +491,7 @@ class _ProductionState extends State<Production> {
           Row(
             children: [
               Expanded(
-                flex: 4,
+                flex: 6,
                 child: _scannerInput(
                   'A1...',
                   _machineLineController,
@@ -501,7 +501,7 @@ class _ProductionState extends State<Production> {
                 ),
               ),
               Expanded(
-                flex: 6,
+                flex: 4,
                 child: _scanControl(context),
               ),
             ],
@@ -986,7 +986,6 @@ class _ProductionState extends State<Production> {
           _machineLine(context),
           isAddView ? _addView(context) : _deleteView(context),
           _productionTable(context),
-
         ],
       ),
     );
@@ -997,7 +996,7 @@ class _ProductionState extends State<Production> {
       },
       child: SingleChildScrollView(
         child: transaction,
-      ),
+      )
     );
   }
 }

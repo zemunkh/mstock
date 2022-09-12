@@ -120,7 +120,7 @@ class ActivationScreen extends StatelessWidget {
       children: <Widget>[
         logo,
         Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(8),
           child: _activationInput('Activation input', _activationController, _activationNode),
         ),        
         button,

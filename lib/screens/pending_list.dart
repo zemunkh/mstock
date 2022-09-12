@@ -62,7 +62,7 @@ class _PendingListScreenState extends State<PendingListScreen> {
           preferredSize: const Size.fromHeight(50.0),
           child: AppBar(
             elevation: 2.0,
-            backgroundColor: style.Colors.mainGrey,
+            backgroundColor: style.Colors.mainGrey2,
             leading: IconButton(
               icon: const Icon(
                 EvaIcons.menu2Outline,
@@ -111,7 +111,7 @@ class _PendingListScreenState extends State<PendingListScreen> {
         ),
         drawer: const MainDrawer(),
         body: const Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(12.0),
           child: PendingList(),
         ),
       ),

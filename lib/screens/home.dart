@@ -19,6 +19,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  int _counter = 0;
+
   @override
   void initState() {
     super.initState();
@@ -116,53 +118,67 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       drawer: const MainDrawer(),
-      body: GridView.count(
-        crossAxisCount: 2,
-        children: [
-          InkWell(
-            splashColor: style.Colors.mainBlue,
-            child: boxMenuItem('warehouse', 'Production'),
-            onTap: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionScreen()));
-              });
-            },
-          ),
-          InkWell(
-            splashColor: style.Colors.mainBlue,
-            child: boxMenuItem('scale', 'Check code'),
-            onTap: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockCheckScreen()));
-              });
-            },
-          ),
-          InkWell(
-            splashColor: style.Colors.mainBlue,
-            child: boxMenuItem('expired', 'Pending'),
-            onTap: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PendingListScreen()));
-              });
-            },
-          ),
-          InkWell(
-            splashColor: style.Colors.mainBlue,
-            child: boxMenuItem('box', 'Stock In'),
-            onTap: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockInScreen()));
-              });
-            },
-          ),
-        ],
+      body: GestureDetector(
+        onTap: () => setState(() => _counter = 0),
+        child: GridView.count(
+          crossAxisCount: 2,
+          children: [
+            InkWell(
+              splashColor: style.Colors.mainBlue,
+              child: boxMenuItem('warehouse', 'Production'),
+              onTap: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProductionScreen()));
+                });
+              },
+            ),
+            InkWell(
+              splashColor: style.Colors.mainBlue,
+              child: boxMenuItem('scale', 'Check code'),
+              onTap: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockCheckScreen()));
+                });
+              },
+            ),
+            InkWell(
+              splashColor: style.Colors.mainBlue,
+              child: boxMenuItem('expired', 'Pending'),
+              onTap: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PendingListScreen()));
+                });
+              },
+            ),
+            InkWell(
+              splashColor: style.Colors.mainBlue,
+              child: boxMenuItem('box', 'Stock In'),
+              onTap: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StockInScreen()));
+                });
+              },
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (_) => MaintenanceScreen()));
-          });
+          if(_counter >= 11) {
+              _counter = 0;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (_) => MaintenanceScreen()));
+            });
+          } else {
+            setState(() {
+              _counter++;
+            });
+          }
+          // WidgetsBinding.instance.addPostFrameCallback((_) {
+          //   Navigator.pushReplacement(context,
+          //       MaterialPageRoute(builder: (_) => MaintenanceScreen()));
+          // });
         },
         icon: Icon(Icons.hail_rounded),
         label: Text("Maintenance"),

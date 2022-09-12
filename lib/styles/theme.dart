@@ -8,8 +8,10 @@ class Colors {
   static const Color background = Color(0xFFEEF4F6);
   // static const Color mainYellow = Color(0xFFFEF08A);
   static const Color yellowAccent= Color.fromARGB(255, 254, 250, 225);
+  static const Color yellowDark= Color.fromARGB(255, 253, 224, 195);
   static const Color mainBlue = Color(0xFF0EA5E9);
   static const Color mainGrey = Color(0xFF5670A1);
+  static const Color mainGrey2 = Color.fromARGB(255, 149, 153, 160);
   static const Color mainDarkGrey = Color(0xff7c94b6);
   static const Color mainAppBar = Color(0xFF164CA2);
   static const Color mainAccent = Color(0xFF272727);

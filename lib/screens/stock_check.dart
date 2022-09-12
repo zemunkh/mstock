@@ -77,7 +77,7 @@ class _StockCheckScreenState extends State<StockCheckScreen> {
         ),
         drawer: const MainDrawer(),
         body: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(12.0),
           child: Center(
             child: StockCheck()
           ),
