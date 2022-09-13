@@ -741,7 +741,9 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               updatedCounter.updatedTime.toIso8601String(),
                               (c.qty + 1).toString(), 
                               updatedCounter.totalQty.toString(),
-                              _url)
+                              _url,
+                              'Prod-Add'
+                            )
                             .then((res) {
                             setState(() {
                               _counterList.add(updatedCounter);
@@ -790,7 +792,9 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             updatedCounter.updatedTime.toIso8601String(),
                             (c.qty + 1).toString(), 
                             ((c.totalQty / c.qty) * (c.qty + 1)).round().toString(),
-                            _url)
+                            _url,
+                            'Prod-Add'
+                          )
                           .then((res) {
                           setState(() {
                             _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
@@ -937,7 +941,13 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               weight: c.weight
                             );
 
-                            CounterApi.updateCounter(c.id.toString(), updatedCounter.updatedTime.toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url).then((res) {
+                            CounterApi.updateCounter(
+                                c.id.toString(),
+                                updatedCounter.updatedTime.toIso8601String(),
+                                (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(),
+                                _url,
+                                'Prod-Deduct'
+                                ).then((res) {
                               print('Updated ID: $res');
 
                               setState(() {

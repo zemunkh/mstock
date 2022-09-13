@@ -509,7 +509,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                       // Else, Save it to the CounterIn database (Locally)
 
                       if(c.qty > 0) {
-                        CounterApi.updateCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url).then((r) {
+                        CounterApi.updateCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In').then((r) {
                           print('👉 Updated ID: $r');
                         }).catchError((err) {
                           print('Error: $err');
