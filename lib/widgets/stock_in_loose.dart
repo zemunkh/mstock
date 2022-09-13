@@ -37,7 +37,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   List<CounterIn> _counterInListView = [];
   
   bool _isLoading = false;
-
+  bool _isSaveDisabled = true;
   String _qneUrl = '';
   String _url = '';
   String _dbCode = '';
@@ -50,7 +50,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   String _supervisorPassword = '';
 
   String _baseUom = 'UNIT';
-
+  int _qty = 0;
   String lineVal = '';
   List<String> _machineList = [];
   List<String> _shiftList = [];
@@ -63,6 +63,44 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
       _controller.clear();
     });
     FocusScope.of(context).requestFocus(node);
+  }
+
+  Future quantityListener() async {
+    String buffer = '';
+    String trueVal = '';
+
+    buffer = _quantityController.text;
+    if(buffer.isNotEmpty) {
+      setState(() {
+        _qty = int.parse(buffer);
+      });
+
+      // await Future.delayed(const Duration(milliseconds: 400), () {
+      //   _quantityNode.unfocus();
+      //   FocusScope.of(context).requestFocus(FocusNode());
+      // });
+    } else {
+      setState(() {
+        _qty = 0;
+      });
+    }
+
+    // if (buffer.endsWith(r'$')) {
+    //   buffer = buffer.substring(0, buffer.length - 1);
+    //   trueVal = buffer;
+    //   _quantityNode.unfocus();
+    //   setState(() {
+    //     _isLoading = true;
+    //   });
+
+      // await Future.delayed(const Duration(milliseconds: 400), () {
+        // setState(() {
+        //   _quantityController.text = trueVal;
+        // });
+        // _quantityNode.unfocus();
+        // FocusScope.of(context).requestFocus(FocusNode());
+      // });
+    // }
   }
 
   Future masterListener() async {
@@ -92,6 +130,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
 
           setState(() {
             _baseUom = bigger.uomCode;
+            _isSaveDisabled = false;
             _isLoading = false;
           });
 
@@ -121,7 +160,11 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
         _masterNode.unfocus();
         FocusScope.of(context).requestFocus(FocusNode());
       });
-
+    }
+    if(buffer.isEmpty) {
+      setState(() {
+        _isSaveDisabled = true;
+      });
     }
   }
 
@@ -184,6 +227,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
     initSettings();
     // _deletePostedStockIns();
     _masterController.addListener(masterListener);
+    _quantityController.addListener(quantityListener);
   }
 
   @override
@@ -348,7 +392,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
         ),
         margin: const EdgeInsets.only(top: 12, bottom: 5),
         padding: const EdgeInsets.all(5),
-        height: 400,
+        height: 320,
         width: 440,
         child: child,
       );
@@ -532,6 +576,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_isLoading == true) { return; }
+                      if (_isSaveDisabled || _qty <= 0) { return; }
 
                       setState(() {
                         _isLoading = true;
@@ -548,7 +593,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
-                      primary: style.Colors.button4,
+                      primary: (_isSaveDisabled || _qty <= 0) ? style.Colors.mainDarkGrey : style.Colors.button4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -573,7 +618,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
           _mainSelectors(context),
           _addView(context),
           _stockInTable(context),
-          _postBtn(context)
+          _counterInList.isEmpty ? const Text('') : _postBtn(context)
         ],
       ),
     );

@@ -209,7 +209,7 @@ class Utils {
                     child: const Text('Cancel', style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w800, color: style.Colors.mainAccent)),
                     onPressed: (){
                       passwordController.text = '';
-                      Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
+                      Timer(const Duration(milliseconds: 500), () => Navigator.of(context).maybePop());
                     },
                   ),
                   const SizedBox(
@@ -225,12 +225,12 @@ class Utils {
                     ),
                     child: Text(btnText, style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w800, color: Colors.white)),
                     onPressed: (){
-                      // Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
+                      // Timer(const Duration(milliseconds: 500), () => Navigator.of(context).maybePop());
                       if(password == passwordController.text.trim()) {
                         print('\n\n Matched!!! \n\n');
                         matchedCallback();
                         passwordController.text = '';
-                        Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
+                        Timer(const Duration(milliseconds: 500), () => Navigator.of(context).maybePop());
                       } else {
                         unMatchedCallback();
                       }
@@ -270,7 +270,7 @@ class Utils {
                 ),
                 child: Text(btnText, style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w800, color: Colors.white)),
                 onPressed: (){
-                  Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
+                  Timer(const Duration(milliseconds: 500), () => Navigator.of(context).maybePop());
                 },
               )
             ],
@@ -305,7 +305,7 @@ class Utils {
                 ),
                 child: Text(btnText, style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w800, color: Colors.white)),
                 onPressed: (){
-                  Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
+                  Timer(const Duration(milliseconds: 500), () => Navigator.of(context).maybePop());
                 },
               )
             ],

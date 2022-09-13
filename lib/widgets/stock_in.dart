@@ -28,7 +28,7 @@ class _StockInWidgetState extends State<StockInWidget> {
   List<CounterIn> _counterInListView = [];
   
   bool _isLoading = false;
-
+  bool _isSaveDisabled = true;
   String _qneUrl = '';
   String _url = '';
   String _dbCode = '';
@@ -101,11 +101,16 @@ class _StockInWidgetState extends State<StockInWidget> {
       await Future.delayed(const Duration(milliseconds: 200), () {
         setState(() {
           _masterController.text = trueVal;
+          _isSaveDisabled = false;
         });
         _masterNode.unfocus();
         FocusScope.of(context).requestFocus(FocusNode());
       });
-
+    }
+    if(buffer.isEmpty) {
+      setState(() {
+        _isSaveDisabled = true;
+      });
     }
   }
 
@@ -230,7 +235,7 @@ class _StockInWidgetState extends State<StockInWidget> {
             borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.only(top: 12, bottom: 5),
         padding: const EdgeInsets.all(5),
-        height: 400,
+        height: 320,
         width: 440,
         child: child,
       );
@@ -433,6 +438,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_isLoading == true) { return; }
+                    if (_isSaveDisabled == true) { return; }
 
                     setState(() {
                       _isLoading = true;
@@ -536,7 +542,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    primary: style.Colors.button4,
+                    primary: _isSaveDisabled ? style.Colors.mainDarkGrey : style.Colors.button4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -558,7 +564,7 @@ class _StockInWidgetState extends State<StockInWidget> {
         children: <Widget>[
           _addView(context),
           _stockInTable(context),
-          _postBtn(context)
+          _counterInList.isEmpty ? const Text('') : _postBtn(context)
         ],
       ),
     );

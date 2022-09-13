@@ -95,11 +95,11 @@ class StockInParamsState extends State<StockInParams> {
         actions: <Widget>[
           ElevatedButton(
             child: Text('Yes'),
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.maybePop(context, true),
           ),
           ElevatedButton(
             child: Text('No'),
-            onPressed: () =>  Navigator.pop(context, false),
+            onPressed: () =>  Navigator.maybePop(context, false),
           ),
         ],
       )
