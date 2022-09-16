@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../model/counterIn.dart';
+import '../model/counterInLoose.dart';
+import '../model/counter.dart';
 import '../model/uoms.dart';
 import '../model/stockIn.dart';
-import '../database/counter_in_db.dart';
+import '../database/counter_inLoose_db.dart';
 import '../../database/stock_db.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
@@ -22,21 +23,27 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   final _masterController = TextEditingController();
   final _deleteController = TextEditingController();
   final _quantityController = TextEditingController();
+  final _remarkController = TextEditingController();
+  final _passwordController = TextEditingController();
 
 
   final FocusNode _masterNode = FocusNode();
   final FocusNode _quantityNode = FocusNode();
+  final FocusNode _remarkNode = FocusNode();
+  final FocusNode _passwordNode = FocusNode();
 
   static final _masterFormKey = GlobalKey<FormFieldState>();
   static final _quantityFormKey = GlobalKey<FormFieldState>();
   static final _machineKey = GlobalKey<FormFieldState>();
   static final _shiftKey = GlobalKey<FormFieldState>();
+  static final _remarkFormKey = GlobalKey<FormFieldState>();
+  static final _passwordFormKey = GlobalKey<FormFieldState>();
 
 
-  List<CounterIn> _counterInList = [];
-  List<CounterIn> _counterInListView = [];
-  
+  List<CounterInLoose> _counterInList = [];
+
   bool _isLoading = false;
+  bool _isLoadingDel = false;
   bool _isSaveDisabled = true;
   String _qneUrl = '';
   String _url = '';
@@ -50,6 +57,9 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   String _supervisorPassword = '';
 
   String _baseUom = 'UNIT';
+  double _biggerRate = 0;
+  double _purchasePrice = 0;
+  String _description = '';
   int _qty = 0;
   String lineVal = '';
   List<String> _machineList = [];
@@ -106,7 +116,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   Future masterListener() async {
     String buffer = '';
     String trueVal = '';
-    buffer = _masterController.text;
+    buffer = _masterController.text.trim();
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
@@ -118,18 +128,19 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
       await StockDatabase.instance.readStockByCode(trueVal).then((val) async {
         await StockApi.readFullStock(_dbCode, val.stockId, '$_qneUrl/api/Stocks').then((res) async {
           print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
-          
           List<Uom> activeUoms = [];
           for (var u in res.uoMs) {
-            if(u!.isActive) {
+            if(u!.isActive && u.isBaseUOM) {
               activeUoms.add(u);
             }
           }
-          activeUoms.sort((a, b) => a.rate.compareTo(b.rate));
-          Uom bigger = activeUoms.last;
+          // activeUoms.sort((a, b) => a.rate.compareTo(b.rate));
+          Uom baseUOM = activeUoms[0];
 
           setState(() {
-            _baseUom = bigger.uomCode;
+            _baseUom = baseUOM.uomCode;
+            _biggerRate = baseUOM.rate;
+            _purchasePrice = val.purchasePrice;
             _isSaveDisabled = false;
             _isLoading = false;
           });
@@ -217,6 +228,18 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
       }
       shiftVal = await Utils.getShiftName();
     }
+
+    final result = await CounterInLooseDatabase.instance.readCounterInsLooseNotPosted();
+
+    result.when(
+      (e) {
+        // Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
+        print('Empty list');
+      },
+      (res) {
+        _counterInList = res;
+      }
+    );
 
     setState(() {});
   }
@@ -332,7 +355,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
     }
 
     Widget _scannerInput(String hintext, TextEditingController _controller,
-        FocusNode currentNode, double currentWidth, GlobalKey _formKey) {
+        FocusNode currentNode, double currentWidth, GlobalKey _formKey, bool isSuffix) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: SizedBox(
@@ -360,7 +383,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
               errorStyle: const TextStyle(
                 color: Colors.yellowAccent,
               ),
-              suffixIcon: IconButton(
+              suffixIcon: isSuffix ? IconButton(
                 icon: const Icon(
                   Icons.qr_code,
                   color: Colors.blueAccent,
@@ -369,7 +392,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                 onPressed: () {
                   _clearTextController(context, _controller, currentNode);
                 },
-              ),
+              ) :  null,
             ),
             autofocus: false,
             autocorrect: false,
@@ -402,7 +425,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
       return buildContainer(
         SingleChildScrollView(
           child: DataTable(
-          columnSpacing: 60,
+          columnSpacing: 24,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
@@ -427,7 +450,17 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
             ),
             DataColumn(
               label: Text(
-                'UOMs:',
+                'Based-UOM:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: style.Colors.mainGrey,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Remark:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -436,14 +469,14 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
               ),
             ),
           ],
-          rows: _counterInListView.map((row) => DataRow(
+          rows: _counterInList.map((row) => DataRow(
             cells: [
               DataCell(Text(row.stock)),
               DataCell(Text(row.qty.toString())),
               DataCell(Text(row.uom)),
+              DataCell(Text(row.description)),
             ]
           )).toList(),
-          
           ),
         )
       );
@@ -469,6 +502,97 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                     DateTime currentTime = DateTime.now();
                     DateTime shiftConvertedTime = await Utils.getShiftConvertedTime(currentTime);
 
+                    // For Same day logic check
+
+                    List<Details> details = [];
+                    for (var i = 0; i < _counterInList.length; i++) {
+                      Details n = Details(
+                        numbering: (i + 1).toString(),
+                        stock: _counterInList[i].stock,
+                        pos: 0,
+                        description: '${_counterInList[i].stock} | $_deviceName | ${_counterInList[i].machine} | ${_counterInList[i].shift} | ${DateFormat("HH:mm:ss").format(currentTime)}',
+                        price: _counterInList[i].purchasePrice,
+                        uom: _counterInList[i].uom,
+                        qty: _counterInList[i].qty,
+                        amount: _counterInList[i].qty * _counterInList[i].purchasePrice,
+                        note: '$_deviceName ${_counterInList[i].shift} ${_counterInList[i].machine} ${DateFormat("ddMMyyyy HH:mm").format(currentTime)}',
+                        // ref1: _deviceName,
+                        costCentre: '',
+                        project: _project,
+                        stockLocation: _location
+                      );
+                      details.add(n);
+                    }
+                    // print('👉 date format: ${DateFormat("yyMMddHHmmss").format(currentTime)}');
+                    StockIn newValue = StockIn(
+                      stockInCode: '${_docPrefix}${DateFormat("yyMMddHHmmss").format(currentTime)}',
+                      stockInDate: shiftConvertedTime.toUtc(),
+                      description: 'App Stock In from $_deviceName',
+                      referenceNo: '',
+                      title: ' From production | $_deviceName | $shiftVal | $lineVal | ${DateFormat("HH:mm").format(currentTime)}',
+                      notes: currentTime.toUtc().toIso8601String(),
+                      costCentre: '',
+                      project: _project,
+                      stockLocation: _location,
+                      details: details,
+                    );
+                    
+                    await StockApi.postStockIns(_dbCode, newValue.toJson(), _qneUrl).then((status) async {
+                      if(status == 200) {
+                        // Update isPosted status to TRUE
+                        for (CounterInLoose el in _counterInList) {
+                          await CounterInLooseDatabase.instance.updatePostedStatus(el.id!).then((result) {
+                            if(el.id == result) {
+                              print('Done ✅');
+                            }
+                          }).catchError((err) {
+                            // Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                            print('Wrong ❌');
+                          });
+
+                          await StockDatabase.instance.readStockByCode(el.stock).then((val) async {
+                            Counter newCounterLog =  Counter(
+                              stockId: val.stockId,
+                              stockCode: el.stock,
+                              stockName: val.stockName,
+                              machine: el.machine,
+                              shift: el.machine,
+                              shiftDate: el.shiftDate,
+                              createdTime: currentTime,
+                              updatedTime: currentTime,
+                              qty: el.qty,
+                              totalQty: el.totalQty,
+                              purchasePrice: el.purchasePrice,
+                              uom: el.uom,
+                              stockCategory: val.category,
+                              group: val.group,
+                              stockClass: val.stockClass,
+                              weight: val.weight,
+                            );
+                            await CounterApi.createLog(newCounterLog.toJson(), _url).then((res){
+                              print('Done ✅');
+                            }).catchError((err){
+                              print('Error when saving log ❌');
+                            });
+                          }).catchError((err) {
+                            print('Error when getting stock data');
+                          });
+                        }
+                        setState(() {
+                          _counterInList = [];
+                        });
+                        Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn is successfully posted!', 'Okay');
+                      } else if(status == 408) {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Timed out! Check your network connection.', 'Understand');
+                      } else {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Code: $status \n Failed to post StockIns', 'Understand');
+                      }
+                      isPosting = false;
+                    }).catchError((err) {
+                      print('Err:  ❌ $err');
+                      Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                      isPosting = false;
+                    });
                     setState(() {});
                   },
                   child: isPosting ? Transform.scale(
@@ -497,7 +621,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const Text(
-            '⚙️ Quantity: ',
+            '💡 Quantity: ',
             textAlign: TextAlign.left,
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -513,8 +637,9 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                   '0',
                   _quantityController,
                   _quantityNode,
-                  120,
-                  _quantityFormKey
+                  150,
+                  _quantityFormKey,
+                  false,
                 ),
               ),
               Expanded(
@@ -528,6 +653,37 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                     fontSize: 14,
                     color: style.Colors.mainGrey,
                   ),
+                ),
+              ),
+            ],
+          )
+        ],
+      );
+    }
+
+    Widget _remarkInput(BuildContext context) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Text(
+            '🏷 Remark: ',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: style.Colors.mainGrey,
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: _scannerInput(
+                  '',
+                  _remarkController,
+                  _remarkNode,
+                  200,
+                  _remarkFormKey,
+                  true,
                 ),
               ),
             ],
@@ -559,6 +715,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                   _masterNode,
                   double.infinity,
                   _masterFormKey,
+                  true,
                 ),
               ),
             ],
@@ -566,13 +723,25 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
           Row(
             children: [
               Expanded(
-                flex: 7,
+                flex: 5,
                 child: _qtyInput(context),
               ),
               Expanded(
-                flex: 3,
+                flex: 5,
+                child: _remarkInput(context),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Expanded(
+                flex: 4,
+                child: Text('')
+              ),
+              Expanded(
+                flex: 4,
                 child: Container(
-                  padding: const EdgeInsets.only(top: 16),
+                  padding: const EdgeInsets.only(top: 4, left: 6, right: 6),
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_isLoading == true) { return; }
@@ -580,6 +749,45 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
 
                       setState(() {
                         _isLoading = true;
+                      });
+                      var currentTime = DateTime.now();
+                      
+                      await StockDatabase.instance.readStockByCode(_masterController.text.trim()).then((val) async {
+
+                      }).catchError((err){
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to fetch ${_masterController.text} stock', 'Understand');
+                      });
+                      
+
+                      var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
+                      CounterInLoose newCounterIn = CounterInLoose(
+                        stock: _masterController.text.trim(), // necessary
+                        description: _remarkController.text,
+                        machine: lineVal, // necessary
+                        shift: shiftVal,
+                        device: _deviceName,
+                        uom: _baseUom,
+                        qty: int.parse(_quantityController.text),
+                        totalQty: (_biggerRate * int.parse(_quantityController.text)).round(),
+                        purchasePrice: _purchasePrice,
+                        isPosted: false,
+                        shiftDate: _shiftConvertedDate,
+                        createdAt: currentTime,
+                        updatedAt: currentTime
+                      );
+                      await CounterInLooseDatabase.instance.create(newCounterIn).then((res) {
+                        _counterInList.insert(0, newCounterIn);
+                        _masterController.text = '';
+                        _quantityController.text = '';
+                        _remarkController.text = '';
+                        _baseUom = 'UNIT';
+                        _biggerRate = 0.0;
+                        _purchasePrice = 0.0;
+                      }).catchError((err) {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
+                      });
+                      setState(() {
+                        _isLoading = false;
                       });
                     },
                     child: _isLoading ? Transform.scale(
@@ -594,6 +802,100 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                     ),
                     style: ElevatedButton.styleFrom(
                       primary: (_isSaveDisabled || _qty <= 0) ? style.Colors.mainDarkGrey : style.Colors.button4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Container(
+                  padding: const EdgeInsets.only(top: 4, left: 6, right: 6),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_isLoadingDel == true) { return; }
+                      if(_counterInList.isEmpty) { return; }
+                      if(_quantityController.text.isEmpty) { return; }
+                      if(_quantityController.text == '0') { return; }
+
+                      var currentTime = DateTime.now();
+                      setState(() {
+                        _isLoadingDel = true;
+                      });
+
+                      Utils.openPasswordPanel(
+                        context,
+                        _supervisorPassword,
+                        _passwordController,
+                        _passwordNode,
+                        _passwordFormKey,
+                        'padlock',
+                        'Do you want to make change?',
+                        'Confirm',
+                        () async {
+                          print('You called!');
+                          
+                          final firstRow = _counterInList[0];
+                          final result = firstRow.qty - int.parse(_quantityController.text.trim());
+                          if(result <= 0) {
+                            // Delete
+                            await CounterInLooseDatabase.instance.delete(firstRow.id!);
+                            _counterInList.removeWhere((item) => item.id == firstRow.id);
+                          } else {
+                            // Update
+                            CounterInLoose updateCounterIn = CounterInLoose(
+                              id: firstRow.id,
+                              stock: firstRow.stock,
+                              description: firstRow.description,
+                              machine: firstRow.machine,
+                              shift: firstRow.shift,
+                              device: firstRow.device,
+                              uom: firstRow.uom,
+                              qty: result, // Update Quantity
+                              totalQty: (firstRow.totalQty - ((firstRow.totalQty/firstRow.qty) * int.parse(_quantityController.text.trim()))).toInt(),
+                              purchasePrice: firstRow.purchasePrice,
+                              isPosted: false,
+                              shiftDate: firstRow.shiftDate,
+                              createdAt: firstRow.createdAt,
+                              updatedAt: currentTime
+                            );
+
+                            await CounterInLooseDatabase.instance.update(updateCounterIn).then((res) {
+                              _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
+                              _masterController.text = '';
+                              _quantityController.text = '';
+                              _remarkController.text = '';
+                            }).catchError((err) {
+                              Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update new StockIn counter.', 'Understand');
+                            });
+                          }
+                          setState(() {
+                            _isLoadingDel = false;
+                          });
+                        },
+                        () {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content:  Text("❌ Wrong password!", textAlign: TextAlign.center,),
+                            duration: Duration(milliseconds: 3000)
+                          ));
+                        }
+                      );
+
+                    },
+                    child: _isLoadingDel ? Transform.scale(
+                        scale: 0.6,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 8.0,
+                          valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+                        ),
+                      ) :  const Text(
+                      'Del.',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      primary: _counterInList.isEmpty ? style.Colors.mainDarkGrey : style.Colors.button2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

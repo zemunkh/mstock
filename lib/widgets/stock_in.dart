@@ -317,10 +317,10 @@ class _StockInWidgetState extends State<StockInWidget> {
                     List<Details> details = [];
                     for (var i = 0; i < _counterInList.length; i++) {
                       Details n = Details(
-                        numbering: i.toString(),
+                        numbering: (i + 1).toString(),
                         stock: _counterInList[i].stock,
                         pos: 0,
-                        description: _counterInList[i].description,
+                        description: '${_counterInList[i].stock} | $_deviceName | ${_counterInList[i].machine} | ${_counterInList[i].shift} | ${DateFormat("HH:mm:ss").format(currentTime)}',
                         price: _counterInList[i].purchasePrice,
                         uom: _counterInList[i].uom,
                         qty: _counterInList[i].qty,

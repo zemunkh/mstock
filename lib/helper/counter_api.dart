@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:mstock/model/counterInLoose.dart';
 import 'package:multiple_result/multiple_result.dart';
 import '../model/counter.dart';
 
@@ -9,6 +10,34 @@ import '../model/counter.dart';
 class CounterApi {
   final HttpClient _httpClient = HttpClient();
 
+  static Future<Counter> createLog(Map body, String _url) async {
+    print('Body 👉 : $body');
+    var response = await http.post(
+      Uri.parse('$_url/logging/create'),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('👉 : $err');
+      throw Exception('Failed to fetch data.');
+    });
+
+    if (response.statusCode == 200) {
+      var receivedData = json.decode(response.body);
+      print('Rec: $receivedData');
+      receivedData['weight'] = receivedData['weight'].toDouble();
+      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
+      return Counter.fromJson(receivedData);
+    } else {
+      throw Exception('Failed to create counter.');
+    }
+  }
 
   static Future<Counter> create(Map body, String _url) async {
     print('Body 👉 : $body');

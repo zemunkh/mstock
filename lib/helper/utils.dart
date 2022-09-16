@@ -229,8 +229,10 @@ class Utils {
                       if(password == passwordController.text.trim()) {
                         print('\n\n Matched!!! \n\n');
                         matchedCallback();
-                        passwordController.text = '';
-                        Timer(const Duration(milliseconds: 500), () => Navigator.of(context).maybePop());
+                        Timer(const Duration(milliseconds: 500), () {
+                          Navigator.of(context).maybePop();
+                          passwordController.text = '';
+                        });
                       } else {
                         unMatchedCallback();
                       }
