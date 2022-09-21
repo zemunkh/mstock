@@ -159,10 +159,10 @@ class _StockInWidgetState extends State<StockInWidget> {
 
   @override
   void initState() {
-    super.initState();
     initSettings();
     _deletePostedStockIns();
     _masterController.addListener(masterListener);
+    super.initState();
   }
 
   @override

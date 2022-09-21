@@ -345,15 +345,16 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
       return buildContainer(
         SingleChildScrollView(
           child: DataTable(
-          columnSpacing: 24,
+          columnSpacing: 20,
           showCheckboxColumn: false,
+          
           columns: const <DataColumn>[
             DataColumn(
               label: Text(
                 'Stocks:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -363,7 +364,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                 'Qty:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -383,7 +384,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                 'Remark:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -391,10 +392,36 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
           ],
           rows: _counterInList.map((row) => DataRow(
             cells: [
-              DataCell(Text(row.stock)),
+              DataCell(
+                SizedBox(
+                  width: 80,
+                  child: Text(row.stock),
+                )
+              ),
               DataCell(Text(row.qty.toString())),
-              DataCell(Text(row.uom)),
-              DataCell(Text(row.description)),
+              DataCell(
+                SizedBox(
+                  width: 60,
+                  child: Text(
+                    row.uom,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                )
+              ),
+              DataCell(
+                SizedBox(
+                  width: 60,
+                  child: Text(
+                    row.description,
+                    style: const TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
             ]
           )).toList(),
           ),
