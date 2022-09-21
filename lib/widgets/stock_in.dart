@@ -306,6 +306,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                 flex: 4,
                 child: ElevatedButton(
                   onPressed: () async {
+                    if(isPosting) return;
                     setState(() {
                       isPosting = true;
                     });
@@ -320,30 +321,29 @@ class _StockInWidgetState extends State<StockInWidget> {
                         numbering: (i + 1).toString(),
                         stock: _counterInList[i].stock,
                         pos: 0,
-                        description: '${_counterInList[i].stock} | $_deviceName | ${_counterInList[i].machine} | ${_counterInList[i].shift} | ${DateFormat("HH:mm:ss").format(currentTime)}',
+                        description: 'From production ${_counterInList[i].stock} | $_deviceName | ${_counterInList[i].machine} | ${_counterInList[i].shift} | ${DateFormat("HH:mm:ss").format(currentTime)}',
                         price: _counterInList[i].purchasePrice,
                         uom: _counterInList[i].uom,
                         qty: _counterInList[i].qty,
                         amount: _counterInList[i].qty * _counterInList[i].purchasePrice,
                         note: '$_deviceName ${_counterInList[i].shift} ${_counterInList[i].machine} ${DateFormat("ddMMyyyy HH:mm").format(currentTime)}',
-                        // ref1: _deviceName,
                         costCentre: '',
-                        project: _project,
-                        stockLocation: _location
+                        project: _project.isEmpty ? '' : _project,
+                        stockLocation: _location.isEmpty ? '' : _location,
                       );
                       details.add(n);
                     }
                     // print('👉 date format: ${DateFormat("yyMMddHHmmss").format(currentTime)}');
                     StockIn newValue = StockIn(
-                      stockInCode: '${_docPrefix}${DateFormat("yyMMddHHmmss").format(currentTime)}',
+                      stockInCode: '$_docPrefix${DateFormat("yyMMddHHmmss").format(currentTime)}',
                       stockInDate: shiftConvertedTime.toUtc(),
                       description: 'App Stock In from $_deviceName',
                       referenceNo: '',
                       title: '',
                       notes: currentTime.toUtc().toIso8601String(),
                       costCentre: '',
-                      project: _project,
-                      stockLocation: _location,
+                      project: _project.isEmpty ? '' : _project,
+                      stockLocation: _location.isEmpty ? '' : _location,
                       details: details,
                     );
                     
@@ -360,10 +360,10 @@ class _StockInWidgetState extends State<StockInWidget> {
                             print('Wrong ❌');
                           });
                         }
-                        setState(() {
-                          _counterInList = [];
-                          _counterInListView = [];     
-                        });
+                        // setState(() {
+                        _counterInList = [];
+                        _counterInListView = [];     
+                        // });
                         Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn is successfully posted!', 'Okay');
                       } else if(status == 408) {
                         Utils.openDialogPanel(context, 'close', 'Oops!', 'Timed out! Check your network connection.', 'Understand');

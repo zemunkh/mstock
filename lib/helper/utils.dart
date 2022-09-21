@@ -209,7 +209,7 @@ class Utils {
                     child: const Text('Cancel', style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w800, color: style.Colors.mainAccent)),
                     onPressed: (){
                       passwordController.text = '';
-                      Timer(const Duration(milliseconds: 500), () => Navigator.of(context).maybePop());
+                      Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
                     },
                   ),
                   const SizedBox(
@@ -230,7 +230,7 @@ class Utils {
                         print('\n\n Matched!!! \n\n');
                         matchedCallback();
                         Timer(const Duration(milliseconds: 500), () {
-                          Navigator.of(context).maybePop();
+                          Navigator.of(context).pop();
                           passwordController.text = '';
                         });
                       } else {
@@ -307,7 +307,7 @@ class Utils {
                 ),
                 child: Text(btnText, style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w800, color: Colors.white)),
                 onPressed: (){
-                  Timer(const Duration(milliseconds: 500), () => Navigator.of(context).maybePop());
+                  Timer(const Duration(milliseconds: 500), () => Navigator.of(context).pop());
                 },
               )
             ],

@@ -66,42 +66,6 @@ class CounterInLooseDatabase {
     return counter.copy(id: id);
   }
 
-  Future<CounterInLoose> readCounterIn(int id) async {
-    final db = await instance.database;
-
-    final maps = await db.query(
-      tableCounterInLoose,
-      columns: CounterInLooseFields.values,
-      where: '${CounterInLooseFields.id} = ?',
-      whereArgs: [id],
-    );
-
-    if (maps.isNotEmpty) {
-      return CounterInLoose.fromJson(maps.first);
-    } else {
-      throw Exception('ID $id not found');
-    }
-  }
-
-  Future<CounterInLoose> readCounterInByCode(String stockCode, String machine) async {
-    final db = await instance.database;
-
-    final maps = await db.query(
-      tableCounterInLoose,
-      columns: CounterInLooseFields.values,
-      where: '${CounterInLooseFields.stock} = ? AND ${CounterInLooseFields.isPosted} = ? AND ${CounterInLooseFields.machine} = ?',
-      whereArgs: [stockCode, 0, machine],
-    );
-
-    if (maps.isNotEmpty) {
-      return CounterInLoose.fromJson(maps.first);
-    } else if(maps.isEmpty) {
-      throw Exception('404'); 
-    } else {
-      throw Exception('StockCode from CounterIn $stockCode not found');
-    }
-  }
-
   Future<Result<Exception, List<CounterInLoose>>> readCounterInsLooseNotPosted() async {
     final db = await instance.database;
     const orderBy = '${CounterInLooseFields.updatedAt} DESC';
@@ -130,26 +94,6 @@ class CounterInLooseDatabase {
       columns: CounterInLooseFields.values,
       where: '${CounterInLooseFields.isPosted} = ?',
       whereArgs: [1],
-      orderBy: orderBy
-    );
-
-    if (maps.isNotEmpty) {
-      // print('👉 Search: $maps');
-      return maps.map((json) => CounterInLoose.fromJson(json)).toList();
-    } else {
-      throw Exception('Stocks from Counter stockIns are not found');
-    }
-  }
-
-  Future<List<CounterInLoose>> readCounterInByCodeAndMachine(String stock, String machine) async {
-    final db = await instance.database;
-    const orderBy = '${CounterInLooseFields.updatedAt} ASC';
-
-    final maps = await db.query(
-      tableCounterInLoose,
-      columns: CounterInLooseFields.values,
-      where: '${CounterInLooseFields.stock} = ? AND ${CounterInLooseFields.machine} = ?',
-      whereArgs: [stock, machine],
       orderBy: orderBy
     );
 

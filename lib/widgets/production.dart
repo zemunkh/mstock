@@ -609,6 +609,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 child: ElevatedButton(
                   onPressed: () async {
                     if (isSaveDisabled == true) { return; }
+                    if (_isLoading == true) { return; }
                     setState(() {
                       _isLoading = true;
                     });

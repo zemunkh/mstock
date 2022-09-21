@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:intl/intl.dart';
+import '../../helper/utils.dart';
 import '../widgets/stock_in.dart';
 import '../widgets/stock_in_loose.dart';
 import '../widgets/main_drawer.dart';
@@ -16,7 +17,8 @@ class StockInScreen extends StatefulWidget {
 
 class _StockInScreenState extends State<StockInScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  List<String> _shiftList = [];
+  String shiftValue = '';
   bool isMainTab = true;
 
   Future<bool> _backButtonPressed() async {
@@ -37,6 +39,17 @@ class _StockInScreenState extends State<StockInScreen> {
       )
     );
     return showPop ?? false;
+  }
+
+  Future initSettings() async {
+    shiftValue = await Utils.getShiftName();
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initSettings();
   }
 
   @override
@@ -107,6 +120,16 @@ class _StockInScreenState extends State<StockInScreen> {
                               color: style.Colors.mainRed,
                               fontWeight: FontWeight.bold,
                             ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: style.Colors.mainDarkGrey,
+                              border: Border.all(
+                                color: Colors.black,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(shiftValue),
                           ),
                         ],
                       )

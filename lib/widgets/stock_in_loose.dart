@@ -63,8 +63,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   int _qty = 0;
   String lineVal = '';
   List<String> _machineList = [];
-  List<String> _shiftList = [];
-  String shiftVal = '';
+  String _shiftValue = '';
   bool _isEmptyValue = true;
 
   Future _clearTextController(BuildContext context,
@@ -84,33 +83,11 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
       setState(() {
         _qty = int.parse(buffer);
       });
-
-      // await Future.delayed(const Duration(milliseconds: 400), () {
-      //   _quantityNode.unfocus();
-      //   FocusScope.of(context).requestFocus(FocusNode());
-      // });
     } else {
       setState(() {
         _qty = 0;
       });
     }
-
-    // if (buffer.endsWith(r'$')) {
-    //   buffer = buffer.substring(0, buffer.length - 1);
-    //   trueVal = buffer;
-    //   _quantityNode.unfocus();
-    //   setState(() {
-    //     _isLoading = true;
-    //   });
-
-      // await Future.delayed(const Duration(milliseconds: 400), () {
-        // setState(() {
-        //   _quantityController.text = trueVal;
-        // });
-        // _quantityNode.unfocus();
-        // FocusScope.of(context).requestFocus(FocusNode());
-      // });
-    // }
   }
 
   Future masterListener() async {
@@ -180,7 +157,6 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   }
 
   Future initSettings() async {
-    var shifts = await FileManager.readStringList('shift_list');
     _machineList = await FileManager.readStringList('machine_line');
     _scanDelay = await FileManager.readString('scan_delay');
     _supervisorPassword = await FileManager.readString('supervisor_password');
@@ -213,21 +189,8 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
       lineVal = _machineList[0];
       _isEmptyValue = _isEmptyValue && false;
     }
-    print('👉 $shifts');
-    if(shifts.isEmpty) {
-      _shiftList = ['Morning', 'Afternoon', 'Night'];
-      shiftVal = 'Morning';
-    } else {
-      _isEmptyValue = _isEmptyValue && false;
-      for (var shift in shifts) {
-        print('👉 Shift: $shift');
-        var dayName = shift.split(',')[0];
-        var startTime = shift.split(',')[1];
-        var endTime = shift.split(',')[2];
-        _shiftList.add(dayName);
-      }
-      shiftVal = await Utils.getShiftName();
-    }
+
+    _shiftValue = await Utils.getShiftName();
 
     final result = await CounterInLooseDatabase.instance.readCounterInsLooseNotPosted();
 
@@ -267,87 +230,44 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
       return Padding(
         padding: const EdgeInsets.only(left: 2, right: 2),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Expanded(
-              flex: 5,
-              child: Column(
-                children: [
-                  const Text(
-                    'Machine Line: ',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: style.Colors.mainGrey,
-                    ),
+            Column(
+              children: [
+                const Text(
+                  'Machine Line: ',
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: style.Colors.mainGrey,
                   ),
-                  DropdownButton(
-                    key: _machineKey,
-                    // Initial Value
-                    value: lineVal,
-                    style: const TextStyle(
-                      color: style.Colors.button2,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    // Down Arrow Icon
-                    icon: const Icon(Icons.keyboard_arrow_down),
+                ),
+                DropdownButton(
+                  key: _machineKey,
+                  // Initial Value
+                  value: lineVal,
+                  style: const TextStyle(
+                    color: style.Colors.button2,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  // Down Arrow Icon
+                  icon: const Icon(Icons.keyboard_arrow_down),
 
-                    // Array list of items
-                    items: _machineList.map((String items) {
-                      return DropdownMenuItem(
-                        value: items,
-                        child: Text(items),
-                      );
-                    }).toList(),
-                    onChanged: (Object? value) {
-                      lineVal = value.toString();
-                      setState(() {});
-                    },
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: Column(
-                children: [
-                  const Text(
-                    'Shift: ',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: style.Colors.mainGrey,
-                    ),
-                  ),
-                  DropdownButton(
-                    // Initial Value
-                    key: _shiftKey,
-                    value: shiftVal,
-                    style: const TextStyle(
-                      color: Colors.deepPurple,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    // Down Arrow Icon
-                    icon: const Icon(Icons.keyboard_arrow_down),
-
-                    // Array list of items
-                    items: _shiftList.map((String items) {
-                      return DropdownMenuItem(
-                        value: items,
-                        child: Text(items),
-                      );
-                    }).toList(),
-                    onChanged: (Object? value) {
-                      shiftVal = value.toString();
-                      setState(() {});
-                    },
-                  ),
-                ],
-              ),
+                  // Array list of items
+                  items: _machineList.map((String items) {
+                    return DropdownMenuItem(
+                      value: items,
+                      child: Text(items),
+                    );
+                  }).toList(),
+                  onChanged: (Object? value) {
+                    lineVal = value.toString();
+                    setState(() {});
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -496,6 +416,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                 flex: 4,
                 child: ElevatedButton(
                   onPressed: () async {
+                    if(isPosting) return;
                     setState(() {
                       isPosting = true;
                     });
@@ -518,8 +439,8 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                         note: '$_deviceName ${_counterInList[i].shift} ${_counterInList[i].machine} ${DateFormat("ddMMyyyy HH:mm").format(currentTime)}',
                         // ref1: _deviceName,
                         costCentre: '',
-                        project: _project,
-                        stockLocation: _location
+                        project: _project.isEmpty ? '' : _project,
+                        stockLocation: _location.isEmpty ? '' : _location,
                       );
                       details.add(n);
                     }
@@ -529,11 +450,11 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                       stockInDate: shiftConvertedTime.toUtc(),
                       description: 'App Stock In from $_deviceName',
                       referenceNo: '',
-                      title: ' From production | $_deviceName | $shiftVal | $lineVal | ${DateFormat("HH:mm").format(currentTime)}',
+                      title: ' From production | $_deviceName | $_shiftValue | $lineVal | ${DateFormat("HH:mm").format(currentTime)}',
                       notes: currentTime.toUtc().toIso8601String(),
                       costCentre: '',
-                      project: _project,
-                      stockLocation: _location,
+                      project: _project.isEmpty ? '' : _project,
+                      stockLocation: _location.isEmpty ? '' : _location,
                       details: details,
                     );
                     
@@ -764,7 +685,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                         stock: _masterController.text.trim(), // necessary
                         description: _remarkController.text,
                         machine: lineVal, // necessary
-                        shift: shiftVal,
+                        shift: _shiftValue,
                         device: _deviceName,
                         uom: _baseUom,
                         qty: int.parse(_quantityController.text),
