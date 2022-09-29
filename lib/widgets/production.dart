@@ -202,9 +202,18 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
     buffer = _machineLineController.text;
     bool isFound = false;
     print('Machine text: ${_machineLineController.text}');
+    if (buffer.isEmpty) {
+      setState(() {
+        _isMatched = false;
+      });
+    }
+
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
+      setState(() {
+        _isMatched = false;
+      });
       // Load list of Machine Lines from Maintenance
       for (var el in _machineList) {
         if(trueVal == el) {
@@ -654,8 +663,16 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             weight: _masterStock.weight
                           );
                         // 4. save it to the db.
-                          await CounterApi.create(newCounter.toJson(), _url).then((res) async {
-                            if(res.stockId == newCounter.stockId) {
+                          final result = await CounterApi.create(newCounter.toJson(), _url); 
+                          
+                          result.when((err) {
+                            print('Err -> 3: $err');
+                            Utils.openDialogPanel(context, 'close', 'Oops!', '3# $err', 'Understand');
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }, (newCounterRes) {
+                            if(newCounterRes.stockId == newCounter.stockId) {
                               _counterList.add(newCounter);
                               level = 0;
                               activeList = [false, false,  false, false];
@@ -669,14 +686,9 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                                 duration: Duration(milliseconds: 3000)
                               ));
                             }
-                            _isLoading = false;
-                            setState(() {});
-                          }).catchError((err) {
-                            print('Err -> 3: $err');
-                            Utils.openDialogPanel(context, 'close', 'Oops!', '3# $err', 'Understand');
                             setState(() {
                               _isLoading = false;
-                            });
+                            });                            
                           });
 
                         }).catchError((err) {
@@ -700,6 +712,16 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                           return;
                         }
                       }
+
+                      // if(_counterList.isEmpty) {
+                      //   await CounterApi.readCountersWithMachine(_url, _masterController.text.trim(), false).then((res) {
+                      //     setState(() {
+                      //       _counterList = res;
+                      //     });
+                      //   }).catchError((err) {
+                      //     print('Err: $err');
+                      //   });
+                      // }
 
                       if(c.qty <= 0) {
                         await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
@@ -953,6 +975,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
 
                               setState(() {
                                 _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                                _stickerDeleteController.text = '';
                               });
 
                             }).catchError((err) {

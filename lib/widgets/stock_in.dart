@@ -373,7 +373,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                       isPosting = false;
                     }).catchError((err) {
                       print('Err:  ❌ $err');
-                      Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
+                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Error: $err', 'Understand');
                       isPosting = false;
                     });
                     setState(() {});
@@ -483,6 +483,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                         if('$err'.contains('404')) {
                           var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
                           CounterIn newCounterIn = CounterIn(
+                            id: c.id,
                             stock: c.stockCode, // necessary
                             description: c.stockName,
                             machine: c.machine, // necessary

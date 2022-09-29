@@ -39,7 +39,7 @@ class CounterApi {
     }
   }
 
-  static Future<Counter> create(Map body, String _url) async {
+  static Future<Result<Exception, Counter>> create(Map body, String _url) async {
     print('Body 👉 : $body');
     var response = await http.post(
       Uri.parse('$_url/counter/create'),
@@ -54,17 +54,20 @@ class CounterApi {
       },
     ).catchError((err) {
       print('👉 : $err');
-      throw Exception('Failed to fetch data.');
+      throw Exception('Failed to create new Counter.');
     });
 
     if (response.statusCode == 200) {
-      var receivedData = json.decode(response.body);
-      print('Rec: $receivedData');
-      receivedData['weight'] = receivedData['weight'].toDouble();
-      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
-      return Counter.fromJson(receivedData);
+      if(response.body.isEmpty) {
+        return Error(Exception('404'));
+      } else {
+        var receivedData = json.decode(response.body);
+        receivedData['weight'] = receivedData['weight'].toDouble();
+        receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
+        return Success(Counter.fromJson(receivedData));
+      }
     } else {
-      throw Exception('Failed to create counter.');
+      return Error(Exception(response));
     }
   }
 
@@ -116,7 +119,7 @@ class CounterApi {
   }
 
   static Future<Result<Exception, Counter>> readCounterByCodeAndMachine(String _stockCode, String _machine, String _url) async {
-    print('URL: $_url/counter/stock/machine?stockCode=$_stockCode&machine=$_machine');
+    // print('URL: $_url/counter/stock/machine?stockCode=$_stockCode&machine=$_machine');
     var response = await http.get(
       Uri.parse('$_url/counter/stock/machine?stockCode=$_stockCode&machine=$_machine'),
     ).timeout(
@@ -130,6 +133,7 @@ class CounterApi {
     });
 
     if (response.statusCode == 200) {
+      print('👉 : ${response.body}');
       if(response.body.isEmpty) {
         return Error(Exception('404'));
       } else {

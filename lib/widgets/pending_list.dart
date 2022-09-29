@@ -43,7 +43,7 @@ class _PendingListState extends State<PendingList> {
     for (var m in _machineList) {
       var dateList = [];
       print('Machine 👉 : $m');
-      await CounterApi.readCountersWithMachine(_url, m, true).then((list) async {
+      await CounterApi.readCountersWithMachine(_url, m, false).then((list) async {
         for (var item in list) {
           var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
           final index = dateList.indexWhere((d) => d == tempDate);
