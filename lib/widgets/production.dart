@@ -43,6 +43,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
   bool _isMatched = false;
   String _shiftValue = '';
   String _supervisorPassword = '';
+  String _deviceName = '';
   String _url = '';
   String _qneUrl = '';
   String _dbCode = '';
@@ -86,6 +87,11 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
 
   Future masterListener() async {
     buffer = _masterController.text;
+    if (buffer.isEmpty) {
+      setState(() {
+        _isMatched = false;
+      });
+    }
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
@@ -207,7 +213,6 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
         _isMatched = false;
       });
     }
-
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
@@ -259,6 +264,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
     _scanDelay = await FileManager.readString('scan_delay');
     _machineList = await FileManager.readStringList('machine_line');
     _supervisorPassword = await FileManager.readString('supervisor_password');
+    _deviceName = await FileManager.readString('device_name');
     final ip =  await FileManager.readString('counter_ip_address');
     final port =  await FileManager.readString('counter_port_number');
     if(ip != '' && port != '') {
@@ -648,6 +654,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             stockCode: _masterStock.stockCode,
                             stockName: _masterStock.stockName,
                             machine: _machineLineController.text.trim(),
+                            device: _deviceName,
                             shift: _shiftValue,
                             shiftDate: _shiftConvertedDate,
                             createdTime: currentTime,
@@ -744,6 +751,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             stockCode: c.stockCode,
                             stockName: c.stockName, 
                             machine: _machineLineController.text.trim(),
+                            device: _deviceName,
                             shift: _shiftValue,
                             shiftDate: c.shiftDate,
                             createdTime: c.createdTime,
@@ -765,7 +773,8 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               (c.qty + 1).toString(), 
                               updatedCounter.totalQty.toString(),
                               _url,
-                              'Prod-Add'
+                              'Prod-Add',
+                              _deviceName
                             )
                             .then((res) {
                             setState(() {
@@ -795,6 +804,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                           stockCode: c.stockCode,
                           stockName: c.stockName, 
                           machine: _machineLineController.text.trim(),
+                          device: _deviceName,
                           shift: _shiftValue,
                           shiftDate: c.shiftDate,
                           createdTime: c.createdTime,
@@ -816,7 +826,8 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             (c.qty + 1).toString(), 
                             ((c.totalQty / c.qty) * (c.qty + 1)).round().toString(),
                             _url,
-                            'Prod-Add'
+                            'Prod-Add',
+                            _deviceName
                           )
                           .then((res) {
                           setState(() {
@@ -949,6 +960,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               stockCode: c.stockCode,
                               stockName: c.stockName,
                               machine: _machineLineController.text.trim(),
+                              device: _deviceName,
                               shift: _shiftValue,
                               shiftDate: c.shiftDate,
                               createdTime: c.createdTime,
@@ -969,7 +981,8 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                                 updatedCounter.updatedTime.toIso8601String(),
                                 (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(),
                                 _url,
-                                'Prod-Deduct'
+                                'Prod-Deduct',
+                                _deviceName
                                 ).then((res) {
                               print('Updated ID: $res');
 

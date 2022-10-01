@@ -48,7 +48,7 @@ class CounterApi {
       },
       body: body
     ).timeout(
-      const Duration(seconds: 4),
+      const Duration(seconds: 5),
       onTimeout: () {
         return http.Response('Error', 408);
       },
@@ -75,7 +75,7 @@ class CounterApi {
     var response = await http.get(
       Uri.parse('$_url/counter?id=$_id'),
     ).timeout(
-      const Duration(seconds: 4),
+      const Duration(seconds: 5),
       onTimeout: () {
         return http.Response('Error', 408);
       },
@@ -99,7 +99,7 @@ class CounterApi {
     var response = await http.get(
       Uri.parse('$_url/counter?stockCode=$_stockCode'),
     ).timeout(
-      const Duration(seconds: 4),
+      const Duration(seconds: 5),
       onTimeout: () {
         return http.Response('Error', 408);
       },
@@ -123,7 +123,7 @@ class CounterApi {
     var response = await http.get(
       Uri.parse('$_url/counter/stock/machine?stockCode=$_stockCode&machine=$_machine'),
     ).timeout(
-      const Duration(seconds: 4),
+      const Duration(seconds: 5),
       onTimeout: () {
         return http.Response('Error', 408);
       },
@@ -152,7 +152,7 @@ class CounterApi {
     var response = await http.get(
       Uri.parse('$_url/counter/order?stockCode=$_stockCode'),
     ).timeout(
-      const Duration(seconds: 4),
+      const Duration(seconds: 5),
       onTimeout: () {
         return http.Response('Error', 408);
       },
@@ -176,7 +176,7 @@ class CounterApi {
     var response = await http.get(
       Uri.parse('$_url/counter/machine?machine=$_machine')
     ).timeout(
-      const Duration(seconds: 4),
+      const Duration(seconds: 5),
       onTimeout: () {
         return http.Response('Error', 408);
       },
@@ -210,7 +210,7 @@ class CounterApi {
     var response = await http.get(
       Uri.parse('$_url/counter/all')
     ).timeout(
-      const Duration(seconds: 4),
+      const Duration(seconds: 5),
       onTimeout: () {
         return http.Response('Error', 408);
       },
@@ -232,7 +232,7 @@ class CounterApi {
     }
   }
 
-  static Future<Counter> updateCounter(String _id, String _updatedAt, String _qty, String _totalQty, String _url, String _from) async {
+  static Future<Counter> updateCounter(String _id, String _updatedAt, String _qty, String _totalQty, String _url, String _from, String _deviceName) async {
     var response = await http.post(
       Uri.parse('$_url/counter/updateQty'),
       body: {
@@ -240,10 +240,11 @@ class CounterApi {
         'updated_at': _updatedAt,
         'totalQty': _totalQty,
         'qty': _qty,
-        'from': _from
+        'from': _from,
+        'device': _deviceName
       }
     ).timeout(
-      const Duration(seconds: 4),
+      const Duration(seconds: 5),
       onTimeout: () {
         return http.Response('Error', 408);
       },

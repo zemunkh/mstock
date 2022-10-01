@@ -3,7 +3,7 @@ const String tableCounter = 'counter';
 class CounterFields {
   static final List<String> values = [
     /// Add all fields
-    id, stockId, stockCode, stockName, machine, shift, stockCategory, stockGroup, 
+    id, stockId, stockCode, stockName, machine, device, shift, stockCategory, stockGroup, 
     stockClass, weight, qty, totalQty, purchasePrice, uom, createdTime, updatedTime
   ];
 
@@ -12,6 +12,7 @@ class CounterFields {
   static const String stockCode = 'stockCode';
   static const String stockName = 'stockName';
   static const String machine = 'machine';
+  static const String device = 'device';
   static const String shift = 'shift';
   static const String stockCategory = 'category';
   static const String stockGroup = 'stockGroup';
@@ -33,6 +34,7 @@ class Counter {
   final String stockCode;
   final String stockName;
   final String machine;
+  final String device;
   final String shift;
   final String stockCategory;
   final String group;
@@ -52,6 +54,7 @@ class Counter {
     required this.stockCode,
     required this.stockName,
     required this.machine,
+    required this.device,
     required this.shift,
     required this.stockCategory,
     required this.group,
@@ -72,6 +75,7 @@ class Counter {
     String? stockCode,
     String? stockName,
     String? machine,
+    String? device,
     String? shift,
     String? stockCategory,
     String? group,
@@ -91,6 +95,7 @@ class Counter {
         stockCode: stockCode ?? this.stockCode,
         stockName: stockName ?? this.stockName,
         machine: machine ?? this.machine,
+        device: device ?? this.device,
         shift: shift ?? this.shift,
         stockCategory: stockCategory ?? this.stockCategory,
         group: stockId ?? this.group,
@@ -112,6 +117,7 @@ class Counter {
       stockCode: json[CounterFields.stockCode] as String,
       stockName: json[CounterFields.stockName] as String,
       machine: json[CounterFields.machine] as String,
+      device: json[CounterFields.device] as String,
       shift: json[CounterFields.shift] as String,
       stockCategory: json[CounterFields.stockCategory] as String,
       group: json[CounterFields.stockGroup] as String,
@@ -132,6 +138,7 @@ class Counter {
     CounterFields.stockCode: stockCode,
     CounterFields.stockName: stockName,
     CounterFields.machine: machine,
+    CounterFields.device: device,
     CounterFields.shift: shift,
     CounterFields.stockCategory: stockCategory,
     CounterFields.stockGroup: group,

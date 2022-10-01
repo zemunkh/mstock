@@ -504,6 +504,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                               stockCode: el.stock,
                               stockName: val.stockName,
                               machine: el.machine,
+                              device: _deviceName,
                               shift: el.machine,
                               shiftDate: el.shiftDate,
                               createdTime: currentTime,
