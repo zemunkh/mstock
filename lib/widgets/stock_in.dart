@@ -72,7 +72,7 @@ class _StockInWidgetState extends State<StockInWidget> {
     await CounterInDatabase.instance.readCounterInsPosted().then((res) async {
       for (var el in res) {
         final diff = currentTime.difference(el.updatedAt);
-        if(diff.inHours > 48) {
+        if(diff.inHours > 23) {
           await CounterInDatabase.instance.delete(el.id!);
         }
       }
@@ -518,12 +518,6 @@ class _StockInWidgetState extends State<StockInWidget> {
                       if(c.qty > 0) {
                         CounterApi.updateCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
                           print('👉 Updated ID: $r');
-                        }).catchError((err) {
-                          print('Error: $err');
-                        });
-                      } else {
-                        CounterApi.delete(c.id.toString(), _url).then((r) {
-                          print('👉 Deleted ID: $r');
                         }).catchError((err) {
                           print('Error: $err');
                         });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 import '../model/uoms.dart';
 import '../model/stock.dart';
 import '../model/counter.dart';
@@ -41,6 +42,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
   bool _isLoading = false;
   bool isSaveDisabled = true;
   bool _isMatched = false;
+  bool _isCheckerLoading = false;
   String _shiftValue = '';
   String _supervisorPassword = '';
   String _deviceName = '';
@@ -89,7 +91,8 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
     buffer = _masterController.text;
     if (buffer.isEmpty) {
       setState(() {
-        _isMatched = false;
+        isSaveDisabled = true;
+        activeList = [false, false, false, false];
       });
     }
     if (buffer.endsWith(r'$')) {
@@ -208,11 +211,6 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
     buffer = _machineLineController.text;
     bool isFound = false;
     print('Machine text: ${_machineLineController.text}');
-    if (buffer.isEmpty) {
-      setState(() {
-        _isMatched = false;
-      });
-    }
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
@@ -230,6 +228,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
         await CounterApi.readCountersWithMachine(_url, trueVal, false).then((res) {
           _counterList = res;
           _isMatched = true;
+          print('HERE HERE');
           setState(() {});
           FocusScope.of(context).requestFocus(_masterNode);
         }).catchError((err) {
@@ -243,10 +242,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
         });
       }
       
-      // Search and compare the result
-      // If found, go to the next section
-      // If not, alert to user.
-      await Future.delayed(const Duration(milliseconds: 1000), () {
+      await Future.delayed(const Duration(milliseconds: 500), () {
         _machineLineController.text = trueVal;
       }).then((value) {
         _machineLineNode.unfocus();
@@ -255,6 +251,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
     }
     if(buffer.isEmpty) {
       setState(() {
+        _isMatched = false;
         _counterList = [];
       });
     }
@@ -618,9 +615,62 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                   ),
                 ),
               ),
-              const Expanded(flex: 3, child: Text('')),
+              const Expanded(
+                flex: 1,
+                child: Text(''),
+              ),
               Expanded(
-                flex: 3,
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      _isCheckerLoading = true;
+                    });
+                    String _code = Random().nextInt(999999).toString().padLeft(6, '0');
+                    await CounterApi.connectionChecker(_code, _url).then((res) {
+                      if(res == _code) {
+                        setState(() {
+                          _isCheckerLoading = false;
+                        });
+                        Utils.openDialogPanel(context, 'accept', 'Done!', 'Connection is ok!', 'Okay');
+                      } else {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Connection is not okay', 'Understand');
+                        setState(() {
+                          _isCheckerLoading = false;
+                        });
+                      }
+                    }).catchError((err) {
+                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Test is failed. Error: $err', 'Understand');
+                      setState(() {
+                        _isCheckerLoading = false;
+                      });
+                    });
+                  },
+                  child: _isCheckerLoading ? Transform.scale(
+                      scale: 0.6,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 8.0,
+                        valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+                      ),
+                    ) : const Icon(
+                    Icons.replay,
+                    size: 24,
+                    color: style.Colors.mainGrey,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    primary: style.Colors.background,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const Expanded(
+                flex: 1,
+                child: Text(''),
+              ),
+              Expanded(
+                flex: 2,
                 child: ElevatedButton(
                   onPressed: () async {
                     if (isSaveDisabled == true) { return; }

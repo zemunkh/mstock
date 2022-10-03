@@ -32,6 +32,7 @@ class _PendingListState extends State<PendingList> {
   List<Pending> _pendingListView = [];
 
   Future initPendingTable() async {
+    final currentTime = DateTime.now();
     // Same day logic and Pending table
     setState(() {
       _isLoading = true;
@@ -47,11 +48,16 @@ class _PendingListState extends State<PendingList> {
         for (var item in list) {
           var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
           final index = dateList.indexWhere((d) => d == tempDate);
-          if (index >= 0) {
-            print('Already there!');
+          final diff = currentTime.difference(item.shiftDate);
+          if(diff.inHours > 23) {
+            await CounterInDatabase.instance.delete(item.id!);
           } else {
-            dateList.add(tempDate);
-          }  
+            if (index >= 0) {
+              print('Already there!');
+            } else {
+              dateList.add(tempDate);
+            }
+          }
         }
 
         for (var d in dateList) {

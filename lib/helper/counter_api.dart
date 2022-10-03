@@ -188,6 +188,7 @@ class CounterApi {
     if (response.statusCode == 200) {
       var receivedList = [];
       var receivedData = json.decode(response.body);
+      // print('$receivedData');
       for (int i = 0; i < receivedData.length; i++) {
         receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
         receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
@@ -276,6 +277,29 @@ class CounterApi {
       return int.parse(receivedData['id']);
     } else {
       throw Exception('Failed to update counter.');
+    }
+  }
+
+  static Future<String> connectionChecker(String _code, _url) async {
+    var response = await http.get(
+      Uri.parse('$_url/check?code=$_code'),
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      print('Connection check 👉 : $err');
+      return http.Response('Error', 408);
+    });
+
+    if (response.statusCode == 200) {
+      var receivedData = json.decode(response.body);
+      print('Code: ${receivedData['code']} $receivedData');
+      print('Type: ${receivedData['code'].runtimeType}');
+      return receivedData['code'];
+    } else {
+      return '0';
     }
   }
 
