@@ -50,7 +50,15 @@ class _PendingListState extends State<PendingList> {
           final index = dateList.indexWhere((d) => d == tempDate);
           final diff = currentTime.difference(item.shiftDate);
           if(diff.inHours > 23) {
-            await CounterInDatabase.instance.delete(item.id!);
+            if(item.qty > 0) {
+              if (index >= 0) {
+                print('Already there!');
+              } else {
+                dateList.add(tempDate);
+              }
+            } else {
+              await CounterApi.delete(item.id.toString(), _url);
+            }
           } else {
             if (index >= 0) {
               print('Already there!');

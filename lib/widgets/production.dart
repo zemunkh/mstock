@@ -226,7 +226,13 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
 
       if (isFound) {
         await CounterApi.readCountersWithMachine(_url, trueVal, false).then((res) {
-          _counterList = res;
+          List<Counter> _parsedList = [];
+          for (var el in res) {
+            if(el.qty > 0) {
+              _parsedList.add(el);
+            }
+          }
+          _counterList = _parsedList;
           _isMatched = true;
           print('HERE HERE');
           setState(() {});
@@ -737,6 +743,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               _masterController.text = '';
                               _stickerController.text = '';
                               _isLoading = false;
+                              FocusScope.of(context).requestFocus(_masterNode);
                             }  else {
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                 content:  Text("🚨 Not successful!", textAlign: TextAlign.center,),
@@ -770,20 +777,10 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                         }
                       }
 
-                      // if(_counterList.isEmpty) {
-                      //   await CounterApi.readCountersWithMachine(_url, _masterController.text.trim(), false).then((res) {
-                      //     setState(() {
-                      //       _counterList = res;
-                      //     });
-                      //   }).catchError((err) {
-                      //     print('Err: $err');
-                      //   });
-                      // }
-
                       if(c.qty <= 0) {
                         await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
                           print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
-                          
+                          var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
                           List<Uom> activeUoms = [];
                           for (var u in res.uoMs) {
                             if(u!.isActive) {
@@ -795,52 +792,57 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                           Uom bigger = activeUoms.last;
                           // print('UOM: ✅  ${bigger.isActive} : ${bigger.uomCode} : ${bigger.rate}');
 
-                          Counter updatedCounter = Counter(
-                            id: c.id,
-                            stockId: c.stockId,
-                            stockCode: c.stockCode,
-                            stockName: c.stockName, 
+                          Counter newCounter =  Counter(
+                            stockId: _masterStock.stockId,
+                            stockCode: _masterStock.stockCode,
+                            stockName: _masterStock.stockName,
                             machine: _machineLineController.text.trim(),
                             device: _deviceName,
                             shift: _shiftValue,
-                            shiftDate: c.shiftDate,
-                            createdTime: c.createdTime,
-                            updatedTime: DateTime.now(),
-                            qty: c.qty + 1,
+                            shiftDate: _shiftConvertedDate,
+                            createdTime: currentTime,
+                            updatedTime: currentTime,
+                            qty: 1,
                             totalQty: bigger.rate.round(),
                             // totalQty: 1,
-                            purchasePrice: c.purchasePrice,
-                            uom: c.uom,
-                            stockCategory: c.stockCategory,
-                            group: c.group,
-                            stockClass: c.stockClass,
-                            weight: c.weight
+                            purchasePrice: _masterStock.purchasePrice,
+                            uom: bigger.uomCode,
+                            stockCategory: _masterStock.category,
+                            group: _masterStock.group,
+                            stockClass: _masterStock.stockClass,
+                            weight: _masterStock.weight
                           );
-
-                          await CounterApi.updateCounter(
-                              c.id.toString(),
-                              updatedCounter.updatedTime.toIso8601String(),
-                              (c.qty + 1).toString(), 
-                              updatedCounter.totalQty.toString(),
-                              _url,
-                              'Prod-Add',
-                              _deviceName
-                            )
-                            .then((res) {
+                        // 4. save it to the db.
+                          final result = await CounterApi.create(newCounter.toJson(), _url); 
+                          
+                          result.when((err) {
+                            print('Err -> 4: $err');
+                            Utils.openDialogPanel(context, 'close', 'Oops!', '3# $err', 'Understand');
                             setState(() {
-                              _counterList.add(updatedCounter);
+                              _isLoading = false;
+                            });
+                          }, (newCounterRes) {
+                            if(newCounterRes.stockId == newCounter.stockId) {
+                              _counterList.add(newCounter);
                               level = 0;
                               activeList = [false, false,  false, false];
                               isSaveDisabled = true;
+                              _masterController.text = '';
                               _stickerController.text = '';
                               _isLoading = false;
-                            });
-                          }).catchError((err) {
-                            Utils.openDialogPanel(context, 'close', 'Oops!', '#2 $err', 'Understand');
+                              FocusScope.of(context).requestFocus(_masterNode);
+                            }  else {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                content:  Text("🚨 Not successful!", textAlign: TextAlign.center,),
+                                duration: Duration(milliseconds: 3000)
+                              ));
+                            }
                             setState(() {
                               _isLoading = false;
-                            });
+                            });                            
                           });
+
+
                         }).catchError((err) {
                           Utils.openDialogPanel(context, 'close', 'Oops!', '4# $err', 'Understand');
                           setState(() {
@@ -886,9 +888,10 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             activeList = [false, false,  false, false];
                             isSaveDisabled = true;
                             _stickerController.text = '';
+                            _masterController.text = '';
                             _isLoading = false;
                           });
-
+                          FocusScope.of(context).requestFocus(_masterNode);
                         }).catchError((err) {
                           Utils.openDialogPanel(context, 'close', 'Oops!', '#2 $err', 'Understand');
                           setState(() {
@@ -906,7 +909,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                       ),
                     ) :  const Text(
                     'Add',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     primary: isSaveDisabled ? style.Colors.mainDarkGrey : style.Colors.button4,
@@ -995,6 +998,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               if(res == c.id) {
                                 setState(() {
                                   _counterList.removeWhere((item) => item.stockId == c.stockId);
+                                  _stickerDeleteController.text = '';
                                 });
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -1052,9 +1056,13 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                           content:  Text("❌ Wrong password!", textAlign: TextAlign.center,),
                           duration: Duration(milliseconds: 3000)
                         ));
+                      },
+                      () {
+                        setState(() {
+                          
+                        });
                       }
                     );
-    
                   },
                   child: const Text(
                     'Delete',

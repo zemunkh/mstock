@@ -171,7 +171,7 @@ class Utils {
     );
   }
 
-  static Future openPasswordPanel(BuildContext context, String password, TextEditingController passwordController, FocusNode _node, GlobalKey _formKey, String img, String title, String btnText, Function matchedCallback, Function unMatchedCallback) {
+  static Future openPasswordPanel(BuildContext context, String password, TextEditingController passwordController, FocusNode _node, GlobalKey _formKey, String img, String title, String btnText, Function matchedCallback, Function unMatchedCallback, Function closedCallback) {
     final _alertKey = GlobalKey<FormFieldState>();
     return showDialog(
       context: context,
@@ -247,7 +247,10 @@ class Utils {
           ),
         );
       }
-    );
+    ).then((_) {
+      print('\n\n Called the close event');
+      closedCallback();
+    });
   }
 
   static Future openDialogPanel(BuildContext context, String img, String title, String msg, String btnText) {

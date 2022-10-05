@@ -792,6 +792,9 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                             // Delete
                             await CounterInLooseDatabase.instance.delete(firstRow.id!);
                             _counterInList.removeWhere((item) => item.id == firstRow.id);
+                            _masterController.text = '';
+                            _quantityController.text = '';
+                            _remarkController.text = '';
                           } else {
                             // Update
                             CounterInLoose updateCounterIn = CounterInLoose(
@@ -829,6 +832,12 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                             content:  Text("❌ Wrong password!", textAlign: TextAlign.center,),
                             duration: Duration(milliseconds: 3000)
                           ));
+                        },
+                        () {
+                          print('Bar is closed!');
+                          setState(() {
+                            _isLoadingDel = false;
+                          });
                         }
                       );
 

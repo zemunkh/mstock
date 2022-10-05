@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:mstock/model/counterInLoose.dart';
 import 'package:multiple_result/multiple_result.dart';
 import '../model/counter.dart';
 
@@ -24,7 +23,6 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
@@ -80,7 +78,6 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
@@ -104,7 +101,6 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
@@ -128,12 +124,11 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
     if (response.statusCode == 200) {
-      print('👉 : ${response.body}');
+      print('👉 Res: ${response.body}');
       if(response.body.isEmpty) {
         return Error(Exception('404'));
       } else {
@@ -181,7 +176,7 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
+      // print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
@@ -216,7 +211,6 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
@@ -250,7 +244,6 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
