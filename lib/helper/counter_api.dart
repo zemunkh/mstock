@@ -10,7 +10,6 @@ class CounterApi {
   final HttpClient _httpClient = HttpClient();
 
   static Future<Counter> createLog(Map body, String _url) async {
-    print('Body 👉 : $body');
     var response = await http.post(
       Uri.parse('$_url/logging/create'),
       headers: {
@@ -187,13 +186,15 @@ class CounterApi {
       for (int i = 0; i < receivedData.length; i++) {
         receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
         receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
-        if(isPending) {
-          receivedList.add(receivedData[i]);
-        } else {
-          if(receivedData[i]['qty'] > 0) {
-            receivedList.add(receivedData[i]);
-          }
-        }
+        receivedList.add(receivedData[i]);
+
+        // if(isPending) {
+        //   receivedList.add(receivedData[i]);
+        // } else {
+        //   if(receivedData[i]['qty'] > 0) {
+        //     receivedList.add(receivedData[i]);
+        //   }
+        // }
       }
 
       return receivedList.map<Counter>((json) => Counter.fromJson(json)).toList();

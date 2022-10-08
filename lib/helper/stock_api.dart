@@ -11,6 +11,7 @@ class StockApi {
 
   // Read stock is full version Stock Data
   static Future<Stock1> readFullStock(String dbCode, String _id, String _url) async {
+    print('URL 👉 : $_url/$_id');
     http.Response response = await http.get(
       Uri.parse('$_url/$_id'),
       headers: {

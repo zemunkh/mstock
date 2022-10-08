@@ -95,6 +95,7 @@ class _PendingListState extends State<PendingList> {
             }
 
             for (var el in tempCounters) {
+              stockInTotal = 0;
               await CounterInDatabase.instance.readCounterInByCodeAndMachine(el.stockCode, el.machine).then((result) async {
                 print('👉 Got it! ${el.stockCode}');
                 for (var item in result) {

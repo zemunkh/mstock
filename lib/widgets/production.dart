@@ -259,6 +259,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
     if(buffer.isEmpty) {
       setState(() {
         _isMatched = false;
+        _masterController.text = '';
         _counterList = [];
       });
     }
@@ -266,6 +267,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
 
   _createNewCounter(DateTime currentTime) async {
     var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
+    print('ID: ${_masterStock.stockId}');
     await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
       print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
       
@@ -311,7 +313,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
         });
       }, (newCounterRes) {
         if(newCounterRes.stockId == newCounter.stockId) {
-          _counterList.add(newCounter);
+          _counterList.add(newCounterRes);
           level = 0;
           activeList = [false, false,  false, false];
           isSaveDisabled = true;
@@ -521,7 +523,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
       return buildContainer(
         SingleChildScrollView(
           child: DataTable(
-          columnSpacing: 40,
+          columnSpacing: 15,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
@@ -559,7 +561,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 'Date:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 16,
                   color: style.Colors.mainGrey,
                 ),
                 textAlign: TextAlign.center,
@@ -568,10 +570,37 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
           ],
           rows: _counterList.map((row) => DataRow(
             cells: [
-              DataCell(Text(row.stockCode)),
+              DataCell(
+                Text(
+                  row.stockCode,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: style.Colors.button2,
+                  ),
+                ),
+              ),
               DataCell(Text(row.qty.toString())),
-              DataCell(Text(row.uom)),
-              DataCell(Text(DateFormat('dd/MM/yyyy').format(row.shiftDate))),
+              DataCell(
+                Text(
+                  row.uom,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: style.Colors.button2,
+                  ),
+                ),
+              ),
+              DataCell(
+                Text(
+                  DateFormat('dd/MM/yyyy').format(row.shiftDate),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple,
+                  ),
+                )
+              ),
             ]
           )).toList(),
           
@@ -800,9 +829,10 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                         _createNewCounter(currentTime);
                       } else {
 
-                        var diff = currentTime.difference(c.shiftDate);
+                        var shiftDiff = currentTime.difference(c.shiftDate);
+                        print('\n Product: ${c.stockCode} : diff=${shiftDiff.inDays} By Hours: ${shiftDiff.inHours} \n');
 
-                        if (diff.inDays <= 0) {
+                        if (currentTime.day == c.shiftDate.day && shiftDiff.inDays <= 0) {
                           // Update or create new Counter card
                           Counter updatedCounter = Counter(
                             id: c.id,
@@ -837,7 +867,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             )
                             .then((res) {
                             setState(() {
-                              _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                              _counterList[_counterList.indexWhere((item) => item.id == updatedCounter.id)] = updatedCounter;
                               level = 0;
                               activeList = [false, false,  false, false];
                               isSaveDisabled = true;
@@ -954,7 +984,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             await CounterApi.delete(c.id.toString(), _url).then((res) {
                               if(res == c.id) {
                                 setState(() {
-                                  _counterList.removeWhere((item) => item.stockId == c.stockId);
+                                  _counterList.removeWhere((item) => item.id == c.id);
                                   _stickerDeleteController.text = '';
                                 });
                               } else {
@@ -998,7 +1028,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               print('Updated ID: $res');
 
                               setState(() {
-                                _counterList[_counterList.indexWhere((item) => item.stockId == updatedCounter.stockId)] = updatedCounter;
+                                _counterList[_counterList.indexWhere((item) => item.id == updatedCounter.id)] = updatedCounter;
                                 _stickerDeleteController.text = '';
                               });
 

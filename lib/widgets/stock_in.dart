@@ -25,7 +25,7 @@ class _StockInWidgetState extends State<StockInWidget> {
   static final _masterFormKey = GlobalKey<FormFieldState>();
 
   List<CounterIn> _counterInList = [];
-  List<CounterIn> _counterInListView = [];
+  // List<CounterIn> _counterInListView = [];
   
   bool _isLoading = false;
   bool _isSaveDisabled = true;
@@ -40,32 +40,32 @@ class _StockInWidgetState extends State<StockInWidget> {
   bool isPosting = false;
   String _supervisorPassword = '';
 
-  _prepareListView() {
-    _counterInListView = [];
-    for (var el in _counterInList) {
-      var index = _counterInListView.indexWhere((item) => item.stock == el.stock);
-      if(index > -1) {
-        CounterIn updateCounterInView = CounterIn(
-          id: el.id,
-          stock: el.stock,
-          description: el.description,
-          machine: el.machine,
-          shift: el.shift,
-          device: el.device,
-          uom: el.uom,
-          qty: _counterInListView[index].qty + el.qty,
-          purchasePrice: el.purchasePrice,
-          isPosted: false,
-          shiftDate: el.shiftDate,
-          createdAt: el.createdAt,
-          updatedAt: el.updatedAt
-        );
-        _counterInListView[index] = updateCounterInView;
-      } else {
-        _counterInListView.add(el);
-      }
-    }
-  }
+  // _prepareListView() {
+  //   _counterInListView = [];
+  //   for (var el in _counterInList) {
+  //     var index = _counterInListView.indexWhere((item) => item.stock == el.stock);
+  //     if(index > -1) {
+  //       CounterIn updateCounterInView = CounterIn(
+  //         id: el.id,
+  //         stock: el.stock,
+  //         description: el.description,
+  //         machine: el.machine,
+  //         shift: el.shift,
+  //         device: el.device,
+  //         uom: el.uom,
+  //         qty: _counterInListView[index].qty + el.qty,
+  //         purchasePrice: el.purchasePrice,
+  //         isPosted: false,
+  //         shiftDate: el.shiftDate,
+  //         createdAt: el.createdAt,
+  //         updatedAt: el.updatedAt
+  //       );
+  //       _counterInListView[index] = updateCounterInView;
+  //     } else {
+  //       _counterInListView.add(el);
+  //     }
+  //   }
+  // }
 
   Future _deletePostedStockIns() async {
     final currentTime = DateTime.now();
@@ -150,7 +150,7 @@ class _StockInWidgetState extends State<StockInWidget> {
       },
       (res) {
         _counterInList = res;
-        _prepareListView();
+        // _prepareListView();
       }
     );
 
@@ -245,7 +245,7 @@ class _StockInWidgetState extends State<StockInWidget> {
       return buildContainer(
         SingleChildScrollView(
           child: DataTable(
-          columnSpacing: 60,
+          columnSpacing: 15,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
@@ -278,12 +278,51 @@ class _StockInWidgetState extends State<StockInWidget> {
                 ),
               ),
             ),
+            DataColumn(
+              label: Text(
+                'Date:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: style.Colors.mainGrey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           ],
-          rows: _counterInListView.map((row) => DataRow(
+          rows: _counterInList.map((row) => DataRow(
             cells: [
-              DataCell(Text(row.stock)),
+              DataCell(
+                Text(
+                  row.stock,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: style.Colors.button2,
+                  ),
+                ),
+              ),
               DataCell(Text(row.qty.toString())),
-              DataCell(Text(row.uom)),
+              DataCell(
+                Text(
+                  row.uom,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: style.Colors.button2,
+                  ),
+                ),
+              ),
+              DataCell(
+                Text(
+                  DateFormat('dd/MM/yyyy').format(row.shiftDate),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple,
+                  ),
+                )
+              ),
             ]
           )).toList(),
           
@@ -362,7 +401,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                         }
                         // setState(() {
                         _counterInList = [];
-                        _counterInListView = [];     
+                        // _counterInListView = [];
                         // });
                         Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn is successfully posted!', 'Okay');
                       } else if(status == 408) {
@@ -448,67 +487,92 @@ class _StockInWidgetState extends State<StockInWidget> {
                     // Read Counter with stockCode from Counter API (Network server)
                     await CounterApi.readCounterByCodeAndDate(_masterController.text.trim(), _url).then((c) async {
                       print('✅ Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
-
+                      var counterShiftDate = DateFormat('dd/MM/yyyy').format(c.shiftDate);
+                      
                       // SameDay logic
+                      bool isFoundStockIn = false;
+                      for (var el in _counterInList) {
+                        var stockInShiftDate = DateFormat('dd/MM/yyyy').format(el.shiftDate);
+                        if(counterShiftDate == stockInShiftDate) {
+                          isFoundStockIn = true;
+                          await CounterInDatabase.instance.readCounterIn(el.id!).then((res) async { 
+                            CounterIn updateCounterIn = CounterIn(
+                              id: res.id,
+                              stock: res.stock,
+                              description: res.description,
+                              machine: res.machine,
+                              shift: res.shift,
+                              device: res.device,
+                              uom: res.uom,
+                              qty: res.qty + 1,
+                              purchasePrice: res.purchasePrice,
+                              isPosted: false,
+                              shiftDate: res.shiftDate,
+                              createdAt: res.createdAt,
+                              updatedAt: currentTime
+                            );
 
-                      // If found, create CounterIn object
-                      await CounterInDatabase.instance.readCounterInByCode(c.stockCode, c.machine).then((res) async {
-                        
-                        CounterIn updateCounterIn = CounterIn(
-                          id: res.id,
-                          stock: res.stock,
-                          description: res.description,
-                          machine: res.machine,
-                          shift: res.shift,
-                          device: res.device,
-                          uom: res.uom,
-                          qty: res.qty + 1,
-                          purchasePrice: res.purchasePrice,
+                            await CounterInDatabase.instance.update(updateCounterIn).then((res) {
+                              _counterInList[_counterInList.indexWhere((item) => item.id == updateCounterIn.id)] = updateCounterIn;
+                              // _prepareListView();
+                              _masterController.text = '';
+                            }).catchError((err) {
+                              Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update new StockIn counter.', 'Understand');
+                            });
+                          }).catchError((err) async {
+                            print('Error -> 2: $err');
+                            CounterIn newCounterIn = CounterIn(
+                              id: c.id,
+                              stock: c.stockCode, // necessary
+                              description: c.stockName,
+                              machine: c.machine, // necessary
+                              shift: c.shift,
+                              device: _deviceName,
+                              uom: c.uom,
+                              qty: 1,
+                              purchasePrice: c.purchasePrice,
+                              isPosted: false,
+                              shiftDate: c.shiftDate,
+                              createdAt: c.createdTime,
+                              updatedAt: currentTime
+                            );
+                            await CounterInDatabase.instance.create(newCounterIn).then((res) {
+                              _counterInList.add(newCounterIn);
+                              // _prepareListView();
+                              _masterController.text = '';
+                              
+                            }).catchError((err) {
+                              Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
+                            });
+                          });
+                        }
+                      }
+
+                      if(!isFoundStockIn) {
+                        CounterIn newCounterIn = CounterIn(
+                          id: c.id,
+                          stock: c.stockCode, // necessary
+                          description: c.stockName,
+                          machine: c.machine, // necessary
+                          shift: c.shift,
+                          device: _deviceName,
+                          uom: c.uom,
+                          qty: 1,
+                          purchasePrice: c.purchasePrice,
                           isPosted: false,
-                          shiftDate: res.shiftDate,
-                          createdAt: res.createdAt,
+                          shiftDate: c.shiftDate,
+                          createdAt: c.createdTime,
                           updatedAt: currentTime
                         );
-
-                        await CounterInDatabase.instance.update(updateCounterIn).then((res) {
-                          _counterInList[_counterInList.indexWhere((item) => item.stock == updateCounterIn.stock)] = updateCounterIn;
-                          _prepareListView();
+                        await CounterInDatabase.instance.create(newCounterIn).then((res) {
+                          _counterInList.add(newCounterIn);
+                          // _prepareListView();
                           _masterController.text = '';
+                          
                         }).catchError((err) {
-                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update new StockIn counter.', 'Understand');
+                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
                         });
-
-                      }).catchError((err) async {
-                        print('Error -> 2: $err');
-                        if('$err'.contains('404')) {
-                          var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
-                          CounterIn newCounterIn = CounterIn(
-                            id: c.id,
-                            stock: c.stockCode, // necessary
-                            description: c.stockName,
-                            machine: c.machine, // necessary
-                            shift: c.shift,
-                            device: _deviceName,
-                            uom: c.uom,
-                            qty: 1,
-                            purchasePrice: c.purchasePrice,
-                            isPosted: false,
-                            shiftDate: _shiftConvertedDate,
-                            createdAt: currentTime,
-                            updatedAt: currentTime
-                          );
-                          await CounterInDatabase.instance.create(newCounterIn).then((res) {
-                            _counterInList.add(newCounterIn);
-                            _prepareListView();
-                            _masterController.text = '';
-                            
-                          }).catchError((err) {
-                            Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
-                          });
-                        } else {
-                          Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-                        }
-                      });
+                      }
                       // Search the stock in the Current list
 
                       // if it is available, Update it to the CounterIn database (Locally)
