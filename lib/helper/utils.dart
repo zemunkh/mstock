@@ -120,7 +120,7 @@ class Utils {
 
 
   static Widget _scannerInput(BuildContext context, String hintext, TextEditingController _controller,
-      FocusNode currentNode, double currentWidth, GlobalKey _formKey) {
+      FocusNode currentNode, double currentWidth, GlobalKey _formKey, bool isObscure) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: SizedBox(
@@ -133,6 +133,7 @@ class Utils {
             color: Color(0xFF004B83),
             fontWeight: FontWeight.bold,
           ),
+          obscureText: isObscure,
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
@@ -191,6 +192,7 @@ class Utils {
                 _node,
                 double.infinity,
                 _formKey,
+                true
               ),
               const SizedBox(height: 20.0),
               Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15.0, fontWeight: FontWeight.w400, color: style.Colors.mainAccent,)),
@@ -234,7 +236,6 @@ class Utils {
                         //   Navigator.of(context, rootNavigator: true).pop();
                         //   passwordController.text = '';
                         // });
-                        Navigator.of(context, rootNavigator: true).pop();
                         passwordController.text = '';
                       } else {
                         unMatchedCallback();

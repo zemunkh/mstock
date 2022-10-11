@@ -976,6 +976,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                         
                         result.when((err) {
                           print('Error: $err');
+                          Navigator.of(context, rootNavigator: true).pop();
                           Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
                         }, (c) async {
                           print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
@@ -1036,6 +1037,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               print('Error: $err');
                             });
                           }
+                          Navigator.of(context, rootNavigator: true).pop();
                         });
                       },
                       () {

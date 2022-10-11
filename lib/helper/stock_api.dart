@@ -29,7 +29,6 @@ class StockApi {
     });
     if (response.statusCode == 200) {
       var receivedData = json.decode(response.body);
-      print('✅ GOT Answer: ${receivedData['remark1']} ${receivedData['baseUOM']} ');
       if(receivedData['remark1'] == null) {
         receivedData['remark1'] = '1';
       }

@@ -112,11 +112,12 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
             }
           }
           // activeUoms.sort((a, b) => a.rate.compareTo(b.rate));
-          Uom baseUOM = activeUoms[0];
+          activeUoms.sort((a, b) => a.rate.compareTo(b.rate));
+          Uom bigger = activeUoms.last;
 
           setState(() {
-            _baseUom = baseUOM.uomCode;
-            _biggerRate = baseUOM.rate;
+            _baseUom = bigger.uomCode;
+            _biggerRate = bigger.rate;
             _purchasePrice = val.purchasePrice;
             _isSaveDisabled = false;
             _isLoading = false;
@@ -788,8 +789,12 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                           
                           final firstRow = _counterInList[0];
                           final result = firstRow.qty - int.parse(_quantityController.text.trim());
-                          if(result <= 0) {
+                          if(result < 0) {
+                            Navigator.of(context, rootNavigator: true).pop();
                             // Delete
+                            Utils.openDialogPanel(context, 'close', 'Oops!', 'Quantity values are not matched', 'Understand');
+                          } else if (result == 0) {
+                            Navigator.of(context, rootNavigator: true).pop();
                             await CounterInLooseDatabase.instance.delete(firstRow.id!);
                             _counterInList.removeWhere((item) => item.id == firstRow.id);
                             _masterController.text = '';
