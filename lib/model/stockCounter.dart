@@ -1,6 +1,6 @@
 const String tableCounterIn = 'counterIn';
 
-class CounterInFields {
+class StockCounterFields {
   static final List<String> values = [
     /// Add all fields
     id, stock, description, machine, shift, 
@@ -23,7 +23,7 @@ class CounterInFields {
 }
 
 
-class CounterIn {
+class StockCounter {
   int? id;
   final String stock;
   final String description;
@@ -38,7 +38,7 @@ class CounterIn {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  CounterIn({
+  StockCounter({
     this.id,
     required this.stock,
     required this.description,
@@ -54,7 +54,7 @@ class CounterIn {
     required this.updatedAt
   });
 
-  CounterIn copy({
+  StockCounter copy({
     int? id,
     String? stock,
     String? description,
@@ -69,7 +69,7 @@ class CounterIn {
     DateTime? createdAt,
     DateTime? updatedAt
   }) =>
-      CounterIn(
+      StockCounter(
         id: id ?? this.id,
         stock: stock ?? this.stock,
         description: description ?? this.description,
@@ -85,39 +85,39 @@ class CounterIn {
         updatedAt: updatedAt ?? this.updatedAt
       );
 
-  factory CounterIn.fromJson(Map<String, dynamic> json) {
-    return CounterIn(
-      id: json[CounterInFields.id] as int,
-      stock: json[CounterInFields.stock] as String,
-      description: json[CounterInFields.description] as String,
-      machine: json[CounterInFields.machine] as String,
-      shift: json[CounterInFields.shift] as String,
-      device: json[CounterInFields.device] as String,
-      uom: json[CounterInFields.uom] as String,
-      qty: json[CounterInFields.qty] as int,
-      purchasePrice: json[CounterInFields.purchasePrice] as double,
-      isPosted: json[CounterInFields.isPosted]  == 1,
-      shiftDate: DateTime.parse(json[CounterInFields.shiftDate] as String),
-      createdAt: DateTime.parse(json[CounterInFields.createdAt] as String),
-      updatedAt: DateTime.parse(json[CounterInFields.updatedAt] as String)
+  factory StockCounter.fromJson(Map<String, dynamic> json) {
+    return StockCounter(
+      id: json[StockCounterFields.id] as int,
+      stock: json[StockCounterFields.stock] as String,
+      description: json[StockCounterFields.description] as String,
+      machine: json[StockCounterFields.machine] as String,
+      shift: json[StockCounterFields.shift] as String,
+      device: json[StockCounterFields.device] as String,
+      uom: json[StockCounterFields.uom] as String,
+      qty: json[StockCounterFields.qty] as int,
+      purchasePrice: json[StockCounterFields.purchasePrice] as double,
+      isPosted: json[StockCounterFields.isPosted]  == 1,
+      shiftDate: DateTime.parse(json[StockCounterFields.shiftDate] as String),
+      createdAt: DateTime.parse(json[StockCounterFields.createdAt] as String),
+      updatedAt: DateTime.parse(json[StockCounterFields.updatedAt] as String)
     );
   }
 
   Map<String, dynamic> toJson() => {
-    CounterInFields.stock: stock,
-    CounterInFields.description: description,
-    CounterInFields.machine: machine,
-    CounterInFields.shift: shift,
-    CounterInFields.device: device,
-    CounterInFields.uom: uom,
-    CounterInFields.qty: qty.toString(),
-    CounterInFields.purchasePrice: purchasePrice.toString(),
-    CounterInFields.isPosted: isPosted ? 1 : 0,
-    CounterInFields.shiftDate: shiftDate.toIso8601String(),
-    CounterInFields.createdAt: createdAt.toIso8601String(),
-    CounterInFields.updatedAt: updatedAt.toIso8601String()
+    StockCounterFields.stock: stock,
+    StockCounterFields.description: description,
+    StockCounterFields.machine: machine,
+    StockCounterFields.shift: shift,
+    StockCounterFields.device: device,
+    StockCounterFields.uom: uom,
+    StockCounterFields.qty: qty.toString(),
+    StockCounterFields.purchasePrice: purchasePrice.toString(),
+    StockCounterFields.isPosted: isPosted ? 1 : 0,
+    StockCounterFields.shiftDate: shiftDate.toIso8601String(),
+    StockCounterFields.createdAt: createdAt.toIso8601String(),
+    StockCounterFields.updatedAt: updatedAt.toIso8601String()
   };
   Map<String, dynamic> postedToJson() => {
-    CounterInFields.isPosted: 1,
+    StockCounterFields.isPosted: 1,
   };
 }

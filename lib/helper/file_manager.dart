@@ -20,7 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // [Stock Length]         -->          stock_length
 // [Project Code]         -->          project_code
 // [Document Prefix]      -->          doc_prefix
-
+// [Warehouse ID]         -->          wh_id
 
 
 class FileManager {

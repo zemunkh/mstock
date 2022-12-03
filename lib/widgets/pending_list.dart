@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../database/counter_in_db.dart';
+// import '../database/counter_in_db.dart';
 import '../helper/counter_api.dart';
+import '../helper/stock_counter_api.dart';
 import '../helper/file_manager.dart';
 import '../helper/utils.dart';
 import '../model/pending.dart';
@@ -96,18 +97,22 @@ class _PendingListState extends State<PendingList> {
 
             for (var el in tempCounters) {
               stockInTotal = 0;
-              await CounterInDatabase.instance.readCounterInByCodeAndMachine(el.stockCode, el.machine).then((result) async {
+              final result = await StockCounterApi.readStockCountersByCodeAndMachine(el.stockCode, el.machine, _url);
+
+              result.when((err) async {
+                if('$err'.contains('404')) {
+                  print('Not found! Or $err');
+                }
+              }, (c) async {
                 print('👉 Got it! ${el.stockCode}');
-                for (var item in result) {
+                for (var item in c) {
                   var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
                   if( d == tempDate) {
                     print('👉 item qty: ${item.qty}');
                     stockInTotal = stockInTotal + item.qty;
                   }
                 }
-              }).catchError((err) async {
-                print('Not found! Or $err');
-              });        
+              });
             }
 
             if(tempCounters.isNotEmpty) {

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../model/counterIn.dart';
+import '../model/stockCounter.dart';
 import '../model/stockIn.dart';
-import '../database/counter_in_db.dart';
+// import '../database/counter_in_db.dart';
+import '../helper/stock_counter_api.dart';
 import '../../helper/utils.dart';
 import '../../helper/file_manager.dart';
 import '../../helper/counter_api.dart';
@@ -24,7 +25,7 @@ class _StockInWidgetState extends State<StockInWidget> {
 
   static final _masterFormKey = GlobalKey<FormFieldState>();
 
-  List<CounterIn> _counterInList = [];
+  List<StockCounter> _counterInList = [];
   // List<CounterIn> _counterInListView = [];
   
   bool _isLoading = false;
@@ -69,15 +70,20 @@ class _StockInWidgetState extends State<StockInWidget> {
 
   Future _deletePostedStockIns() async {
     final currentTime = DateTime.now();
-    await CounterInDatabase.instance.readCounterInsPosted().then((res) async {
-      for (var el in res) {
+
+    final result = await StockCounterApi.readStockCountersPosted(_url);
+  
+    result.when((err) async {
+      if('$err'.contains('404')) {
+        print('Err empty: $err');
+      }
+    }, (c) async {
+      for (var el in c) {
         final diff = currentTime.difference(el.updatedAt);
         if(diff.inHours > 23) {
-          await CounterInDatabase.instance.delete(el.id!);
+          await StockCounterApi.delete(el.id.toString(), _url);
         }
       }
-    }).catchError((err){
-      print('Err: $err');
     });
   }
 
@@ -141,7 +147,7 @@ class _StockInWidgetState extends State<StockInWidget> {
 
     // await CounterInDatabase.instance.delete(1);
 
-    final result = await CounterInDatabase.instance.readCounterInsNotPosted();
+    final result = await StockCounterApi.readStockCountersNotPosted(_url);
 
     result.when(
       (e) {
@@ -389,14 +395,17 @@ class _StockInWidgetState extends State<StockInWidget> {
                     await StockApi.postStockIns(_dbCode, newValue.toJson(), _qneUrl).then((status) async {
                       if(status == 200) {
                         // Update isPosted status to TRUE
-                        for (CounterIn el in _counterInList) {
-                          await CounterInDatabase.instance.updatePostedStatus(el.id!).then((result) {
-                            if(el.id == result) {
-                              print('Done ✅');
+                        for (StockCounter el in _counterInList) {
+
+                          final result = await StockCounterApi.updatePostedStatus(el.id.toString(), true, _url);
+
+                          result.when((err) async {
+                            if('$err'.contains('404')) {
+                              print('Wrong ❌');
                             }
-                          }).catchError((err) {
-                            // Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
-                            print('Wrong ❌');
+                          }, (c) async {
+                            
+                            print('Done ✅');
                           });
                         }
                         // setState(() {
@@ -495,8 +504,8 @@ class _StockInWidgetState extends State<StockInWidget> {
                         var stockInShiftDate = DateFormat('dd/MM/yyyy').format(el.shiftDate);
                         if(counterShiftDate == stockInShiftDate) {
                           isFoundStockIn = true;
-                          await CounterInDatabase.instance.readCounterIn(el.id!).then((res) async { 
-                            CounterIn updateCounterIn = CounterIn(
+                          await StockCounterApi.readCounter(el.id.toString(), _url).then((res) async {
+                            StockCounter updateCounterIn = StockCounter(
                               id: res.id,
                               stock: res.stock,
                               description: res.description,
@@ -512,7 +521,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                               updatedAt: currentTime
                             );
 
-                            await CounterInDatabase.instance.update(updateCounterIn).then((res) {
+                            await StockCounterApi.update(updateCounterIn.toJson(), _url).then((res) {
                               _counterInList[_counterInList.indexWhere((item) => item.id == updateCounterIn.id)] = updateCounterIn;
                               // _prepareListView();
                               _masterController.text = '';
@@ -521,7 +530,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                             });
                           }).catchError((err) async {
                             print('Error -> 2: $err');
-                            CounterIn newCounterIn = CounterIn(
+                            StockCounter newCounterIn = StockCounter(
                               id: c.id,
                               stock: c.stockCode, // necessary
                               description: c.stockName,
@@ -536,7 +545,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                               createdAt: c.createdTime,
                               updatedAt: currentTime
                             );
-                            await CounterInDatabase.instance.create(newCounterIn).then((res) {
+                            await StockCounterApi.create(newCounterIn.toJson(), _url).then((res) {
                               _counterInList.add(newCounterIn);
                               // _prepareListView();
                               _masterController.text = '';
@@ -549,7 +558,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                       }
 
                       if(!isFoundStockIn) {
-                        CounterIn newCounterIn = CounterIn(
+                        StockCounter newCounterIn = StockCounter(
                           id: c.id,
                           stock: c.stockCode, // necessary
                           description: c.stockName,
@@ -564,7 +573,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                           createdAt: c.createdTime,
                           updatedAt: currentTime
                         );
-                        await CounterInDatabase.instance.create(newCounterIn).then((res) {
+                        await StockCounterApi.create(newCounterIn.toJson(), _url).then((res) {
                           _counterInList.add(newCounterIn);
                           // _prepareListView();
                           _masterController.text = '';
@@ -580,7 +589,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                       // Else, Save it to the CounterIn database (Locally)
 
                       if(c.qty > 0) {
-                        CounterApi.updateCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                        CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
                           print('👉 Updated ID: $r');
                         }).catchError((err) {
                           print('Error: $err');

@@ -515,15 +515,19 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
         padding: const EdgeInsets.only(right: 2, left: 2, top: 5, bottom: 5),
         height: 480,
         width: 440,
-        child: child,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: child,
+        ),
       );
     }
 
     Widget _productionTable(BuildContext context) {
       return buildContainer(
         SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: DataTable(
-          columnSpacing: 15,
+          columnSpacing: 20,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
@@ -531,7 +535,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 'Stocks:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 14,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -541,7 +545,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 'Qty:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 14,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -551,7 +555,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 'UOMs:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 14,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -561,7 +565,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 'Date:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 14,
                   color: style.Colors.mainGrey,
                 ),
                 textAlign: TextAlign.center,
@@ -856,7 +860,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                             weight: c.weight
                           );
 
-                          await CounterApi.updateCounter(
+                          await CounterApi.addCounter(
                               c.id.toString(),
                               updatedCounter.updatedTime.toIso8601String(),
                               (c.qty + 1).toString(), 
@@ -1018,7 +1022,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               weight: c.weight
                             );
 
-                            CounterApi.updateCounter(
+                            CounterApi.dropCounter(
                                 c.id.toString(),
                                 updatedCounter.updatedTime.toIso8601String(),
                                 (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(),

@@ -228,9 +228,40 @@ class CounterApi {
     }
   }
 
-  static Future<Counter> updateCounter(String _id, String _updatedAt, String _qty, String _totalQty, String _url, String _from, String _deviceName) async {
+  static Future<Counter> addCounter(String _id, String _updatedAt, String _qty, String _totalQty, String _url, String _from, String _deviceName) async {
     var response = await http.post(
-      Uri.parse('$_url/counter/updateQty'),
+      Uri.parse('$_url/counter/add'),
+      body: {
+        'id': _id,
+        'updated_at': _updatedAt,
+        'totalQty': _totalQty,
+        'qty': _qty,
+        'from': _from,
+        'device': _deviceName
+      }
+    ).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        return http.Response('Error', 408);
+      },
+    ).catchError((err) {
+      throw Exception('Failed to fetch data.');
+    });
+
+    if (response.statusCode == 200) {
+      var receivedData = json.decode(response.body);
+      receivedData['weight'] = receivedData['weight'].toDouble();
+      receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
+      return Counter.fromJson(receivedData);
+    } else {
+      throw Exception('Failed to update counter.');
+    }
+  }
+
+
+  static Future<Counter> dropCounter(String _id, String _updatedAt, String _qty, String _totalQty, String _url, String _from, String _deviceName) async {
+    var response = await http.post(
+      Uri.parse('$_url/counter/drop'),
       body: {
         'id': _id,
         'updated_at': _updatedAt,
