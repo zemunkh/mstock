@@ -9,7 +9,6 @@ class StockCounterApi {
   final HttpClient _httpClient = HttpClient();
 
   static Future<Result<Exception, StockCounter>> create(Map body, String _url) async {
-    print('Body 👉 : $body');
     var response = await http.post(
       Uri.parse('$_url/stock_counter/create'),
       headers: {
@@ -22,7 +21,7 @@ class StockCounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
+      print(' Problem 👉 : $err');
       throw Exception('Failed to create new Counter.');
     });
 
@@ -31,6 +30,7 @@ class StockCounterApi {
         return Error(Exception('404'));
       } else {
         var receivedData = json.decode(response.body);
+        receivedData['weight'] = receivedData['weight'].toDouble();
         receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
         return Success(StockCounter.fromJson(receivedData));
       }
@@ -41,7 +41,7 @@ class StockCounterApi {
 
   static Future<StockCounter> readCounter(String _id, String _url) async {
     var response = await http.get(
-      Uri.parse('$_url/stock_counter?id=$_id'),
+      Uri.parse('$_url/stock_counter/read?id=$_id'),
     ).timeout(
       const Duration(seconds: 5),
       onTimeout: () {
@@ -63,7 +63,7 @@ class StockCounterApi {
   // readCounterInsNotPosted
   static Future<Result<Exception, List<StockCounter>>> readStockCountersNotPosted(String _url) async {
     var response = await http.get(
-      Uri.parse('$_url/stock_counter/?posted=0'),
+      Uri.parse('$_url/stock_counter/status?posted=0'),
     ).timeout(
       const Duration(seconds: 5),
       onTimeout: () {
@@ -94,9 +94,9 @@ class StockCounterApi {
   }
 
   // readCounterInsPosted
-  static Future<Result<Exception, List<StockCounter>>> readStockCountersPosted(String _url) async {
+  static Future<Result<Exception, List<StockCounter>>> readStockCountersPosted(String _url) async {  
     var response = await http.get(
-      Uri.parse('$_url/stock_counter/?posted=1'),
+      Uri.parse('$_url/stock_counter/status?posted=1'),
     ).timeout(
       const Duration(seconds: 5),
       onTimeout: () {

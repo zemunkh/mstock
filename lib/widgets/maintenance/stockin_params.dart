@@ -23,6 +23,8 @@ class StockInParamsState extends State<StockInParams> {
   final _locationController =  TextEditingController();
   final _docPrefixController =  TextEditingController();
   final _projectCodeController = TextEditingController();
+  final _warehouseIdController = TextEditingController();
+
 
   final FocusNode _deviceNode =  FocusNode();
   final FocusNode _qneIpNode =  FocusNode();
@@ -33,6 +35,8 @@ class StockInParamsState extends State<StockInParams> {
   final FocusNode _locNode =  FocusNode();
   final FocusNode _docPrefixNode =  FocusNode();
   final FocusNode _projectCodeNode =  FocusNode();
+  final FocusNode _whIdNode =  FocusNode();
+
 
   static final _deviceFormKey = GlobalKey<FormFieldState>();
   static final _qneIpFormKey = GlobalKey<FormFieldState>();
@@ -43,6 +47,8 @@ class StockInParamsState extends State<StockInParams> {
   static final _locFormKey = GlobalKey<FormFieldState>();
   static final _docPrefixFormKey = GlobalKey<FormFieldState>();
   static final _projectCodeFormKey = GlobalKey<FormFieldState>();
+  static final _whIdFormKey = GlobalKey<FormFieldState>();
+
 
 
   bool lockEn = true;
@@ -72,6 +78,8 @@ class StockInParamsState extends State<StockInParams> {
     _locationController.text = await FileManager.readString('location');
     _docPrefixController.text = await FileManager.readString('doc_prefix');
     _projectCodeController.text = await FileManager.readString('project_code');
+    _warehouseIdController.text = await FileManager.readString('wh_id');
+
     List<String> parsed = [];
     // Initializing 8 types of description input models
   }
@@ -172,6 +180,7 @@ class StockInParamsState extends State<StockInParams> {
             String location = _locationController.text.trim();
             String docPrefix = _docPrefixController.text.trim();
             String projectCode = _projectCodeController.text.trim();
+            String whId = _projectCodeController.text.trim();
 
             FileManager.saveString('counter_ip_address', cip).then((_){
               FileManager.saveString('counter_port_number', cPort);
@@ -182,6 +191,7 @@ class StockInParamsState extends State<StockInParams> {
               FileManager.saveString('location', location);
               FileManager.saveString('doc_prefix', docPrefix);
               FileManager.saveString('project_code', projectCode);
+              FileManager.saveString('wh_id', whId);
             });
 
             if(qneIp != '' && qnePort != '') {
@@ -270,6 +280,7 @@ class StockInParamsState extends State<StockInParams> {
         _mainInput('QnE Location Code', _locationController, _locNode, _locFormKey),
         _mainInput('Stock INs Doc Prefix', _docPrefixController, _docPrefixNode, _docPrefixFormKey),
         _mainInput('Project Code', _projectCodeController, _projectCodeNode, _projectCodeFormKey),
+        _mainInput('Warehouse ID', _warehouseIdController, _whIdNode, _whIdFormKey),
         const SizedBox(height: 15,),
 
         _saveButton(context),

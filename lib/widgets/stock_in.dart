@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../model/stockCounter.dart';
@@ -28,6 +29,7 @@ class _StockInWidgetState extends State<StockInWidget> {
   List<StockCounter> _counterInList = [];
   // List<CounterIn> _counterInListView = [];
   
+  bool _isCheckerLoading = false;
   bool _isLoading = false;
   bool _isSaveDisabled = true;
   String _qneUrl = '';
@@ -38,6 +40,7 @@ class _StockInWidgetState extends State<StockInWidget> {
   String _docPrefix = '';
   String _deviceName = '';
   String _project = '';
+  String _whId = '';
   bool isPosting = false;
   String _supervisorPassword = '';
 
@@ -127,6 +130,7 @@ class _StockInWidgetState extends State<StockInWidget> {
     _docPrefix = await FileManager.readString('doc_prefix');
     _deviceName = await FileManager.readString('device_name');
     _project = await FileManager.readString('project_code');
+    _whId = await FileManager.readString('wh_id');
     final ip =  await FileManager.readString('counter_ip_address');
     final port =  await FileManager.readString('counter_port_number');
     if(ip != '' && port != '') {
@@ -134,6 +138,7 @@ class _StockInWidgetState extends State<StockInWidget> {
     } else {
       _url = 'http://localhost:8080';
     }
+    print('URL ⭐️ : $_url');
 
     final qneIp =  await FileManager.readString('qne_ip_address');
     final qnePort =  await FileManager.readString('qne_port_number');
@@ -159,16 +164,15 @@ class _StockInWidgetState extends State<StockInWidget> {
         // _prepareListView();
       }
     );
-
+    _deletePostedStockIns();
     setState(() {});
   }
 
   @override
   void initState() {
-    initSettings();
-    _deletePostedStockIns();
-    _masterController.addListener(masterListener);
     super.initState();
+    initSettings();
+    _masterController.addListener(masterListener);
   }
 
   @override
@@ -366,7 +370,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                         numbering: (i + 1).toString(),
                         stock: _counterInList[i].stock,
                         pos: 0,
-                        description: 'From production ${_counterInList[i].stock} | $_deviceName | ${_counterInList[i].machine} | ${_counterInList[i].shift} | ${DateFormat("HH:mm:ss").format(currentTime)}',
+                        description: 'From production ${_counterInList[i].stock} | $_deviceName | ${_counterInList[i].machine} | ${_counterInList[i].shift} | ${DateFormat("HH:mm:ss").format(currentTime)} | $_whId',
                         price: _counterInList[i].purchasePrice,
                         uom: _counterInList[i].uom,
                         qty: _counterInList[i].qty,
@@ -447,6 +451,52 @@ class _StockInWidgetState extends State<StockInWidget> {
       );
     }
 
+    Widget _connectionChecker(BuildContext context) {
+      return ElevatedButton(
+        onPressed: () async {
+          setState(() {
+            _isCheckerLoading = true;
+          });
+          String _code = Random().nextInt(999999).toString().padLeft(6, '0');
+          await CounterApi.connectionChecker(_code, _url).then((res) {
+            if(res == _code) {
+              setState(() {
+                _isCheckerLoading = false;
+              });
+              Utils.openDialogPanel(context, 'accept', 'Done!', 'Connection is ok!', 'Okay');
+            } else {
+              Utils.openDialogPanel(context, 'close', 'Oops!', 'Connection is not okay', 'Understand');
+              setState(() {
+                _isCheckerLoading = false;
+              });
+            }
+          }).catchError((err) {
+            Utils.openDialogPanel(context, 'close', 'Oops!', 'Test is failed. Error: $err', 'Understand');
+            setState(() {
+              _isCheckerLoading = false;
+            });
+          });
+        },
+        child: _isCheckerLoading ? Transform.scale(
+            scale: 0.6,
+            child: const CircularProgressIndicator(
+              strokeWidth: 8.0,
+              valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+            ),
+          ) : const Icon(
+          Icons.replay,
+          size: 24,
+          color: style.Colors.mainGrey,
+        ),
+        style: ElevatedButton.styleFrom(
+          primary: style.Colors.background,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+
     Widget _addView(BuildContext context) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,7 +530,18 @@ class _StockInWidgetState extends State<StockInWidget> {
                 flex: 4,
                 child: Text(''),
               ),
-              const Expanded(flex: 3, child: Text('')),
+              const Expanded(
+                flex: 1,
+                child: Text(''),
+              ),
+              Expanded(
+                flex: 2,
+                child: _connectionChecker(context)
+              ),
+              const Expanded(
+                flex: 1,
+                child: Text(''),
+              ),
               Expanded(
                 flex: 3,
                 child: ElevatedButton(
@@ -503,6 +564,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                       for (var el in _counterInList) {
                         var stockInShiftDate = DateFormat('dd/MM/yyyy').format(el.shiftDate);
                         if(counterShiftDate == stockInShiftDate) {
+                          print('💡 Found it!');
                           isFoundStockIn = true;
                           await StockCounterApi.readCounter(el.id.toString(), _url).then((res) async {
                             StockCounter updateCounterIn = StockCounter(
@@ -525,6 +587,14 @@ class _StockInWidgetState extends State<StockInWidget> {
                               _counterInList[_counterInList.indexWhere((item) => item.id == updateCounterIn.id)] = updateCounterIn;
                               // _prepareListView();
                               _masterController.text = '';
+                              
+                              if(c.qty > 0) {
+                                CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                  print('👉 Updated ID: $r');
+                                }).catchError((err) {
+                                  print('Error: $err');
+                                });
+                              }
                             }).catchError((err) {
                               Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update new StockIn counter.', 'Understand');
                             });
@@ -549,7 +619,14 @@ class _StockInWidgetState extends State<StockInWidget> {
                               _counterInList.add(newCounterIn);
                               // _prepareListView();
                               _masterController.text = '';
-                              
+
+                              if(c.qty > 0) {
+                                CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                  print('👉 Updated ID: $r');
+                                }).catchError((err) {
+                                  print('Error: $err');
+                                });
+                              }
                             }).catchError((err) {
                               Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
                             });
@@ -577,7 +654,14 @@ class _StockInWidgetState extends State<StockInWidget> {
                           _counterInList.add(newCounterIn);
                           // _prepareListView();
                           _masterController.text = '';
-                          
+
+                          if(c.qty > 0) {
+                            CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                              print('👉 Updated ID: $r');
+                            }).catchError((err) {
+                              print('Error: $err');
+                            });
+                          }
                         }).catchError((err) {
                           Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
                         });
@@ -588,13 +672,13 @@ class _StockInWidgetState extends State<StockInWidget> {
 
                       // Else, Save it to the CounterIn database (Locally)
 
-                      if(c.qty > 0) {
-                        CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
-                          print('👉 Updated ID: $r');
-                        }).catchError((err) {
-                          print('Error: $err');
-                        });
-                      }
+                      // if(c.qty > 0) {
+                      //   CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                      //     print('👉 Updated ID: $r');
+                      //   }).catchError((err) {
+                      //     print('Error: $err');
+                      //   });
+                      // }
                       setState(() {
                         _isLoading = false;
                       });

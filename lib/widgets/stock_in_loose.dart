@@ -53,6 +53,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   String _docPrefix = '';
   String _deviceName = '';
   String _project = '';
+  String _whId = '';
   bool isPosting = false;
   String _supervisorPassword = '';
 
@@ -165,6 +166,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
     _docPrefix = await FileManager.readString('doc_prefix');
     _deviceName = await FileManager.readString('device_name');
     _project = await FileManager.readString('project_code');
+    _whId = await FileManager.readString('wh_id');
     final ip =  await FileManager.readString('counter_ip_address');
     final port =  await FileManager.readString('counter_port_number');
     if(ip != '' && port != '') {
@@ -459,7 +461,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                         numbering: (i + 1).toString(),
                         stock: _counterInList[i].stock,
                         pos: 0,
-                        description: '${_counterInList[i].stock} | $_deviceName | ${_counterInList[i].machine} | ${_counterInList[i].shift} | ${DateFormat("HH:mm:ss").format(currentTime)}',
+                        description: '${_counterInList[i].stock} | $_deviceName | ${_counterInList[i].machine} | ${_counterInList[i].shift} | ${DateFormat("HH:mm:ss").format(currentTime)} | $_whId',
                         price: _counterInList[i].purchasePrice,
                         uom: _counterInList[i].uom,
                         qty: _counterInList[i].qty,
@@ -478,7 +480,7 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
                       stockInDate: shiftConvertedTime.toUtc(),
                       description: 'App Stock In from $_deviceName',
                       referenceNo: '',
-                      title: ' From production | $_deviceName | $_shiftValue | $lineVal | ${DateFormat("HH:mm").format(currentTime)}',
+                      title: ' From production | $_deviceName | $_shiftValue | $lineVal | ${DateFormat("HH:mm").format(currentTime)} | $_whId',
                       notes: currentTime.toUtc().toIso8601String(),
                       costCentre: '',
                       project: _project.isEmpty ? '' : _project,

@@ -267,9 +267,9 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
 
   _createNewCounter(DateTime currentTime) async {
     var _shiftConvertedDate = await Utils.getShiftConvertedTime(currentTime);
-    print('ID: ${_masterStock.stockId}');
+    // print('ID: ${_masterStock.stockId}');
     await StockApi.readFullStock(_dbCode, _masterStock.stockId, _qneUrl).then((res) async {
-      print('Res: ✅  ${res.stockId} rate = ${res.uoMs[0]!.rate}');
+      print('Res: ✅  rate = ${res.uoMs[0]!.rate}');
       
       List<Uom> activeUoms = [];
       for (var u in res.uoMs) {
@@ -659,6 +659,52 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
       );
     }
 
+    Widget _connectionChecker(BuildContext context) {
+      return ElevatedButton(
+        onPressed: () async {
+          setState(() {
+            _isCheckerLoading = true;
+          });
+          String _code = Random().nextInt(999999).toString().padLeft(6, '0');
+          await CounterApi.connectionChecker(_code, _url).then((res) {
+            if(res == _code) {
+              setState(() {
+                _isCheckerLoading = false;
+              });
+              Utils.openDialogPanel(context, 'accept', 'Done!', 'Connection is ok!', 'Okay');
+            } else {
+              Utils.openDialogPanel(context, 'close', 'Oops!', 'Connection is not okay', 'Understand');
+              setState(() {
+                _isCheckerLoading = false;
+              });
+            }
+          }).catchError((err) {
+            Utils.openDialogPanel(context, 'close', 'Oops!', 'Test is failed. Error: $err', 'Understand');
+            setState(() {
+              _isCheckerLoading = false;
+            });
+          });
+        },
+        child: _isCheckerLoading ? Transform.scale(
+            scale: 0.6,
+            child: const CircularProgressIndicator(
+              strokeWidth: 8.0,
+              valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
+            ),
+          ) : const Icon(
+          Icons.replay,
+          size: 24,
+          color: style.Colors.mainGrey,
+        ),
+        style: ElevatedButton.styleFrom(
+          primary: style.Colors.background,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+
     Widget _addView(BuildContext context) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -747,49 +793,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
               ),
               Expanded(
                 flex: 2,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      _isCheckerLoading = true;
-                    });
-                    String _code = Random().nextInt(999999).toString().padLeft(6, '0');
-                    await CounterApi.connectionChecker(_code, _url).then((res) {
-                      if(res == _code) {
-                        setState(() {
-                          _isCheckerLoading = false;
-                        });
-                        Utils.openDialogPanel(context, 'accept', 'Done!', 'Connection is ok!', 'Okay');
-                      } else {
-                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Connection is not okay', 'Understand');
-                        setState(() {
-                          _isCheckerLoading = false;
-                        });
-                      }
-                    }).catchError((err) {
-                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Test is failed. Error: $err', 'Understand');
-                      setState(() {
-                        _isCheckerLoading = false;
-                      });
-                    });
-                  },
-                  child: _isCheckerLoading ? Transform.scale(
-                      scale: 0.6,
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 8.0,
-                        valueColor : AlwaysStoppedAnimation(style.Colors.mainBlue),
-                      ),
-                    ) : const Icon(
-                    Icons.replay,
-                    size: 24,
-                    color: style.Colors.mainGrey,
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    primary: style.Colors.background,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+                child: _connectionChecker(context)
               ),
               const Expanded(
                 flex: 1,
@@ -809,6 +813,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                     final result = await CounterApi.readCounterByCodeAndMachine(_masterController.text.trim(), _machineLineController.text.trim(), _url);
                     
                     result.when((err) async {
+                      print('\n $err \n\n');
                       if('$err'.contains('404')) {
 
                         _createNewCounter(currentTime);
