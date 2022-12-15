@@ -7,7 +7,7 @@ class StockCounterFields {
     device, uom, qty, purchasePrice, isPosted, shiftDate, createdAt, updatedAt
   ];
 
-  static const String id = '_id';
+  static const String id = 'id';
   static const String stock = 'stock'; // stockCode
   static const String description = 'description';
   static const String machine = 'machine';
@@ -112,11 +112,28 @@ class StockCounter {
     StockCounterFields.uom: uom,
     StockCounterFields.qty: qty.toString(),
     StockCounterFields.purchasePrice: purchasePrice.toString(),
-    StockCounterFields.isPosted: isPosted ? 1 : 0,
+    StockCounterFields.isPosted: (isPosted ? 1 : 0).toString(),
     StockCounterFields.shiftDate: shiftDate.toIso8601String(),
     StockCounterFields.createdAt: createdAt.toIso8601String(),
     StockCounterFields.updatedAt: updatedAt.toIso8601String()
   };
+
+  Map<String, dynamic> toJsonFull() => {
+    StockCounterFields.id: id.toString(),
+    StockCounterFields.stock: stock,
+    StockCounterFields.description: description,
+    StockCounterFields.machine: machine,
+    StockCounterFields.shift: shift,
+    StockCounterFields.device: device,
+    StockCounterFields.uom: uom,
+    StockCounterFields.qty: qty.toString(),
+    StockCounterFields.purchasePrice: purchasePrice.toString(),
+    StockCounterFields.isPosted: (isPosted ? 1 : 0).toString(),
+    StockCounterFields.shiftDate: shiftDate.toIso8601String(),
+    StockCounterFields.createdAt: createdAt.toIso8601String(),
+    StockCounterFields.updatedAt: updatedAt.toIso8601String()
+  };
+
   Map<String, dynamic> postedToJson() => {
     StockCounterFields.isPosted: 1,
   };

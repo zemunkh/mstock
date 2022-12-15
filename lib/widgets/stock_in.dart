@@ -157,14 +157,14 @@ class _StockInWidgetState extends State<StockInWidget> {
     result.when(
       (e) {
         // Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
-        print('Empty list');
+        print('Empty list: $e');
       },
       (res) {
         _counterInList = res;
         // _prepareListView();
       }
     );
-    _deletePostedStockIns();
+    // _deletePostedStockIns();
     setState(() {});
   }
 
@@ -556,7 +556,9 @@ class _StockInWidgetState extends State<StockInWidget> {
                     // Add isPosted flag
                     // Read Counter with stockCode from Counter API (Network server)
                     await CounterApi.readCounterByCodeAndDate(_masterController.text.trim(), _url).then((c) async {
-                      print('✅ Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                      print('✅ Counter: ${c.purchasePrice} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                      print('✅ Counter: ${c.device} : ${c.shift} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+
                       var counterShiftDate = DateFormat('dd/MM/yyyy').format(c.shiftDate);
                       
                       // SameDay logic
@@ -564,9 +566,10 @@ class _StockInWidgetState extends State<StockInWidget> {
                       for (var el in _counterInList) {
                         var stockInShiftDate = DateFormat('dd/MM/yyyy').format(el.shiftDate);
                         if(counterShiftDate == stockInShiftDate) {
-                          print('💡 Found it!');
+                          print('💡 Found it');
                           isFoundStockIn = true;
                           await StockCounterApi.readCounter(el.id.toString(), _url).then((res) async {
+                            print('💡 Id = ${res.id}');
                             StockCounter updateCounterIn = StockCounter(
                               id: res.id,
                               stock: res.stock,
@@ -583,7 +586,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                               updatedAt: currentTime
                             );
 
-                            await StockCounterApi.update(updateCounterIn.toJson(), _url).then((res) {
+                            await StockCounterApi.update(updateCounterIn.toJsonFull(), _url).then((res) {
                               _counterInList[_counterInList.indexWhere((item) => item.id == updateCounterIn.id)] = updateCounterIn;
                               // _prepareListView();
                               _masterController.text = '';
@@ -663,6 +666,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                             });
                           }
                         }).catchError((err) {
+                          print('Error: 👉 $err');
                           Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
                         });
                       }

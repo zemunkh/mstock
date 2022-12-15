@@ -30,7 +30,6 @@ class StockCounterApi {
         return Error(Exception('404'));
       } else {
         var receivedData = json.decode(response.body);
-        receivedData['weight'] = receivedData['weight'].toDouble();
         receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
         return Success(StockCounter.fromJson(receivedData));
       }
@@ -82,7 +81,6 @@ class StockCounterApi {
         var receivedData = json.decode(response.body);
         // print('$receivedData');
         for (int i = 0; i < receivedData.length; i++) {
-          receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
           receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
           receivedList.add(receivedData[i]);
         }
@@ -115,7 +113,6 @@ class StockCounterApi {
         var receivedData = json.decode(response.body);
         // print('$receivedData');
         for (int i = 0; i < receivedData.length; i++) {
-          receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
           receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
           receivedList.add(receivedData[i]);
         }
@@ -148,7 +145,6 @@ class StockCounterApi {
         var receivedData = json.decode(response.body);
         // print('$receivedData');
         for (int i = 0; i < receivedData.length; i++) {
-          receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
           receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
           receivedList.add(receivedData[i]);
         }
@@ -181,7 +177,6 @@ class StockCounterApi {
         var receivedData = json.decode(response.body);
         // print('$receivedData');
         for (int i = 0; i < receivedData.length; i++) {
-          receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
           receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
           receivedList.add(receivedData[i]);
         }

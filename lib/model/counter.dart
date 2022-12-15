@@ -152,4 +152,5 @@ class Counter {
     CounterFields.createdTime: createdTime.toIso8601String(),
     CounterFields.updatedTime: updatedTime.toIso8601String(),
   };
+
 }

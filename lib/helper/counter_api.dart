@@ -37,7 +37,7 @@ class CounterApi {
   }
 
   static Future<Result<Exception, Counter>> create(Map body, String _url) async {
-    print('Body 👉 : $body');
+    //print('Body 👉 : $body');
     var response = await http.post(
       Uri.parse('$_url/counter/create'),
       headers: {
