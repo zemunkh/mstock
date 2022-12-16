@@ -175,14 +175,14 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      // print('👉 : $err');
+      print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
     if (response.statusCode == 200) {
       var receivedList = [];
       var receivedData = json.decode(response.body);
-      // print('$receivedData');
+      print('\nHEREE:   $receivedData');
       for (int i = 0; i < receivedData.length; i++) {
         receivedData[i]['weight'] = receivedData[i]['weight'].toDouble();
         receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();

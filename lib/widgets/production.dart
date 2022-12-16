@@ -215,6 +215,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
     if (buffer.endsWith(r'$')) {
       buffer = buffer.substring(0, buffer.length - 1);
       trueVal = buffer;
+      _machineLineNode.unfocus();
       setState(() {
         _isMatched = false;
       });
@@ -226,7 +227,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
       }
 
       if (isFound) {
-        await CounterApi.readCountersWithMachine(_url, trueVal, false).then((res) {
+        await CounterApi.readCountersWithMachine(_url, trueVal, false).then((res) async {
           List<Counter> _parsedList = [];
           for (var el in res) {
             if(el.qty > 0) {
@@ -235,9 +236,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
           }
           _counterList = _parsedList;
           _isMatched = true;
-          print('HERE HERE');
-          setState(() {});
-          FocusScope.of(context).requestFocus(_masterNode);
+
         }).catchError((err) {
           print('Err: $err');
           Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');
@@ -249,11 +248,18 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
         });
       }
       
-      await Future.delayed(const Duration(milliseconds: 500), () {
+      await Future.delayed(const Duration(milliseconds: 200), () {
         _machineLineController.text = trueVal;
-      }).then((value) {
-        _machineLineNode.unfocus();
-        isFound ? FocusScope.of(context).requestFocus(_masterNode) : FocusScope.of(context).requestFocus(FocusNode());
+      }).then((value) async {
+        // FocusScope.of(context).requestFocus(FocusNode());
+        if(isFound) {
+          await Future.delayed(const Duration(milliseconds: 200), () {
+            _machineLineController.text = trueVal;
+          }).then((value) {
+            print('DALDKFJGLDK');
+            FocusScope.of(context).requestFocus(_masterNode);
+          });
+        }
       });
     }
     if(buffer.isEmpty) {
@@ -808,7 +814,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                     setState(() {
                       _isLoading = true;
                     });
-                    print('Clicked the Save: $_url');
+                    // print('Clicked the Save: $_url');
                     var currentTime = DateTime.now();
                     final result = await CounterApi.readCounterByCodeAndMachine(_masterController.text.trim(), _machineLineController.text.trim(), _url);
                     
@@ -840,8 +846,11 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
 
                         var shiftDiff = currentTime.difference(c.shiftDate);
                         print('\n Product: ${c.stockCode} : diff=${shiftDiff.inDays} By Hours: ${shiftDiff.inHours} \n');
+    
+                        DateTime shiftConvertedTime = await Utils.getShiftConvertedTime(currentTime);
+                        print('\n  👉 ShiftConvertedTime: $shiftConvertedTime : Counter Shift Date=${c.shiftDate}  \n');
 
-                        if (currentTime.day == c.shiftDate.day && shiftDiff.inDays <= 0) {
+                        if (shiftConvertedTime.day == c.shiftDate.day && shiftDiff.inDays <= 0) {
                           // Update or create new Counter card
                           Counter updatedCounter = Counter(
                             id: c.id,

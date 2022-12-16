@@ -572,6 +572,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                             print('💡 Id = ${res.id}');
                             StockCounter updateCounterIn = StockCounter(
                               id: res.id,
+                              counterId: res.counterId,
                               stock: res.stock,
                               description: res.description,
                               machine: res.machine,
@@ -586,7 +587,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                               updatedAt: currentTime
                             );
 
-                            await StockCounterApi.update(updateCounterIn.toJsonFull(), _url).then((res) {
+                            await StockCounterApi.update(updateCounterIn.toJson(), _url).then((res) {
                               _counterInList[_counterInList.indexWhere((item) => item.id == updateCounterIn.id)] = updateCounterIn;
                               // _prepareListView();
                               _masterController.text = '';
@@ -599,12 +600,12 @@ class _StockInWidgetState extends State<StockInWidget> {
                                 });
                               }
                             }).catchError((err) {
-                              Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update new StockIn counter.', 'Understand');
+                              Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update StockIn counter.', 'Understand');
                             });
                           }).catchError((err) async {
                             print('Error -> 2: $err');
                             StockCounter newCounterIn = StockCounter(
-                              id: c.id,
+                              counterId: c.id,
                               stock: c.stockCode, // necessary
                               description: c.stockName,
                               machine: c.machine, // necessary
@@ -639,7 +640,7 @@ class _StockInWidgetState extends State<StockInWidget> {
 
                       if(!isFoundStockIn) {
                         StockCounter newCounterIn = StockCounter(
-                          id: c.id,
+                          counterId: c.id,
                           stock: c.stockCode, // necessary
                           description: c.stockName,
                           machine: c.machine, // necessary

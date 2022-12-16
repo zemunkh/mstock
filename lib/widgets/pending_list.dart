@@ -131,6 +131,7 @@ class _PendingListState extends State<PendingList> {
         _isLoading = false;
       }).catchError((err) async {
         _isLoading = false;
+        // print('Error 👉 $err');
         // Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
         print('Counters with 👉 $m Machine code is not found!');
       });
