@@ -58,7 +58,7 @@ class _MachineListState extends State<MachineList> {
               ),
               Expanded(
                 flex: 4,
-                child: Container(
+                child: SizedBox(
                   height: 36,
                   child: TextFormField(
                     key: _machineFormKey,
@@ -82,7 +82,8 @@ class _MachineListState extends State<MachineList> {
                     onEditingComplete: () {
                       print('Done: ${_machineController.text}');
                       FocusScope.of(context).unfocus();
-                    }
+                    },
+                    onTap: () => _machineController.clear(),
                   ),
                 ),
               ),
@@ -97,6 +98,7 @@ class _MachineListState extends State<MachineList> {
                           if(!_machineList.contains(_machineController.text.trim())) {
                             setState(() {
                               _machineList.insert(0, _machineController.text.trim());
+                              _machineController.text = '';
                             });
                             FileManager.saveList('machine_line', _machineList);
                           } else {

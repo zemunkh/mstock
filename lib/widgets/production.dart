@@ -256,7 +256,6 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
           await Future.delayed(const Duration(milliseconds: 200), () {
             _machineLineController.text = trueVal;
           }).then((value) {
-            print('DALDKFJGLDK');
             FocusScope.of(context).requestFocus(_masterNode);
           });
         }

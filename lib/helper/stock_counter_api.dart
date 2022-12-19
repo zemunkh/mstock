@@ -146,7 +146,6 @@ class StockCounterApi {
         if(receivedData.isEmpty) {
           return Error(Exception(http.Response('Empty result', 404)));
         }
-        print('Stock data: 🎯 $receivedData');
         for (int i = 0; i < receivedData.length; i++) {
           receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
           receivedList.add(receivedData[i]);

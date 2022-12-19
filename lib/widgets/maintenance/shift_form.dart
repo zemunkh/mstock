@@ -276,6 +276,9 @@ class _ShiftFormState extends State<ShiftForm> {
                             if(!isOverlapped) {
                               setState(() {
                                 _shiftList.insert(0, '${_shiftController.text.trim()}, ${DateFormat.Hm().format(startTimeSelected)}, ${DateFormat.Hm().format(endTimeSelected)}');
+                                startTimeSelected = endTimeSelected;
+                                endTimeSelected = endTimeSelected.add(const Duration(hours: 6));
+                                _shiftController.text = '';
                               });
                             } else {
                               Utils.openDialogPanel(context, 'close', 'Oops!', 'Shift interval is overlapped', 'Try again');

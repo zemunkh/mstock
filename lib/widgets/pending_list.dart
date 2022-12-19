@@ -100,7 +100,6 @@ class _PendingListState extends State<PendingList> {
               final result = await StockCounterApi.readStockCountersByCodeAndMachine(el.stockCode, el.machine, _url);
 
               result.when((err) async {
-                print('🚨 -> $err    <-  ${el.stockCode}');
                 if('$err'.contains('404')) {
                   print('Not found! Or $err');
                 }

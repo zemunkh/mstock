@@ -125,6 +125,24 @@ class StockCounter {
     StockCounterFields.updatedAt: updatedAt.toIso8601String()
   };
 
+
+  Map<String, dynamic> toJsonFull() => {
+    StockCounterFields.id: id.toString(),
+    StockCounterFields.counterId: counterId.toString(),
+    StockCounterFields.stock: stock,
+    StockCounterFields.description: description,
+    StockCounterFields.machine: machine,
+    StockCounterFields.shift: shift,
+    StockCounterFields.device: device,
+    StockCounterFields.uom: uom,
+    StockCounterFields.qty: qty.toString(),
+    StockCounterFields.purchasePrice: purchasePrice.toString(),
+    StockCounterFields.isPosted: (isPosted ? 1 : 0).toString(),
+    StockCounterFields.shiftDate: shiftDate.toIso8601String(),
+    StockCounterFields.createdAt: createdAt.toIso8601String(),
+    StockCounterFields.updatedAt: updatedAt.toIso8601String()
+  };
+
   Map<String, dynamic> postedToJson() => {
     StockCounterFields.isPosted: 1,
   };
