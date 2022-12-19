@@ -227,7 +227,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
       }
 
       if (isFound) {
-        await CounterApi.readCountersWithMachine(_url, trueVal, false).then((res) async {
+        await CounterApi.readCountersWithMachine(_url, trueVal).then((res) async {
           List<Counter> _parsedList = [];
           for (var el in res) {
             if(el.qty > 0) {
@@ -236,7 +236,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
           }
           _counterList = _parsedList;
           _isMatched = true;
-
+          setState(() {});
         }).catchError((err) {
           print('Err: $err');
           Utils.openDialogPanel(context, 'close', 'Oops!', '$err', 'Understand');

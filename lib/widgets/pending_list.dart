@@ -45,7 +45,7 @@ class _PendingListState extends State<PendingList> {
     for (var m in _machineList) {
       var dateList = [];
       print('Machine 👉 : $m');
-      await CounterApi.readCountersWithMachine(_url, m, false).then((list) async {
+      await CounterApi.readCountersWithMachine(_url, m).then((list) async {
         for (var item in list) {
           var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
           final index = dateList.indexWhere((d) => d == tempDate);
@@ -100,6 +100,7 @@ class _PendingListState extends State<PendingList> {
               final result = await StockCounterApi.readStockCountersByCodeAndMachine(el.stockCode, el.machine, _url);
 
               result.when((err) async {
+                print('🚨 -> $err    <-  ${el.stockCode}');
                 if('$err'.contains('404')) {
                   print('Not found! Or $err');
                 }
@@ -131,7 +132,7 @@ class _PendingListState extends State<PendingList> {
         _isLoading = false;
       }).catchError((err) async {
         _isLoading = false;
-        // print('Error 👉 $err');
+        print('Error 👉 $err');
         // Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
         print('Counters with 👉 $m Machine code is not found!');
       });
@@ -189,7 +190,6 @@ class _PendingListState extends State<PendingList> {
 
   @override
   Widget build(BuildContext context) {
-
     Widget _filterSelectors(BuildContext context) {
       return Padding(
         padding: const EdgeInsets.only(left: 2, right: 2),

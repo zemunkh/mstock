@@ -133,7 +133,7 @@ class StockCounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
+      print('🚨 : $err');
       throw Exception('Failed to read Stock Counters.');
     });
 
@@ -143,12 +143,15 @@ class StockCounterApi {
       } else {
         var receivedList = [];
         var receivedData = json.decode(response.body);
-        // print('$receivedData');
+        if(receivedData.isEmpty) {
+          return Error(Exception(http.Response('Empty result', 404)));
+        }
+        print('Stock data: 🎯 $receivedData');
         for (int i = 0; i < receivedData.length; i++) {
           receivedData[i]['purchasePrice'] = receivedData[i]['purchasePrice'].toDouble();
           receivedList.add(receivedData[i]);
         }
-        return Success(receivedList.map<StockCounter>((json) => StockCounter.fromJson(json)).toList());
+        return Success(receivedList.map<StockCounter>((stock) => StockCounter.fromJson(stock)).toList());
       }
     } else {
       return Error(Exception(response));
