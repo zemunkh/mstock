@@ -847,7 +847,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                         print('\n Product: ${c.stockCode} : diff=${shiftDiff.inDays} By Hours: ${shiftDiff.inHours} \n');
     
                         DateTime shiftConvertedTime = await Utils.getShiftConvertedTime(currentTime);
-                        print('\n  👉 ShiftConvertedTime: $shiftConvertedTime : Counter Shift Date=${c.shiftDate}  \n');
+                        print('👉 ShiftConvertedTime: $shiftConvertedTime : Counter Shift Date=${c.shiftDate}  \n');
 
                         if (shiftConvertedTime.day == c.shiftDate.day && shiftDiff.inDays <= 0) {
                           // Update or create new Counter card

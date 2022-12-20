@@ -556,183 +556,189 @@ class _StockInWidgetState extends State<StockInWidget> {
                     // Add isPosted flag
                     // Read Counter with stockCode from Counter API (Network server)
                     await CounterApi.readCounterByCodeAndDate(_masterController.text.trim(), _url).then((c) async {
-                      print('✅ Counter: ${c.purchasePrice} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                       print('✅ Counter: ${c.device} : ${c.shift} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
 
                       var counterShiftDate = DateFormat('dd/MM/yyyy').format(c.shiftDate);
                       
                       // SameDay logic
-                      bool isFoundStockIn = false;
-
+                      // bool isFoundStockIn = false;
+                      List<StockCounter> _counterInListTemp = [];
                       //💡 _counterList from the Server, then update the table 💡
+                      final resultReadCounters = await StockCounterApi.readStockCountersNotPosted(_url);
+                      resultReadCounters.when(
+                        (e) {
+                          print('Empty list: $e');
+                        },
+                        (list) async {
+                          _counterInListTemp = list;
+                          if(_counterInListTemp.isNotEmpty) {
+                            for (var el in _counterInListTemp) {
+                              var stockInShiftDate = DateFormat('dd/MM/yyyy').format(el.shiftDate);
+                              if(counterShiftDate == stockInShiftDate) {
+                                print('💡 Found it');
+                                // isFoundStockIn = true;
+                                await StockCounterApi.readCounter(el.id.toString(), _url).then((res) async {
+                                  print('💡 Id = ${res.id}');
 
-                      //💡 I/flutter ( 7614): Error: 👉 👉 👉 Concurrent modification during iteration: Instance(length:3) of '_GrowableList'.
-                      for (var el in _counterInList) {
-                        var stockInShiftDate = DateFormat('dd/MM/yyyy').format(el.shiftDate);
-                        if(counterShiftDate == stockInShiftDate) {
-                          print('💡 Found it');
-                          isFoundStockIn = true;
-                          await StockCounterApi.readCounter(el.id.toString(), _url).then((res) async {
-                            print('💡 Id = ${res.id}');
+                                  if(res.counterId == c.id) {
 
-                            if(res.counterId == c.id) {
+                                    StockCounter updateCounterIn = StockCounter(
+                                      id: res.id,
+                                      counterId: res.counterId, // Counter Id for current selection
+                                      stock: res.stock,
+                                      description: res.description,
+                                      machine: res.machine,
+                                      shift: res.shift,
+                                      device: res.device,
+                                      uom: res.uom,
+                                      qty: res.qty + 1,
+                                      purchasePrice: res.purchasePrice,
+                                      isPosted: false,
+                                      shiftDate: res.shiftDate,
+                                      createdAt: res.createdAt,
+                                      updatedAt: currentTime
+                                    );
 
-                              StockCounter updateCounterIn = StockCounter(
-                                id: res.id,
-                                counterId: res.counterId, // Counter Id for current selection
-                                stock: res.stock,
-                                description: res.description,
-                                machine: res.machine,
-                                shift: res.shift,
-                                device: res.device,
-                                uom: res.uom,
-                                qty: res.qty + 1,
-                                purchasePrice: res.purchasePrice,
-                                isPosted: false,
-                                shiftDate: res.shiftDate,
-                                createdAt: res.createdAt,
-                                updatedAt: currentTime
-                              );
+                                    final resultUpdated = await StockCounterApi.update(updateCounterIn.toJsonFull(), _url);
+                                    
+                                    resultUpdated.when((err) {
+                                      print('Err -> Updating: $err');
+                                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update StockIn counter.', 'Understand');
 
-                              final result = await StockCounterApi.update(updateCounterIn.toJsonFull(), _url);
-                              
-                              result.when((err) {
-                                print('Err -> Updating: $err');
-                                Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update StockIn counter.', 'Understand');
+                                    }, (updatedCounter) {
+                                      _counterInListTemp[_counterInListTemp.indexWhere((item) => item.id == updatedCounter.id)] = updatedCounter;
+                                        setState(() {
+                                          _counterInList = _counterInListTemp;
+                                          _masterController.text = '';
+                                        });
+                                      if(c.qty > 0) {
+                                        CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                          print('👉 Updated ID: ${r.id}');
+                                        }).catchError((err) {
+                                          print('Error: $err');
+                                        });
+                                      }
+                                    });
+                                  } else {
+                                    StockCounter newCounterIn = StockCounter(
+                                      counterId: c.id,
+                                      stock: c.stockCode, // necessary
+                                      description: c.stockName,
+                                      machine: c.machine, // necessary
+                                      shift: c.shift,
+                                      device: _deviceName,
+                                      uom: c.uom,
+                                      qty: 1,
+                                      purchasePrice: c.purchasePrice,
+                                      isPosted: false,
+                                      shiftDate: c.shiftDate,
+                                      createdAt: c.createdTime,
+                                      updatedAt: currentTime
+                                    );
+                                    final result = await StockCounterApi.create(newCounterIn.toJson(), _url);
+                                    
+                                    result.when((err) {
+                                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter: $err', 'Understand');
+                                    }, (newlyCreated) {
+                                      _counterInList.add(newlyCreated);
 
-                              }, (updatedCounter) {
-                                _counterInList[_counterInList.indexWhere((item) => item.id == updatedCounter.id)] = updatedCounter;
-                                // _prepareListView();
-                                _masterController.text = '';
-                                if(c.qty > 0) {
-                                  CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
-                                    print('👉 Updated ID: $r');
-                                  }).catchError((err) {
-                                    print('Error: $err');
-                                  });
-                                }
-                              });
-                            } else {
-                              StockCounter newCounterIn = StockCounter(
-                                counterId: c.id,
-                                stock: c.stockCode, // necessary
-                                description: c.stockName,
-                                machine: c.machine, // necessary
-                                shift: c.shift,
-                                device: _deviceName,
-                                uom: c.uom,
-                                qty: 1,
-                                purchasePrice: c.purchasePrice,
-                                isPosted: false,
-                                shiftDate: c.shiftDate,
-                                createdAt: c.createdTime,
-                                updatedAt: currentTime
-                              );
-                              final result = await StockCounterApi.create(newCounterIn.toJson(), _url);
-                              
-                              result.when((err) {
-                                Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter: $err', 'Understand');
-                              }, (newlyCreated) {
-                                _counterInList.add(newlyCreated);
+                                      _masterController.text = '';
 
-                                _masterController.text = '';
+                                      if(c.qty > 0) {
+                                        CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                          print('👉 Updated ID: ${r.id}');
+                                        }).catchError((err) {
+                                          print('Error: $err');
+                                        });
+                                      }
+                                    });
+                                    
+                                  }
+                                }).catchError((err) async {
+                                  print('Error -> 2: $err');
+                                    StockCounter newCounterIn = StockCounter(
+                                      counterId: c.id,
+                                      stock: c.stockCode, // necessary
+                                      description: c.stockName,
+                                      machine: c.machine, // necessary
+                                      shift: c.shift,
+                                      device: _deviceName,
+                                      uom: c.uom,
+                                      qty: 1,
+                                      purchasePrice: c.purchasePrice,
+                                      isPosted: false,
+                                      shiftDate: c.shiftDate,
+                                      createdAt: c.createdTime,
+                                      updatedAt: currentTime
+                                    );
+                                    final resultCreated = await StockCounterApi.create(newCounterIn.toJson(), _url);
+                                    
+                                    resultCreated.when((err) {
+                                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter: $err', 'Understand');
+                                    }, (newlyCreated) {
+                                        setState(() {
+                                          _counterInList.add(newCounterIn);
+                                          _masterController.text = '';
+                                        });
 
-                                if(c.qty > 0) {
-                                  CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
-                                    print('👉 Updated ID: $r');
-                                  }).catchError((err) {
-                                    print('Error: $err');
-                                  });
-                                }
-                              });
-                              
+                                      if(c.qty > 0) {
+                                        CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                          print('👉 Updated ID: ${r.id}');
+                                        }).catchError((err) {
+                                          print('Error: $err');
+                                        });
+                                      }
+                                    });
+                                });
+                              }
                             }
-                          }).catchError((err) async {
-                            print('Error -> 2: $err');
-                              StockCounter newCounterIn = StockCounter(
-                                counterId: c.id,
-                                stock: c.stockCode, // necessary
-                                description: c.stockName,
-                                machine: c.machine, // necessary
-                                shift: c.shift,
-                                device: _deviceName,
-                                uom: c.uom,
-                                qty: 1,
-                                purchasePrice: c.purchasePrice,
-                                isPosted: false,
-                                shiftDate: c.shiftDate,
-                                createdAt: c.createdTime,
-                                updatedAt: currentTime
-                              );
-                              final result = await StockCounterApi.create(newCounterIn.toJson(), _url);
-                              
-                              result.when((err) {
-                                Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter: $err', 'Understand');
-                              }, (newlyCreated) {
-                                _counterInList.add(newlyCreated);
-
+                          } else {
+                            StockCounter newCounterIn = StockCounter(
+                              counterId: c.id,
+                              stock: c.stockCode, // necessary
+                              description: c.stockName,
+                              machine: c.machine, // necessary
+                              shift: c.shift,
+                              device: _deviceName,
+                              uom: c.uom,
+                              qty: 1,
+                              purchasePrice: c.purchasePrice,
+                              isPosted: false,
+                              shiftDate: c.shiftDate,
+                              createdAt: c.createdTime,
+                              updatedAt: currentTime
+                            );
+                            await StockCounterApi.create(newCounterIn.toJson(), _url).then((res) {
+                              setState(() {
+                                _counterInList.add(newCounterIn);
                                 _masterController.text = '';
-
-                                if(c.qty > 0) {
-                                  CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
-                                    print('👉 Updated ID: $r');
-                                  }).catchError((err) {
-                                    print('Error: $err');
-                                  });
-                                }
                               });
-                          });
-                        }
-                      }
 
-                      if(!isFoundStockIn) {
-                        StockCounter newCounterIn = StockCounter(
-                          counterId: c.id,
-                          stock: c.stockCode, // necessary
-                          description: c.stockName,
-                          machine: c.machine, // necessary
-                          shift: c.shift,
-                          device: _deviceName,
-                          uom: c.uom,
-                          qty: 1,
-                          purchasePrice: c.purchasePrice,
-                          isPosted: false,
-                          shiftDate: c.shiftDate,
-                          createdAt: c.createdTime,
-                          updatedAt: currentTime
-                        );
-                        await StockCounterApi.create(newCounterIn.toJson(), _url).then((res) {
-                          _counterInList.add(newCounterIn);
-                          // _prepareListView();
-                          _masterController.text = '';
-
-                          if(c.qty > 0) {
-                            CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
-                              print('👉 Updated ID: $r');
+                              if(c.qty > 0) {
+                                CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                  print('👉 Updated ID: ${r.id}');
+                                }).catchError((err) {
+                                  print('Error: $err');
+                                });
+                              }
                             }).catchError((err) {
-                              print('Error: $err');
+                              print('Error: 👉 $err');
+                              Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
                             });
                           }
-                        }).catchError((err) {
-                          print('Error: 👉 $err');
-                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter.', 'Understand');
-                        });
-                      }
+                        }
+                      );
+
+                      //💡 I/flutter ( 7614): Error: 👉 👉 👉 Concurrent modification during iteration: Instance(length:3) of '_GrowableList'.
+
                       // Search the stock in the Current list
 
                       // if it is available, Update it to the CounterIn database (Locally)
 
                       // Else, Save it to the CounterIn database (Locally)
-
-                      // if(c.qty > 0) {
-                      //   CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
-                      //     print('👉 Updated ID: $r');
-                      //   }).catchError((err) {
-                      //     print('Error: $err');
-                      //   });
-                      // }
                       setState(() {
                         _isLoading = false;
+                        _masterController.text = '';
                       });
                     }).catchError((err) async {
                       print('Error: 👉 👉 👉 $err');

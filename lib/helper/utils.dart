@@ -98,25 +98,24 @@ class Utils {
       var startMin = int.parse(startTime.split(':')[0])*60 + int.parse(startTime.split(':')[1]);
       var endMin = int.parse(endTime.split(':')[0])*60 + int.parse(endTime.split(':')[1]);
 
-      if(_dateHHmm < 1440) {
-        return _date;
-      }
-
-      if(startMin > endMin && _dateHHmm >= 0) {
+      if(startMin > endMin) {
         // Elapsed preset intervals
         print('⭐️ Elapsed interval');
-
-        if(Utils.isInRange(startMin, 1440, _dateHHmm) || Utils.isInRange(0, endMin, _dateHHmm)) {
-          // Convert currentDay to 1 day before
-          DateTime date = DateTime(
-            _date.year,
-            _date.month,
-            _date.day - 1, 
-            23,
-            59,
-          );
-          print('Day before 👉 : $date');
-          return date;
+        if(_dateHHmm >= 0) {
+          if(Utils.isInRange(startMin, 1440, _dateHHmm) || Utils.isInRange(0, endMin, _dateHHmm)) {
+            // Convert currentDay to 1 day before
+            DateTime date = DateTime(
+              _date.year,
+              _date.month,
+              _date.day - 1, 
+              23,
+              59,
+            );
+            print('Day before 👉 : $date');
+            return date;
+          }
+        } else {
+          return _date;
         }
       }
     }

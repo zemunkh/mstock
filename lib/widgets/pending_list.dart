@@ -92,28 +92,30 @@ class _PendingListState extends State<PendingList> {
               if( d == tempDate && s == item.shift) {
                 tempCounters.add(item);
                 total = total + item.qty;
+                print('🎯 ${item.stockCode} : ${item.qty} : ${item.machine} : ${item.shift}');
               }
             }
 
+            stockInTotal = 0;
             for (var el in tempCounters) {
-              stockInTotal = 0;
               final result = await StockCounterApi.readStockCountersByCodeAndMachine(el.stockCode, el.machine, _url);
 
-              result.when((err) async {
+              result.when((err) {
                 if('$err'.contains('404')) {
                   print('Not found! Or $err');
                 }
-              }, (c) async {
-                print('👉 Got it! ${el.stockCode}');
-                for (var item in c) {
+              }, (list) {
+                for (var item in list) {
                   var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
                   if( d == tempDate) {
-                    print('👉 item qty: ${item.qty}');
+                    print('🚀 Stock item qty: ${item.qty} : ${item.stock}');
                     stockInTotal = stockInTotal + item.qty;
                   }
                 }
+                print('⚽️ StockIn ${el.stockCode} Total:  $stockInTotal');
               });
             }
+            // print('⚽️ 👉 tempCounter: ${tempCounters.length}');
 
             if(tempCounters.isNotEmpty) {
               Pending newPending = Pending(
@@ -123,10 +125,12 @@ class _PendingListState extends State<PendingList> {
                 pending: total,
                 stockIn: stockInTotal
               );
+              print('⚽️ StockIn Total #2: $stockInTotal');
               _pendingList.add(newPending);
             }
           }
         }
+        print('🦄 👉 [0]: ${_pendingList[0].stockIn}');
         _pendingListView = _pendingList;
         _isLoading = false;
       }).catchError((err) async {
