@@ -180,7 +180,7 @@ class StockInParamsState extends State<StockInParams> {
             String location = _locationController.text.trim();
             String docPrefix = _docPrefixController.text.trim();
             String projectCode = _projectCodeController.text.trim();
-            String whId = _projectCodeController.text.trim();
+            String whId = _warehouseIdController.text.trim();
 
             FileManager.saveString('counter_ip_address', cip).then((_){
               FileManager.saveString('counter_port_number', cPort);

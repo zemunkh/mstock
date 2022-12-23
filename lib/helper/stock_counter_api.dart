@@ -22,7 +22,7 @@ class StockCounterApi {
       },
     ).catchError((err) {
       print(' Problem 👉 : $err');
-      throw Exception('Failed to create new Counter.');
+      throw Exception('Failed to create new StockIn Counter.');
     });
 
     if (response.statusCode == 200) {
@@ -204,7 +204,7 @@ class StockCounterApi {
       },
     ).catchError((err) {
       print('👉 : $err');
-      throw Exception('Failed to create new Counter.');
+      throw Exception('Failed to update StockIn Counter.');
     });
 
     if (response.statusCode == 200) {
@@ -235,7 +235,7 @@ class StockCounterApi {
       },
     ).catchError((err) {
       print('👉 : $err');
-      throw Exception('Failed to create new Counter.');
+      throw Exception('Failed to update StockIn Counter.');
     });
 
     if (response.statusCode == 200) {
