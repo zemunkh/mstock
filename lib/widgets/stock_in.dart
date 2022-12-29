@@ -359,6 +359,31 @@ class _StockInWidgetState extends State<StockInWidget> {
                     setState(() {
                       isPosting = true;
                     });
+
+                    final result = await StockCounterApi.readStockCountersNotPosted(_url);
+
+                    result.when(
+                      (e) {
+                        if('$e'.contains('404')) {
+                          Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn table is empty. StockIns are already posted by other device.', 'Understand');
+                          setState(() {
+                            _counterInList = [];
+                          });
+                          return;
+                        }
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'Error: $e Failed to reload the StockIns Counters.', 'Understand');
+                        setState(() {
+                          isPosting = false;
+                        });
+                        return;
+                      },
+                      (res) {
+                        setState(() {
+                          _counterInList = res;
+                        });
+                      }
+                    );
+
                     DateTime currentTime = DateTime.now();
                     DateTime shiftConvertedTime = await Utils.getShiftConvertedTime(currentTime);
 
@@ -407,8 +432,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                             if('$err'.contains('404')) {
                               print('Wrong ❌');
                             }
-                          }, (c) async {
-                            
+                          }, (c) async {   
                             print('Done ✅');
                           });
                         }
