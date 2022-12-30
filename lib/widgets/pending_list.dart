@@ -53,7 +53,7 @@ class _PendingListState extends State<PendingList> {
           if(diff.inHours > 23) {
             if(item.qty > 0) {
               if (index >= 0) {
-                print('Already there!');
+                // print('Already there!');
               } else {
                 dateList.add(tempDate);
               }
@@ -92,7 +92,7 @@ class _PendingListState extends State<PendingList> {
               if( d == tempDate && s == item.shift) {
                 tempCounters.add(item);
                 total = total + item.qty;
-                print('🎯 ${item.stockCode} : ${item.qty} : ${item.machine} : ${item.shift}');
+                // print('🎯 ${item.stockCode} : ${item.qty} : ${item.machine} : ${item.shift}');
               }
             }
 
@@ -108,11 +108,11 @@ class _PendingListState extends State<PendingList> {
                 for (var item in list) {
                   var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
                   if( d == tempDate) {
-                    print('🚀 Stock item qty: ${item.qty} : ${item.stock}');
+                    // print('🚀 Stock item qty: ${item.qty} : ${item.stock}');
                     stockInTotal = stockInTotal + item.qty;
                   }
                 }
-                print('⚽️ StockIn ${el.stockCode} Total:  $stockInTotal');
+                // print('⚽️ StockIn ${el.stockCode} Total:  $stockInTotal');
               });
             }
             // print('⚽️ 👉 tempCounter: ${tempCounters.length}');
@@ -125,12 +125,12 @@ class _PendingListState extends State<PendingList> {
                 pending: total,
                 stockIn: stockInTotal
               );
-              print('⚽️ StockIn Total #2: $stockInTotal');
+              // print('⚽️ StockIn Total #2: $stockInTotal');
               _pendingList.add(newPending);
             }
           }
         }
-        print('🦄 👉 [0]: ${_pendingList[0].stockIn}');
+        // print('🦄 👉 [0]: ${_pendingList[0].stockIn}');
         _pendingListView = _pendingList;
         _isLoading = false;
       }).catchError((err) async {
