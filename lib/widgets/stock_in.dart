@@ -424,10 +424,9 @@ class _StockInWidgetState extends State<StockInWidget> {
                     await StockApi.postStockIns(_dbCode, newValue.toJson(), _qneUrl).then((status) async {
                       if(status == 200) {
                         // Update isPosted status to TRUE
-                        for (StockCounter el in _counterInList) {
-
+                        for (StockCounter el in _counterInList) {                          
                           final result = await StockCounterApi.updatePostedStatus(el.id.toString(), true, _url);
-
+                          
                           result.when((err) async {
                             if('$err'.contains('404')) {
                               print('Wrong ❌');
@@ -436,10 +435,11 @@ class _StockInWidgetState extends State<StockInWidget> {
                             print('Done ✅');
                           });
                         }
-                        // setState(() {
-                        _counterInList = [];
+                        setState(() {
+                          _counterInList = [];
+                          isPosting = false;
                         // _counterInListView = [];
-                        // });
+                        });
                         Utils.openDialogPanel(context, 'accept', 'Done!', 'StockIn is successfully posted!', 'Okay');
                       } else if(status == 408) {
                         Utils.openDialogPanel(context, 'close', 'Oops!', 'Timed out! Check your network connection.', 'Understand');
@@ -448,11 +448,9 @@ class _StockInWidgetState extends State<StockInWidget> {
                       }
                       isPosting = false;
                     }).catchError((err) {
-                      print('Err:  ❌ $err');
-                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Error: $err', 'Understand');
+                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Error ❌: $err', 'Understand');
                       isPosting = false;
                     });
-                    setState(() {});
                   },
                   child: isPosting ? Transform.scale(
                     scale: 0.6,
@@ -462,7 +460,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                       ),
                     ) : const Text('Post'),
                   style: ElevatedButton.styleFrom(
-                    primary: style.Colors.button4,
+                    primary: isPosting ? style.Colors.mainDarkGrey : style.Colors.button4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

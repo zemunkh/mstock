@@ -127,7 +127,7 @@ class CounterApi {
     });
 
     if (response.statusCode == 200) {
-      print('👉 Res: ${response.body}');
+      // print('👉 Res: ${response.body}');
       if(response.body.isEmpty) {
         return Error(Exception('404'));
       } else {

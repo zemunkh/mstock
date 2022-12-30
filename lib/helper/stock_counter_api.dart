@@ -226,7 +226,7 @@ class StockCounterApi {
       Uri.parse('$_url/stock_counter/updateStatus'),
       body: {
         'id': _id,
-        'isPosted': _isPosted ? 1 : 0,
+        'isPosted': _isPosted ? '1' : '0',
       }
     ).timeout(
       const Duration(seconds: 5),
@@ -234,8 +234,7 @@ class StockCounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
-      throw Exception('Failed to update StockIn Counter.');
+      throw Exception('Reason: $err');
     });
 
     if (response.statusCode == 200) {

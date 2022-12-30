@@ -1012,6 +1012,9 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                                 ));
                               }
                             });
+                          } else if(c.qty == 0) {
+                            Navigator.of(context, rootNavigator: true).pop();
+                            Utils.openDialogPanel(context, 'close', 'Oops!', 'Quantity is 0. Already deducted.', 'Try again');
                           } else {
                             Counter updatedCounter = Counter(
                               id: c.id,
