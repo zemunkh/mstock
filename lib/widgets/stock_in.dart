@@ -123,6 +123,21 @@ class _StockInWidgetState extends State<StockInWidget> {
     }
   }
 
+  Future _reloadTable() async {
+    final result = await StockCounterApi.readStockCountersNotPosted(_url);
+
+    result.when(
+      (e) {
+        // Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
+        print('Empty list: $e');
+      },
+      (res) {
+        _counterInList = res;
+        // _prepareListView();
+      }
+    );    
+  }
+
   Future initSettings() async {
     _scanDelay = await FileManager.readString('scan_delay');
     _supervisorPassword = await FileManager.readString('supervisor_password');
@@ -150,20 +165,8 @@ class _StockInWidgetState extends State<StockInWidget> {
       _dbCode = 'fazsample';
     }
 
+    _reloadTable();
     // await CounterInDatabase.instance.delete(1);
-
-    final result = await StockCounterApi.readStockCountersNotPosted(_url);
-
-    result.when(
-      (e) {
-        // Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
-        print('Empty list: $e');
-      },
-      (res) {
-        _counterInList = res;
-        // _prepareListView();
-      }
-    );
     // _deletePostedStockIns();
     setState(() {});
   }
@@ -381,6 +384,13 @@ class _StockInWidgetState extends State<StockInWidget> {
                         setState(() {
                           _counterInList = res;
                         });
+                        if(res.isEmpty) {
+                          Utils.openDialogPanel(context, 'accept', 'Done!', 'Some device already posted!', 'Understand');
+                          setState(() {
+                            isPosting = false;
+                          });
+                          return;
+                        }
                       }
                     );
 
@@ -498,6 +508,7 @@ class _StockInWidgetState extends State<StockInWidget> {
               _isCheckerLoading = false;
             });
           });
+          _reloadTable();
         },
         child: _isCheckerLoading ? Transform.scale(
             scale: 0.6,

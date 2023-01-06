@@ -345,6 +345,22 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
     });
   }
 
+  Future _reloadTable(String _machineLine) async {
+    await CounterApi.readCountersWithMachine(_url, _machineLine).then((res) async {
+      List<Counter> _parsedList = [];
+      for (var el in res) {
+        if(el.qty > 0) {
+          _parsedList.add(el);
+        }
+      }
+      setState(() {
+        _counterList = _parsedList;
+      });
+    }).catchError((err) {
+      print('Err: $err');
+    });
+  }
+
   Future initSettings() async {
     _scanDelay = await FileManager.readString('scan_delay');
     _machineList = await FileManager.readStringList('machine_line');
@@ -689,6 +705,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
               _isCheckerLoading = false;
             });
           });
+          _reloadTable(_machineLineController.text);
         },
         child: _isCheckerLoading ? Transform.scale(
             scale: 0.6,
@@ -882,7 +899,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               'Prod-Add',
                               _deviceName
                             )
-                            .then((res) {
+                          .then((res) {
                             setState(() {
                               _counterList[_counterList.indexWhere((item) => item.id == updatedCounter.id)] = updatedCounter;
                               level = 0;
@@ -892,6 +909,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               _masterController.text = '';
                               _isLoading = false;
                             });
+                            _reloadTable(_machineLineController.text);
                             FocusScope.of(context).requestFocus(_masterNode);
                           }).catchError((err) {
                             Utils.openDialogPanel(context, 'close', 'Oops!', '#2 $err', 'Understand');
@@ -969,109 +987,131 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 flex: 4,
                 child: Text(''),
               ),
-              const Expanded(
+              Expanded(
                 flex: 3,
-                child: Text(''),
+                child: _connectionChecker(context)
               ),
               Expanded(
                 flex: 3,
                 child: ElevatedButton(
                   onPressed: () async {
 
-                    Utils.openPasswordPanel(
-                      context,
-                      _supervisorPassword,
-                      _passwordController,
-                      _passwordNode,
-                      _passwordFormKey,
-                      'padlock',
-                      'Do you want to delete the counter?',
-                      'Confirm',
-                      () async {
-                        print('You called!');
-                        final result = await CounterApi.readCounterByCodeAndMachine(_stickerDeleteController.text.trim(), _machineLineController.text.trim(), _url);
-                        
-                        result.when((err) {
-                          print('Error: $err');
-                          Navigator.of(context, rootNavigator: true).pop();
-                          Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
-                        }, (c) async {
-                          print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
-                        // 2. if available, subtract quantity by 1 and save it to db
-                          if(c.qty == 1) {
-                            await CounterApi.delete(c.id.toString(), _url).then((res) {
-                              if(res == c.id) {
-                                setState(() {
-                                  _counterList.removeWhere((item) => item.id == c.id);
-                                  _stickerDeleteController.text = '';
-                                });
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                  content:  Text("🚨 Not deleted successfully!", textAlign: TextAlign.center,),
-                                  duration: Duration(milliseconds: 3000)
-                                ));
-                              }
-                            });
-                          } else if(c.qty == 0) {
-                            Navigator.of(context, rootNavigator: true).pop();
-                            Utils.openDialogPanel(context, 'close', 'Oops!', 'Quantity is 0. Already deducted.', 'Try again');
-                          } else {
-                            Counter updatedCounter = Counter(
-                              id: c.id,
-                              stockId: c.stockId,
-                              stockCode: c.stockCode,
-                              stockName: c.stockName,
-                              machine: _machineLineController.text.trim(),
-                              device: _deviceName,
-                              shift: _shiftValue,
-                              shiftDate: c.shiftDate,
-                              createdTime: c.createdTime,
-                              updatedTime: DateTime.now(),
-                              qty: c.qty - 1,
-                              // Here need some change
-                              totalQty: (c.totalQty - (c.totalQty/c.qty)).toInt(),
-                              purchasePrice: c.purchasePrice,
-                              uom: c.uom,
-                              stockCategory: c.stockCategory,
-                              group: c.group,
-                              stockClass: c.stockClass,
-                              weight: c.weight
-                            );
-
-                            CounterApi.dropCounter(
-                                c.id.toString(),
-                                updatedCounter.updatedTime.toIso8601String(),
-                                (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(),
-                                _url,
-                                'Prod-Deduct',
-                                _deviceName
-                                ).then((res) {
-                              print('Updated ID: $res');
-
-                              setState(() {
-                                _counterList[_counterList.indexWhere((item) => item.id == updatedCounter.id)] = updatedCounter;
-                                _stickerDeleteController.text = '';
-                              });
-
-                            }).catchError((err) {
+                    await CounterApi.readCountersWithMachine(_url, _machineLineController.text).then((res) async {
+                      List<Counter> _parsedList = [];
+                      for (var el in res) {
+                        if(el.qty > 0) {
+                          _parsedList.add(el);
+                        }
+                      }
+                      if(_parsedList.isEmpty) {
+                        Utils.openDialogPanel(context, 'close', 'Oops!', 'There is no items to delete!', 'Understand');
+                        setState(() {
+                          _counterList = [];
+                        });
+                        return;
+                      } else {
+                        setState(() {
+                          _counterList = _parsedList;
+                        });
+                        Utils.openPasswordPanel(
+                          context,
+                          _supervisorPassword,
+                          _passwordController,
+                          _passwordNode,
+                          _passwordFormKey,
+                          'padlock',
+                          'Do you want to delete the counter?',
+                          'Confirm',
+                          () async {
+                            print('You called!');
+                            final result = await CounterApi.readCounterByCodeAndMachine(_stickerDeleteController.text.trim(), _machineLineController.text.trim(), _url);
+                            
+                            result.when((err) {
                               print('Error: $err');
+                              Navigator.of(context, rootNavigator: true).pop();
+                              Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Okay');
+                            }, (c) async {
+                              print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                            // 2. if available, subtract quantity by 1 and save it to db
+                              if(c.qty == 1) {
+                                await CounterApi.delete(c.id.toString(), _url).then((res) {
+                                  if(res == c.id) {
+                                    setState(() {
+                                      _counterList.removeWhere((item) => item.id == c.id);
+                                      _stickerDeleteController.text = '';
+                                    });
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                      content:  Text("🚨 Not deleted successfully!", textAlign: TextAlign.center,),
+                                      duration: Duration(milliseconds: 3000)
+                                    ));
+                                  }
+                                });
+                              } else if(c.qty == 0) {
+                                Navigator.of(context, rootNavigator: true).pop();
+                                Utils.openDialogPanel(context, 'close', 'Oops!', 'Quantity is 0. Already deducted.', 'Try again');
+                              } else {
+                                Counter updatedCounter = Counter(
+                                  id: c.id,
+                                  stockId: c.stockId,
+                                  stockCode: c.stockCode,
+                                  stockName: c.stockName,
+                                  machine: _machineLineController.text.trim(),
+                                  device: _deviceName,
+                                  shift: _shiftValue,
+                                  shiftDate: c.shiftDate,
+                                  createdTime: c.createdTime,
+                                  updatedTime: DateTime.now(),
+                                  qty: c.qty - 1,
+                                  // Here need some change
+                                  totalQty: (c.totalQty - (c.totalQty/c.qty)).toInt(),
+                                  purchasePrice: c.purchasePrice,
+                                  uom: c.uom,
+                                  stockCategory: c.stockCategory,
+                                  group: c.group,
+                                  stockClass: c.stockClass,
+                                  weight: c.weight
+                                );
+
+                                CounterApi.dropCounter(
+                                    c.id.toString(),
+                                    updatedCounter.updatedTime.toIso8601String(),
+                                    (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(),
+                                    _url,
+                                    'Prod-Deduct',
+                                    _deviceName
+                                ).then((res) {
+                                    // print('Updated ID: $res');
+                                  setState(() {
+                                    _counterList[_counterList.indexWhere((item) => item.id == updatedCounter.id)] = updatedCounter;
+                                    _stickerDeleteController.text = '';
+                                  });
+                                  _reloadTable(_machineLineController.text);
+                                }).catchError((err) {
+                                  print('Error: $err');
+                                });
+                              }
+                              Navigator.of(context, rootNavigator: true).pop();
+                            });
+                          },
+                          () {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content:  Text("❌ Wrong password!", textAlign: TextAlign.center,),
+                              duration: Duration(milliseconds: 3000)
+                            ));
+                          },
+                          () {
+                            setState(() {
+                              
                             });
                           }
-                          Navigator.of(context, rootNavigator: true).pop();
-                        });
-                      },
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content:  Text("❌ Wrong password!", textAlign: TextAlign.center,),
-                          duration: Duration(milliseconds: 3000)
-                        ));
-                      },
-                      () {
-                        setState(() {
-                          
-                        });
+                        );
                       }
-                    );
+                    }).catchError((err) {
+                      // print('Err: $err');
+                      Utils.openDialogPanel(context, 'close', 'Oops!', 'Error: $err', 'Understand');
+                      return;
+                    });
                   },
                   child: const Text(
                     'Delete',

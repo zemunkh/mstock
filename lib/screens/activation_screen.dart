@@ -14,6 +14,7 @@ class ActivationScreen extends StatelessWidget {
   final FocusNode _activationNode = FocusNode();
   var onTapRecognizer;
   // StreamController<ErrorAnimationType> _errorController ;
+  final formKey = GlobalKey<FormState>();
 
   Future _activationHandler(BuildContext context, TextEditingController _controller) async {
     String inputText = _controller.text;
@@ -36,38 +37,30 @@ class ActivationScreen extends StatelessWidget {
     Size size = MediaQuery.of(context).size;
 
     Widget _activationInput(String labelText, TextEditingController _controller, FocusNode currentNode) {
-      return GestureDetector(
-        onTap: () {
-          FocusScope.of(context).requestFocus(FocusNode());
-        },
-        child: Stack(
-          alignment: const Alignment(1.0, 1.0),
-          children: <Widget>[
-            SizedBox(
-              width: 440,
-              child: PinCodeTextField(
-                appContext: context,
-                controller: _activationController,
-                // errorAnimationController: _errorController,
-                keyboardType: TextInputType.number,
-                length: 8,
-                onChanged: (value) {
-                  print(value);
-
-                },
-                obscureText: false,
-                obscuringCharacter: '*',
-                pinTheme: PinTheme(
-                  shape: PinCodeFieldShape.box,
-                  borderRadius: BorderRadius.circular(5),
-                  fieldHeight: 50,
-                  fieldWidth: 40,
-                  inactiveColor: style.Colors.mainAccent,
-                  borderWidth: 3.5,
-                ),
-              ),
-            ),
-          ],
+      return SizedBox(
+        width: 440,
+        child: PinCodeTextField(
+          key: formKey,
+          appContext: context,
+          controller: _controller,
+          // errorAnimationController: _errorController,
+          keyboardType: TextInputType.number,
+          focusNode: currentNode,
+          autoFocus: true,
+          length: 8,
+          onChanged: (value) {
+            print(value);
+          },
+          obscureText: false,
+          obscuringCharacter: '*',
+          pinTheme: PinTheme(
+            shape: PinCodeFieldShape.box,
+            borderRadius: BorderRadius.circular(5),
+            fieldHeight: 50,
+            fieldWidth: 40,
+            inactiveColor: style.Colors.mainAccent,
+            borderWidth: 3.5,
+          ),
         ),
       );
     }
