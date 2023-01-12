@@ -71,7 +71,7 @@ class Utils {
 
       if(startMin > endMin) {
         // Elapsed preset intervals
-        print('Elapsed interval');
+        // print('Elapsed interval');
 
         if(Utils.isInRange(startMin, 1440, currentHHmm) || Utils.isInRange(0, endMin, currentHHmm)) {
           return dayName;

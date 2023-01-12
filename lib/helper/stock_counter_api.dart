@@ -255,7 +255,7 @@ class StockCounterApi {
     var response = await http.delete(
       Uri.parse('$_url/stock_counter/delete'),
       body: {
-        'id': _id,
+        'id': _id
       }
     );
 

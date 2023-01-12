@@ -1034,7 +1034,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                               print('Counter: ${c.id} : ${c.stockId} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
                             // 2. if available, subtract quantity by 1 and save it to db
                               if(c.qty == 1) {
-                                await CounterApi.delete(c.id.toString(), _url).then((res) {
+                                await CounterApi.delete(c.id.toString(), 'prod_delete', _url).then((res) {
                                   if(res == c.id) {
                                     setState(() {
                                       _counterList.removeWhere((item) => item.id == c.id);

@@ -7,6 +7,7 @@ import '../helper/file_manager.dart';
 import '../helper/utils.dart';
 import '../model/pending.dart';
 import '../model/counter.dart';
+import '../model/stockCounter.dart';
 import '../styles/theme.dart' as style;
 
 class PendingList extends StatefulWidget {
@@ -31,6 +32,22 @@ class _PendingListState extends State<PendingList> {
   List<String> _shiftList = [];
   List<Pending> _pendingList = [];
   List<Pending> _pendingListView = [];
+  List<StockCounter> _counterInList = [];
+
+
+  Future _reloadStockIns() async {
+    final result = await StockCounterApi.readStockCountersNotPosted(_url);
+    result.when(
+      (e) {
+        print('Empty list: $e');
+      },
+      (res) {
+        setState(() {
+          _counterInList = res;
+        });
+      }
+    );    
+  }
 
   Future initPendingTable() async {
     final currentTime = DateTime.now();
@@ -46,11 +63,13 @@ class _PendingListState extends State<PendingList> {
       var dateList = [];
       print('Machine 👉 : $m');
       await CounterApi.readCountersWithMachine(_url, m).then((list) async {
+
         for (var item in list) {
           var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
           final index = dateList.indexWhere((d) => d == tempDate);
           final diff = currentTime.difference(item.shiftDate);
           if(diff.inHours > 23) {
+            print(' 👉 🅿️ Temp day qty = 0: ${item.shift}');
             if(item.qty > 0) {
               if (index >= 0) {
                 // print('Already there!');
@@ -58,13 +77,19 @@ class _PendingListState extends State<PendingList> {
                 dateList.add(tempDate);
               }
             } else {
-              await CounterApi.delete(item.id.toString(), _url);
+              var resIndex = _counterInList.indexWhere((el) => el.shift == item.shift);
+              if(resIndex < 0) { // Not found
+                await CounterApi.delete(item.id.toString(), 'pending', _url);
+              } else {
+                dateList.add(tempDate);
+              }
             }
           } else {
             if (index >= 0) {
               print('Already there!');
             } else {
               dateList.add(tempDate);
+              print('🅿️ Temp day: $tempDate');
             }
           }
         }
@@ -83,54 +108,56 @@ class _PendingListState extends State<PendingList> {
             }
           }
 
-          for (var s in shiftList) {
-            List<Counter> tempCounters = [];
-            var total = 0;
-            var stockInTotal = 0;
-            for (var item in list) {
-              var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
-              if( d == tempDate && s == item.shift) {
-                tempCounters.add(item);
+          List<Counter> tempCounters = [];
+          List<String> tempStockCodes = [];
+          var total = 0;
+          var stockInTotal = 0;
+
+          for (var item in list) {
+            if(tempStockCodes.contains(item.stockCode)) {
+              if(item.qty > 0) {
                 total = total + item.qty;
-                // print('🎯 ${item.stockCode} : ${item.qty} : ${item.machine} : ${item.shift}');
               }
-            }
-
-            stockInTotal = 0;
-            for (var el in tempCounters) {
-              final result = await StockCounterApi.readStockCountersByCodeAndMachine(el.stockCode, el.machine, _url);
-
-              result.when((err) {
-                if('$err'.contains('404')) {
-                  print('Not found! Or $err');
-                }
-              }, (list) {
-                for (var item in list) {
-                  var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
-                  if( d == tempDate) {
-                    // print('🚀 Stock item qty: ${item.qty} : ${item.stock}');
-                    stockInTotal = stockInTotal + item.qty;
-                  }
-                }
-                // print('⚽️ StockIn ${el.stockCode} Total:  $stockInTotal');
-              });
-            }
-            // print('⚽️ 👉 tempCounter: ${tempCounters.length}');
-
-            if(tempCounters.isNotEmpty) {
-              Pending newPending = Pending(
-                machine: tempCounters[0].machine,
-                shift: tempCounters[0].shift,
-                date: DateFormat('dd/MM/yyyy').format(tempCounters[0].shiftDate),
-                pending: total,
-                stockIn: stockInTotal
-              );
-              // print('⚽️ StockIn Total #2: $stockInTotal');
-              _pendingList.add(newPending);
+            } else {
+              tempStockCodes.add(item.stockCode);
+              var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
+              if(d == tempDate) {
+                tempCounters.add(item);
+              }
+              total = total + item.qty;
+              // print('🎯 ${item.stockCode} : ${item.qty} : ${item.machine} : ${item.shift}');
             }
           }
+          for (var el in tempCounters) {
+            final result = await StockCounterApi.readStockCountersByCodeAndMachine(el.stockCode, el.machine, _url);
+
+            result.when((err) {
+              if('$err'.contains('404')) {
+                print('Not found! Or $err');
+              }
+            }, (list) {
+              for (var item in list) {
+                var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
+                if( d == tempDate) {
+                  stockInTotal = stockInTotal + item.qty;
+                  // print('🚀 Stock item qty: ${item.qty} : ${item.stock} | Total : $stockInTotal');
+                }
+              }
+            });
+          }
+
+          if(tempCounters.isNotEmpty) {
+            Pending newPending = Pending(
+              machine: tempCounters[0].machine,
+              shift: tempCounters[0].shift,
+              date: DateFormat('dd/MM/yyyy').format(tempCounters[0].shiftDate),
+              pending: total,
+              stockIn: stockInTotal
+            );
+            // print('⚽️ StockIn Total #2: $stockInTotal');
+            _pendingList.add(newPending);
+          }
         }
-        // print('🦄 👉 [0]: ${_pendingList[0].stockIn}');
         _pendingListView = _pendingList;
         _isLoading = false;
       }).catchError((err) async {
@@ -162,14 +189,14 @@ class _PendingListState extends State<PendingList> {
       lineVal = _machineList[0];
       _isEmptyValue = _isEmptyValue && false;
     }
-    print('👉 $shifts');
+    // print('👉 $shifts');
     if(shifts.isEmpty) {
       _shiftList = ['Morning', 'Afternoon', 'Night'];
       shiftVal = 'Morning';
     } else {
       _isEmptyValue = _isEmptyValue && false;
       for (var shift in shifts) {
-        print('👉 Shift: $shift');
+        // print('👉 Shift: $shift');
         var dayName = shift.split(',')[0];
         var startTime = shift.split(',')[1];
         var endTime = shift.split(',')[2];
@@ -178,6 +205,7 @@ class _PendingListState extends State<PendingList> {
       shiftVal = await Utils.getShiftName();
     }
 
+    _reloadStockIns();
     if(!_isEmptyValue) {
       initPendingTable();
     }
@@ -333,12 +361,15 @@ class _PendingListState extends State<PendingList> {
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
-              label: Text(
-                'Machine:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
-                  color: style.Colors.mainGrey,
+              label: Expanded(
+                child: Text(
+                  'Date:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: style.Colors.mainGrey,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
@@ -353,15 +384,12 @@ class _PendingListState extends State<PendingList> {
               ),
             ),
             DataColumn(
-              label: Expanded(
-                child: Text(
-                  'Date:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: style.Colors.mainGrey,
-                  ),
-                  textAlign: TextAlign.center,
+              label: Text(
+                'Machine:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                  color: style.Colors.mainGrey,
                 ),
               ),
             ),
@@ -391,7 +419,7 @@ class _PendingListState extends State<PendingList> {
             cells: [
               DataCell(
                 Text(
-                  row.machine,
+                  row.date,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -411,7 +439,7 @@ class _PendingListState extends State<PendingList> {
               ),
               DataCell(
                 Text(
-                  row.date,
+                  row.machine,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,

@@ -284,11 +284,12 @@ class CounterApi {
     }
   }
 
-  static Future<int> delete(String _id, String _url) async {
+  static Future<int> delete(String _id, String _from, String _url) async {
     var response = await http.delete(
       Uri.parse('$_url/counter/delete'),
       body: {
         'id': _id,
+        'from': _from
       }
     );
 

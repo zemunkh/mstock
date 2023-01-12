@@ -125,15 +125,14 @@ class _StockInWidgetState extends State<StockInWidget> {
 
   Future _reloadTable() async {
     final result = await StockCounterApi.readStockCountersNotPosted(_url);
-
     result.when(
       (e) {
-        // Utils.openDialogPanel(context, 'close', 'Oops!', 'StockIn table is empty.', 'Understand');
         print('Empty list: $e');
       },
       (res) {
-        _counterInList = res;
-        // _prepareListView();
+        setState(() {
+          _counterInList = res;
+        });
       }
     );    
   }
@@ -167,7 +166,7 @@ class _StockInWidgetState extends State<StockInWidget> {
 
     _reloadTable();
     // await CounterInDatabase.instance.delete(1);
-    // _deletePostedStockIns();
+    _deletePostedStockIns();
     setState(() {});
   }
 
