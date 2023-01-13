@@ -34,6 +34,8 @@ class _PendingListState extends State<PendingList> {
   List<Pending> _pendingListView = [];
   List<StockCounter> _counterInList = [];
 
+  int _currentSortColumn = 0;
+  bool _isAscending = true;
 
   Future _reloadStockIns() async {
     final result = await StockCounterApi.readStockCountersNotPosted(_url);
@@ -60,16 +62,16 @@ class _PendingListState extends State<PendingList> {
     // 2. Machine Line
     // 3. Shift name
     for (var m in _machineList) {
-      var dateList = [];
+      List<String> dateList = [];
       print('Machine 👉 : $m');
       await CounterApi.readCountersWithMachine(_url, m).then((list) async {
 
         for (var item in list) {
           var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
-          final index = dateList.indexWhere((d) => d == tempDate);
+          final index = dateList.indexWhere((el) => el == tempDate);
           final diff = currentTime.difference(item.shiftDate);
           if(diff.inHours > 23) {
-            print(' 👉 🅿️ Temp day qty = 0: ${item.shift}');
+            // print(' 👉 🅿️ Temp day qty = 0: ${item.shift}');
             if(item.qty > 0) {
               if (index >= 0) {
                 // print('Already there!');
@@ -81,7 +83,11 @@ class _PendingListState extends State<PendingList> {
               if(resIndex < 0) { // Not found
                 await CounterApi.delete(item.id.toString(), 'pending', _url);
               } else {
-                dateList.add(tempDate);
+                if (index >= 0) {
+                  print('Already there!');
+                } else {
+                  dateList.add(tempDate);
+                }
               }
             }
           } else {
@@ -89,73 +95,87 @@ class _PendingListState extends State<PendingList> {
               print('Already there!');
             } else {
               dateList.add(tempDate);
-              print('🅿️ Temp day: $tempDate');
+              // print('🅿️ Temp day: $tempDate : ${item.stockCode} : ${item.shiftDate}');
             }
           }
         }
 
+        // print('DateList:👉 ${dateList}');
+
         for (var d in dateList) {
-          var shiftList = [];
+          var shiftListTemp = [];
           for (var item in list) {
             var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
             if( d == tempDate) {
-              final index = shiftList.indexWhere((s) => s == item.shift);
+              final index = shiftListTemp.indexWhere((s) => s == item.shift);
               if (index >= 0) {
                 print('Already there shift!');
               } else {
-                shiftList.add(item.shift);
+                shiftListTemp.add(item.shift);
               }
             }
           }
+          print('Shift len: 👉 ${shiftListTemp}');
 
           List<Counter> tempCounters = [];
-          List<String> tempStockCodes = [];
-          var total = 0;
           var stockInTotal = 0;
 
-          for (var item in list) {
-            if(tempStockCodes.contains(item.stockCode)) {
-              if(item.qty > 0) {
-                total = total + item.qty;
-              }
-            } else {
-              tempStockCodes.add(item.stockCode);
-              var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
-              if(d == tempDate) {
-                tempCounters.add(item);
-              }
-              total = total + item.qty;
-              // print('🎯 ${item.stockCode} : ${item.qty} : ${item.machine} : ${item.shift}');
-            }
-          }
-          for (var el in tempCounters) {
-            final result = await StockCounterApi.readStockCountersByCodeAndMachine(el.stockCode, el.machine, _url);
-
-            result.when((err) {
-              if('$err'.contains('404')) {
-                print('Not found! Or $err');
-              }
-            }, (list) {
-              for (var item in list) {
-                var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
-                if( d == tempDate) {
-                  stockInTotal = stockInTotal + item.qty;
-                  // print('🚀 Stock item qty: ${item.qty} : ${item.stock} | Total : $stockInTotal');
+          for (var s in shiftListTemp) {
+            var total = 0;
+            for (var item in list) {
+              var shiftTempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
+              if(item.shift == s && shiftTempDate == d) {
+                var indexItem = tempCounters.indexWhere((el) => el.id == item.id);
+                if(indexItem > -1) {
+                  if(item.qty > 0) {
+                    total = total + item.qty;
+                  }
+                } else {
+                  tempCounters.add(item);
+                  total = total + item.qty;
+                  // print('🚨 Machine: $m | Shift: $s | Qty = ${item.qty} 🚨');
                 }
               }
-            });
-          }
+            }
 
-          if(tempCounters.isNotEmpty) {
-            Pending newPending = Pending(
-              machine: tempCounters[0].machine,
-              shift: tempCounters[0].shift,
-              date: DateFormat('dd/MM/yyyy').format(tempCounters[0].shiftDate),
-              pending: total,
-              stockIn: stockInTotal
-            );
-            // print('⚽️ StockIn Total #2: $stockInTotal');
-            _pendingList.add(newPending);
+            List<String> tempStockCodes = [];
+
+            for (var el in tempCounters) {
+              var index = tempStockCodes.indexWhere((element) => element == el.stockCode);
+              if(index < 0) {
+                tempStockCodes.add(el.stockCode);
+              }
+            }
+
+            for (var sc in tempStockCodes) {
+              final result = await StockCounterApi.readStockCountersByCodeAndMachine(sc, m, _url);
+
+              result.when((err) {
+                if('$err'.contains('404')) {
+                  print('Not found! Or $err');
+                }
+              }, (list) {
+                for (var item in list) {
+                  var tempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
+                  if( d == tempDate && item.shift == s) {
+                    stockInTotal = stockInTotal + item.qty;
+                    // print('🚀 Stock item qty: ${item.qty} : ${item.stock} | Total : $stockInTotal | ${item.shift} | ${item.shiftDate}');
+                  }
+                }
+              });
+            }
+
+            if(tempCounters.isNotEmpty) {
+              Pending newPending = Pending(
+                machine: m,
+                shift: s,
+                date: d,
+                pending: total,
+                stockIn: stockInTotal
+              );
+              // print('⚽️ StockIn Total #2: $stockInTotal');
+              _pendingList.add(newPending);
+            }
           }
         }
         _pendingListView = _pendingList;
@@ -164,7 +184,7 @@ class _PendingListState extends State<PendingList> {
         _isLoading = false;
         print('Error 👉 $err');
         // Utils.openDialogPanel(context, 'close', 'Oops!', 'Not available on the Table', 'Try again');
-        print('Counters with 👉 $m Machine code is not found!');
+        // print('Counters with 👉 $m Machine code is not found!');
       });
     }
     setState(() {});
@@ -359,9 +379,11 @@ class _PendingListState extends State<PendingList> {
           child: DataTable(
           columnSpacing: 10,
           showCheckboxColumn: false,
-          columns: const <DataColumn>[
+          sortColumnIndex: _currentSortColumn,
+          sortAscending: _isAscending,
+          columns: <DataColumn>[
             DataColumn(
-              label: Expanded(
+              label: const Expanded(
                 child: Text(
                   'Date:',
                   style: TextStyle(
@@ -372,19 +394,25 @@ class _PendingListState extends State<PendingList> {
                   textAlign: TextAlign.center,
                 ),
               ),
+              // onSort: (columnIndex, _) {
+              //   setState(() {
+              //     _currentSortColumn = columnIndex;
+              //     if (_isAscending == true) {
+              //       _isAscending = false;
+              //       // sort the product list in Ascending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemB.date.compareTo(itemA.date));
+              //     } else {
+              //       _isAscending = true;
+              //       // sort the product list in Descending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemA.date.compareTo(itemB.date));
+              //     }
+              //   });
+              // },
             ),
             DataColumn(
-              label: Text(
-                'Shift:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: style.Colors.mainGrey,
-                ),
-              ),
-            ),
-            DataColumn(
-              label: Text(
+              label: const Text(
                 'Machine:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -392,9 +420,51 @@ class _PendingListState extends State<PendingList> {
                   color: style.Colors.mainGrey,
                 ),
               ),
+              // onSort: (columnIndex, _) {
+              //   setState(() {
+              //     _currentSortColumn = columnIndex;
+              //     if (_isAscending == true) {
+              //       _isAscending = false;
+              //       // sort the product list in Ascending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemB.machine.compareTo(itemA.machine));
+              //     } else {
+              //       _isAscending = true;
+              //       // sort the product list in Descending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemA.machine.compareTo(itemB.machine));
+              //     }
+              //   });
+              // },
             ),
             DataColumn(
-              label: Text(
+              label: const Text(
+                'Shift:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: style.Colors.mainGrey,
+                ),
+              ),
+              // onSort: (columnIndex, _) {
+              //   setState(() {
+              //     _currentSortColumn = columnIndex;
+              //     if (_isAscending == true) {
+              //       _isAscending = false;
+              //       // sort the product list in Ascending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemB.shift.compareTo(itemA.shift));
+              //     } else {
+              //       _isAscending = true;
+              //       // sort the product list in Descending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemA.shift.compareTo(itemB.shift));
+              //     }
+              //   });
+              // },
+            ),
+            DataColumn(
+              label: const Text(
                 'Pending:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -403,9 +473,25 @@ class _PendingListState extends State<PendingList> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              // onSort: (columnIndex, _) {
+              //   setState(() {
+              //     _currentSortColumn = columnIndex;
+              //     if (_isAscending == true) {
+              //       _isAscending = false;
+              //       // sort the product list in Ascending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemB.pending.compareTo(itemA.pending));
+              //     } else {
+              //       _isAscending = true;
+              //       // sort the product list in Descending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemA.pending.compareTo(itemB.pending));
+              //     }
+              //   });
+              // },
             ),
             DataColumn(
-              label: Text(
+              label: const Text(
                 'In:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -413,6 +499,22 @@ class _PendingListState extends State<PendingList> {
                   color: style.Colors.mainGrey,
                 ),
               ),
+              // onSort: (columnIndex, _) {
+              //   setState(() {
+              //     _currentSortColumn = columnIndex;
+              //     if (_isAscending == true) {
+              //       _isAscending = false;
+              //       // sort the product list in Ascending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemB.stockIn.compareTo(itemA.stockIn));
+              //     } else {
+              //       _isAscending = true;
+              //       // sort the product list in Descending, order by Price
+              //       _pendingListView.sort((itemA, itemB) =>
+              //           itemA.stockIn.compareTo(itemB.stockIn));
+              //     }
+              //   });
+              // },
             ),
           ],
           rows: _pendingListView.map((row) => DataRow(
@@ -429,21 +531,21 @@ class _PendingListState extends State<PendingList> {
               ),
               DataCell(
                 Text(
-                  row.shift,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
-                  ),
-                ),
-              ),
-              DataCell(
-                Text(
                   row.machine,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: style.Colors.button2,
+                  ),
+                ),
+              ),
+              DataCell(
+                Text(
+                  row.shift,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple,
                   ),
                 ),
               ),
