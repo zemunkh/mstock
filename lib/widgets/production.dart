@@ -548,7 +548,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
-          columnSpacing: 20,
+          columnSpacing: 12,
           showCheckboxColumn: false,
           columns: const <DataColumn>[
             DataColumn(
@@ -556,7 +556,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 'Stocks:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -566,7 +566,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 'Qty:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -576,7 +576,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 'UOMs:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 12,
                   color: style.Colors.mainGrey,
                 ),
               ),
@@ -584,6 +584,17 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
             DataColumn(
               label: Text(
                 'Date:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: style.Colors.mainGrey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Shift:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
@@ -599,7 +610,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 Text(
                   row.stockCode,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: style.Colors.button2,
                   ),
@@ -610,7 +621,7 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 Text(
                   row.uom,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: style.Colors.button2,
                   ),
@@ -620,9 +631,19 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                 Text(
                   DateFormat('dd/MM/yyyy').format(row.shiftDate),
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: Colors.deepPurple,
+                  ),
+                )
+              ),
+              DataCell(
+                Text(
+                  row.shift,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: style.Colors.button2,
                   ),
                 )
               ),
@@ -866,8 +887,10 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                         DateTime shiftConvertedTime = await Utils.getShiftConvertedTime(currentTime);
                         print('👉 ShiftConvertedTime: $shiftConvertedTime : Counter Shift Date=${c.shiftDate}  \n');
 
-                        if (shiftConvertedTime.day == c.shiftDate.day && shiftDiff.inDays <= 0) {
+                        if (shiftConvertedTime.day == c.shiftDate.day && shiftDiff.inDays == 0 && c.shift.contains(_shiftValue)) {
                           // Update or create new Counter card
+                          // print('👉 Thought the same \n');
+
                           Counter updatedCounter = Counter(
                             id: c.id,
                             stockId: c.stockId,
