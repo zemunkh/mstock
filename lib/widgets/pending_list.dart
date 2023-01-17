@@ -115,21 +115,21 @@ class _PendingListState extends State<PendingList> {
               }
             }
           }
-          print('Shift len: 👉 ${shiftListTemp}');
+          // print('🚨 Machine: $m | 👉 Shifts: ${shiftListTemp} | $d');
 
           List<Counter> tempCounters = [];
-          var stockInTotal = 0;
 
           for (var s in shiftListTemp) {
+            var stockInTotal = 0;
             var total = 0;
             for (var item in list) {
               var shiftTempDate = DateFormat('dd/MM/yyyy').format(item.shiftDate);
               if(item.shift == s && shiftTempDate == d) {
                 var indexItem = tempCounters.indexWhere((el) => el.id == item.id);
                 if(indexItem > -1) {
-                  if(item.qty > 0) {
-                    total = total + item.qty;
-                  }
+                  // if(item.qty > 0) {
+                  total = total + item.qty;
+                  // }
                 } else {
                   tempCounters.add(item);
                   total = total + item.qty;
@@ -173,7 +173,6 @@ class _PendingListState extends State<PendingList> {
                 pending: total,
                 stockIn: stockInTotal
               );
-              // print('⚽️ StockIn Total #2: $stockInTotal');
               _pendingList.add(newPending);
             }
           }
