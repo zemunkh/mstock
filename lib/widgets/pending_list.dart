@@ -56,6 +56,7 @@ class _PendingListState extends State<PendingList> {
     // Same day logic and Pending table
     setState(() {
       _isLoading = true;
+      _pendingList = [];
     });
     // Category Priorities
     // 1. Created Date
@@ -337,6 +338,7 @@ class _PendingListState extends State<PendingList> {
                       setState(() {
                         _pendingListView = _pendingList;
                       });
+                      initPendingTable();
                     },
                     child: const Icon(
                       Icons.replay,
@@ -393,22 +395,22 @@ class _PendingListState extends State<PendingList> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              // onSort: (columnIndex, _) {
-              //   setState(() {
-              //     _currentSortColumn = columnIndex;
-              //     if (_isAscending == true) {
-              //       _isAscending = false;
-              //       // sort the product list in Ascending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemB.date.compareTo(itemA.date));
-              //     } else {
-              //       _isAscending = true;
-              //       // sort the product list in Descending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemA.date.compareTo(itemB.date));
-              //     }
-              //   });
-              // },
+              onSort: (columnIndex, _) {
+                setState(() {
+                  _currentSortColumn = columnIndex;
+                  if (_isAscending == true) {
+                    _isAscending = false;
+                    // sort the product list in Ascending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemB.date.compareTo(itemA.date));
+                  } else {
+                    _isAscending = true;
+                    // sort the product list in Descending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemA.date.compareTo(itemB.date));
+                  }
+                });
+              },
             ),
             DataColumn(
               label: const Text(
@@ -419,22 +421,22 @@ class _PendingListState extends State<PendingList> {
                   color: style.Colors.mainGrey,
                 ),
               ),
-              // onSort: (columnIndex, _) {
-              //   setState(() {
-              //     _currentSortColumn = columnIndex;
-              //     if (_isAscending == true) {
-              //       _isAscending = false;
-              //       // sort the product list in Ascending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemB.machine.compareTo(itemA.machine));
-              //     } else {
-              //       _isAscending = true;
-              //       // sort the product list in Descending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemA.machine.compareTo(itemB.machine));
-              //     }
-              //   });
-              // },
+              onSort: (columnIndex, _) {
+                setState(() {
+                  _currentSortColumn = columnIndex;
+                  if (_isAscending == true) {
+                    _isAscending = false;
+                    // sort the product list in Ascending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemB.machine.compareTo(itemA.machine));
+                  } else {
+                    _isAscending = true;
+                    // sort the product list in Descending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemA.machine.compareTo(itemB.machine));
+                  }
+                });
+              },
             ),
             DataColumn(
               label: const Text(
@@ -445,22 +447,22 @@ class _PendingListState extends State<PendingList> {
                   color: style.Colors.mainGrey,
                 ),
               ),
-              // onSort: (columnIndex, _) {
-              //   setState(() {
-              //     _currentSortColumn = columnIndex;
-              //     if (_isAscending == true) {
-              //       _isAscending = false;
-              //       // sort the product list in Ascending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemB.shift.compareTo(itemA.shift));
-              //     } else {
-              //       _isAscending = true;
-              //       // sort the product list in Descending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemA.shift.compareTo(itemB.shift));
-              //     }
-              //   });
-              // },
+              onSort: (columnIndex, _) {
+                setState(() {
+                  _currentSortColumn = columnIndex;
+                  if (_isAscending == true) {
+                    _isAscending = false;
+                    // sort the product list in Ascending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemB.shift.compareTo(itemA.shift));
+                  } else {
+                    _isAscending = true;
+                    // sort the product list in Descending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemA.shift.compareTo(itemB.shift));
+                  }
+                });
+              },
             ),
             DataColumn(
               label: const Text(
@@ -472,22 +474,22 @@ class _PendingListState extends State<PendingList> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              // onSort: (columnIndex, _) {
-              //   setState(() {
-              //     _currentSortColumn = columnIndex;
-              //     if (_isAscending == true) {
-              //       _isAscending = false;
-              //       // sort the product list in Ascending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemB.pending.compareTo(itemA.pending));
-              //     } else {
-              //       _isAscending = true;
-              //       // sort the product list in Descending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemA.pending.compareTo(itemB.pending));
-              //     }
-              //   });
-              // },
+              onSort: (columnIndex, _) {
+                setState(() {
+                  _currentSortColumn = columnIndex;
+                  if (_isAscending == true) {
+                    _isAscending = false;
+                    // sort the product list in Ascending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemB.pending.compareTo(itemA.pending));
+                  } else {
+                    _isAscending = true;
+                    // sort the product list in Descending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemA.pending.compareTo(itemB.pending));
+                  }
+                });
+              },
             ),
             DataColumn(
               label: const Text(
@@ -498,22 +500,22 @@ class _PendingListState extends State<PendingList> {
                   color: style.Colors.mainGrey,
                 ),
               ),
-              // onSort: (columnIndex, _) {
-              //   setState(() {
-              //     _currentSortColumn = columnIndex;
-              //     if (_isAscending == true) {
-              //       _isAscending = false;
-              //       // sort the product list in Ascending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemB.stockIn.compareTo(itemA.stockIn));
-              //     } else {
-              //       _isAscending = true;
-              //       // sort the product list in Descending, order by Price
-              //       _pendingListView.sort((itemA, itemB) =>
-              //           itemA.stockIn.compareTo(itemB.stockIn));
-              //     }
-              //   });
-              // },
+              onSort: (columnIndex, _) {
+                setState(() {
+                  _currentSortColumn = columnIndex;
+                  if (_isAscending == true) {
+                    _isAscending = false;
+                    // sort the product list in Ascending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemB.stockIn.compareTo(itemA.stockIn));
+                  } else {
+                    _isAscending = true;
+                    // sort the product list in Descending, order by Price
+                    _pendingListView.sort((itemA, itemB) =>
+                        itemA.stockIn.compareTo(itemB.stockIn));
+                  }
+                });
+              },
             ),
           ],
           rows: _pendingListView.map((row) => DataRow(
