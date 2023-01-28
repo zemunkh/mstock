@@ -101,7 +101,11 @@ class Utils {
       if(startMin > endMin) {
         // Elapsed preset intervals
         print('⭐️ Elapsed interval');
-        if(_dateHHmm >= 0) {
+        if(_dateHHmm >= startMin) {
+          print('⭐️ Still on current day ');
+          return _date;
+        } else {
+          print('⭐️ Further check ');
           if(Utils.isInRange(startMin, 1440, _dateHHmm) || Utils.isInRange(0, endMin, _dateHHmm)) {
             // Convert currentDay to 1 day before
             DateTime date = DateTime(
@@ -111,11 +115,9 @@ class Utils {
               23,
               59,
             );
-            print('Day before 👉 : $date');
+            print('⭐️ Day before 👉 : $date');
             return date;
           }
-        } else {
-          return _date;
         }
       }
     }

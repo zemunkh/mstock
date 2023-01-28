@@ -848,11 +848,15 @@ class _ProductionState extends State<Production> with SingleTickerProviderStateM
                   onPressed: () async {
                     if (isSaveDisabled == true) { return; }
                     if (_isLoading == true) { return; }
+                    _shiftValue = await Utils.getShiftName();
                     setState(() {
                       _isLoading = true;
                     });
                     // print('Clicked the Save: $_url');
                     var currentTime = DateTime.now();
+                    print('🚨 CurrentTime: $currentTime 🚨');
+                    print('🟢🚨 Shift: $_shiftValue 🚨🟢');
+                  
                     final result = await CounterApi.readCounterByCodeAndMachine(_masterController.text.trim(), _machineLineController.text.trim(), _url);
                     
                     result.when((err) async {

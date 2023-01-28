@@ -51,7 +51,7 @@ class StockDatabase {
     final db = await instance.database;
     final json = stock.toJson();
 
-    print('ITEM STOCK: $json');
+    // print('ITEM STOCK: $json');
 
     // final json = note.toJson();
     // final columns =
