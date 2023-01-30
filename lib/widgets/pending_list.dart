@@ -80,8 +80,12 @@ class _PendingListState extends State<PendingList> {
                 dateList.add(tempDate);
               }
             } else {
-              var resIndex = _counterInList.indexWhere((el) => el.shift == item.shift);
-              if(resIndex < 0) { // Not found
+               // Not posted StockIns with Counters with 0 qty
+              var idIndex = _counterInList.indexWhere((el) => el.counterId == item.id);
+              // var shiftIndex = _counterInList.indexWhere((el) => el.shift == item.shift);
+              if(idIndex < 0) {
+              // if(shiftIndex < 0) {
+                // Not found in the NOT POSTED stockINs counter
                 await CounterApi.delete(item.id.toString(), 'pending', _url);
               } else {
                 if (index >= 0) {
@@ -322,7 +326,7 @@ class _PendingListState extends State<PendingList> {
                     }).toList(),
                     onChanged: (Object? value) {
                       shiftVal = value.toString();
-                      _pendingListView = _pendingList.where((el) => el.machine == lineVal).toList();
+                      _pendingListView = _pendingList.where((el) => el.shift == shiftVal).toList();
                       setState(() {});
                     },
                   ),
