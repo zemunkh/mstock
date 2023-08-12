@@ -17,7 +17,6 @@ class StockInScreen extends StatefulWidget {
 
 class _StockInScreenState extends State<StockInScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<String> _shiftList = [];
   String shiftValue = '';
   bool isMainTab = true;
 

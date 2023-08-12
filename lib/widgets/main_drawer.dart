@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:path/path.dart';
 import '../screens/home.dart';
 import '../screens/pending_list.dart';
 import '../screens/production.dart';

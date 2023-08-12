@@ -578,20 +578,21 @@ class _StockInWidgetState extends State<StockInWidget> {
                 flex: 3,
                 child: ElevatedButton(
                   onPressed: () async {
+                    var currentTime = DateTime.now();
+                    print('✅ Now time: ${currentTime}');
+
                     if (_isLoading == true) { return; }
                     if (_isSaveDisabled == true) { return; }
 
                     setState(() {
                       _isLoading = true;
                     });
-                    var currentTime = DateTime.now();
                     // Add isPosted flag
                     // Read Counter with stockCode from Counter API (Network server)
                     await CounterApi.readCounterByCodeAndDate(_masterController.text.trim(), _url).then((c) async {
                       print('✅ Counter: ${c.device} : ${c.shift} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
 
                       var counterShiftDate = DateFormat('dd/MM/yyyy').format(c.shiftDate);
-                      
                       // SameDay logic
                       // bool isFoundStockIn = false;
                       List<StockCounter> _counterInListTemp = [];
@@ -636,21 +637,20 @@ class _StockInWidgetState extends State<StockInWidget> {
                                   print('Err -> Updating: $err');
                                   Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to update StockIn counter.', 'Understand');
 
-                                }, (updatedCounter) {
+                                }, (updatedCounter) async {
                                   _counterInListTemp[_counterInListTemp.indexWhere((item) => item.id == updatedCounter.id)] = updatedCounter;
                                     setState(() {
                                       _counterInList = _counterInListTemp;
                                       _masterController.text = '';
                                     });
                                   if(c.qty > 0) {
-                                    CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                    await CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
                                       print('👉 Updated ID when existed: ${r.id}');
                                     }).catchError((err) {
                                       print('Error: $err');
                                     });
                                   }
                                 });
-
                               }
                             } else {
                               StockCounter newCounterIn = StockCounter(
@@ -665,20 +665,20 @@ class _StockInWidgetState extends State<StockInWidget> {
                                 purchasePrice: c.purchasePrice,
                                 isPosted: false,
                                 shiftDate: c.shiftDate,
-                                createdAt: c.createdTime,
+                                createdAt: currentTime,
                                 updatedAt: currentTime
                               );
                               final result = await StockCounterApi.create(newCounterIn.toJson(), _url);
                               
                               result.when((err) {
                                 Utils.openDialogPanel(context, 'close', 'Oops!', 'Failed to create new StockIn counter: $err', 'Understand');
-                              }, (newlyCreated) {
+                              }, (newlyCreated) async {
                                 setState(() {
                                   _counterInList.add(newlyCreated);
                                   _masterController.text = '';
                                 });
                                 if(c.qty > 0) {
-                                  CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                  await CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
                                     print('👉 Updated ID when not existed: ${r.id}');
                                   }).catchError((err) {
                                     print('Error: $err');
@@ -699,17 +699,17 @@ class _StockInWidgetState extends State<StockInWidget> {
                               purchasePrice: c.purchasePrice,
                               isPosted: false,
                               shiftDate: c.shiftDate,
-                              createdAt: c.createdTime,
+                              createdAt: currentTime,
                               updatedAt: currentTime
                             );
-                            await StockCounterApi.create(newCounterIn.toJson(), _url).then((res) {
+                            await StockCounterApi.create(newCounterIn.toJson(), _url).then((res) async {
                               setState(() {
                                 _counterInList.add(newCounterIn);
                                 _masterController.text = '';
                               });
 
                               if(c.qty > 0) {
-                                CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                                await CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
                                   print('👉 Updated ID: ${r.id}');
                                 }).catchError((err) {
                                   print('Error: $err');
@@ -730,6 +730,22 @@ class _StockInWidgetState extends State<StockInWidget> {
                       // if it is available, Update it to the CounterIn database (Locally)
 
                       // Else, Save it to the CounterIn database (Locally)
+
+                      if (c.qty > 0) {
+                        await CounterApi.readCounter(c.id.toString(), _url).then((cc) async {
+                          if((c.qty - cc.qty) == 1) {
+                            // change is made successfully
+                            print('Success ✅');
+                          } else {
+                            await CounterApi.dropCounter(c.id.toString(), DateTime.now().toIso8601String(), (c.qty - 1).toString(), (c.totalQty - (c.totalQty/c.qty)).toInt().toString(), _url, 'Stock In', _deviceName).then((r) {
+                              print('👉 Updated ID: ${r.id}');
+                            }).catchError((err) {
+                              print('Error: $err');
+                            });
+                          }
+                        });
+                      }
+
                       setState(() {
                         _isLoading = false;
                         _masterController.text = '';

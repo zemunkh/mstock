@@ -42,6 +42,7 @@ class MyApp extends StatelessWidget {
       },
       onGenerateRoute: (settings) {
         print(settings.arguments);
+        return null;
       },
       onUnknownRoute: (settings) {
         return MaterialPageRoute(
@@ -54,7 +55,7 @@ class MyApp extends StatelessWidget {
 
 _read() async {
   final prefs = await SharedPreferences.getInstance();
-  final key = 'my_activation_status';
+  const key = 'my_activation_status';
   final status = prefs.getBool(key) ?? false;
   print('Activation Status: $status');
   // activated = status;

@@ -1,7 +1,6 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:regexed_validator/regexed_validator.dart';
-import '../../widgets/main_drawer.dart';
 import '../../helper/file_manager.dart';
 import '../../styles/theme.dart' as style;
 
@@ -12,7 +11,6 @@ class StockInParams extends StatefulWidget {
 }
 
 class StockInParamsState extends State<StockInParams> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final _deviceController =  TextEditingController();
   final _qneIpAddressController =  TextEditingController();
@@ -80,7 +78,6 @@ class StockInParamsState extends State<StockInParams> {
     _projectCodeController.text = await FileManager.readString('project_code');
     _warehouseIdController.text = await FileManager.readString('wh_id');
 
-    List<String> parsed = [];
     // Initializing 8 types of description input models
   }
 

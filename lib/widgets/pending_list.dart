@@ -18,8 +18,6 @@ class PendingList extends StatefulWidget {
 }
 
 class _PendingListState extends State<PendingList> {
-  final _masterController = TextEditingController();
-  final FocusNode _masterNode = FocusNode();
   static final _machineKey = GlobalKey<FormFieldState>();
   static final _shiftKey = GlobalKey<FormFieldState>();
 
@@ -222,8 +220,8 @@ class _PendingListState extends State<PendingList> {
       for (var shift in shifts) {
         // print('👉 Shift: $shift');
         var dayName = shift.split(',')[0];
-        var startTime = shift.split(',')[1];
-        var endTime = shift.split(',')[2];
+        // var startTime = shift.split(',')[1];
+        // var endTime = shift.split(',')[2];
         _shiftList.add(dayName);
       }
       shiftVal = await Utils.getShiftName();

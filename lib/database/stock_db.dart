@@ -26,8 +26,6 @@ class StockDatabase {
   Future _createDB(Database db, int version) async {
     const idType = 'INTEGER PRIMARY KEY';
     const textType = 'TEXT NOT NULL';
-    const boolType = 'BOOLEAN NOT NULL';
-    const integerType = 'INTEGER NOT NULL';
     const realType = 'REAL NOT NULL';
 
     await db.execute('''

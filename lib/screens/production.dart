@@ -16,7 +16,6 @@ class ProductionScreen extends StatefulWidget {
 
 class _ProductionScreenState extends State<ProductionScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<String> _shiftList = [];
   String shiftValue = '';
 
   Future<bool> _backButtonPressed() async {

@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:multiple_result/multiple_result.dart';
 import '../model/stockCounter.dart';
 
 class StockCounterApi {
-  final HttpClient _httpClient = HttpClient();
 
   static Future<Result<Exception, StockCounter>> create(Map body, String _url) async {
     var response = await http.post(

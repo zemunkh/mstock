@@ -35,7 +35,6 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
   static final _masterFormKey = GlobalKey<FormFieldState>();
   static final _quantityFormKey = GlobalKey<FormFieldState>();
   static final _machineKey = GlobalKey<FormFieldState>();
-  static final _shiftKey = GlobalKey<FormFieldState>();
   static final _remarkFormKey = GlobalKey<FormFieldState>();
   static final _passwordFormKey = GlobalKey<FormFieldState>();
 
@@ -77,7 +76,6 @@ class _StockInLooseWidgetState extends State<StockInLooseWidget> {
 
   Future quantityListener() async {
     String buffer = '';
-    String trueVal = '';
 
     buffer = _quantityController.text;
     if(buffer.isNotEmpty) {
