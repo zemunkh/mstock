@@ -590,7 +590,7 @@ class _StockInWidgetState extends State<StockInWidget> {
                     // Add isPosted flag
                     // Read Counter with stockCode from Counter API (Network server)
                     await CounterApi.readCounterByCodeAndDate(_masterController.text.trim(), _url).then((c) async {
-                      print('✅ Counter: ${c.device} : ${c.shift} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
+                      print('✅ Counter: ${c.id} : ${c.device} : ${c.shift} : ${c.stockCode} : ${c.machine} : ${c.createdTime} : QTY -> ${c.qty}');
 
                       var counterShiftDate = DateFormat('dd/MM/yyyy').format(c.shiftDate);
                       // SameDay logic

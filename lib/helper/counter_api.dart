@@ -70,7 +70,7 @@ class CounterApi {
 
   static Future<Counter> readCounter(String _id, String _url) async {
     var response = await http.get(
-      Uri.parse('$_url/counter?id=$_id'),
+      Uri.parse('$_url/counter/one?id=$_id'),
     ).timeout(
       const Duration(seconds: 5),
       onTimeout: () {
@@ -81,6 +81,7 @@ class CounterApi {
     });
 
     if (response.statusCode == 200) {
+      print('Main body: ${response.body}');
       var receivedData = json.decode(response.body);
       receivedData['weight'] = receivedData['weight'].toDouble();
       receivedData['purchasePrice'] = receivedData['purchasePrice'].toDouble();
@@ -151,7 +152,6 @@ class CounterApi {
         return http.Response('Error', 408);
       },
     ).catchError((err) {
-      print('👉 : $err');
       throw Exception('Failed to fetch data.');
     });
 
